@@ -1,8 +1,10 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { PricingCard } from "@/components/pricing-card";
-import { BenefitCard } from "@/components/benefit-card";
+import { PricingCard } from "@/components/pricing/pricing-card";
+import { BenefitCard } from "@/components/pricing/benefit-card";
+import { FeatureComparisonTable } from "@/components/pricing/feature-comparison-table";
+import { FAQCard } from "@/components/pricing/faq-card";
 import { Crown, Download, Sparkles, Zap } from "lucide-react";
 
 export default function PricingPage() {
@@ -24,6 +26,14 @@ export default function PricingPage() {
     { name: "Full document access", included: true },
     { name: "AI-generated summaries", included: true },
     { name: "Early access to features", included: true },
+  ];
+
+  const comparisonFeatures = [
+    { name: "Daily Downloads", free: "3", premium: "Unlimited" },
+    { name: "Citation Generations", free: "5/day", premium: "Unlimited" },
+    { name: "Bookmarks", free: "5 max", premium: "Unlimited" },
+    { name: "AI Summaries", free: true, premium: true },
+    { name: "Advertisements", free: "20s before download", premium: "None" },
   ];
 
   return (
@@ -97,14 +107,28 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="flex flex-col items-center justify-center bg-white text-black">
-          <h2 className="font-extrabold text-3xl">Feature Comparison</h2>
-
+        <section className="flex flex-col items-center justify-center bg-white text-black py-16 px-8">
+          <h2 className="font-extrabold text-3xl mb-12">Feature Comparison</h2>
+          <FeatureComparisonTable features={comparisonFeatures} />
         </section>
 
         <section className="flex flex-col items-center justify-center bg-slate-100 text-black">
           <h2 className="font-extrabold text-3xl">Frequently Asked Questions</h2>
           
+          <div className="w-full max-w-4xl space-y-6">
+            <FAQCard
+              question="What payment methods do you accept?"
+              answer="We accept credit cards, debit cards, and GCash for Premium subscriptions."
+            />
+            <FAQCard
+              question="Do I only need to purchase once?"
+              answer="Yes! It's a one-time payment that gives you lifetime access — no subscriptions, renewals, or hidden fees."
+            />
+            <FAQCard
+              question="Can I transfer my lifetime access to someone else?"
+              answer="Lifetime access is non-transferable and is tied to your account or email upon purchase."
+            />
+          </div>
         </section>
 
         <section className="flex flex-col items-center justify-center bg-red-900 text-white">
@@ -114,7 +138,6 @@ export default function PricingPage() {
           <button>
             <span><Crown className="text-yellow-600" />Upgrade to Premium</span>
           </button>
-          
         </section>
       </main>
     </div>
