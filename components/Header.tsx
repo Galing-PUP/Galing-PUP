@@ -26,7 +26,7 @@ type HeaderProps = {
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/", exact: true },
-  { label: "Browse", href: "/browse" },
+  { label: "Browse", href: "/search-results" },
   { label: "My Library", href: "/library" },
   { label: "Pricing", href: "/pricing" },
 ];
@@ -67,7 +67,7 @@ export function Header({
     <header
       className={`w-full border-b border-neutral-200 bg-white ${className}`}
     >
-      <div className="mx-auto grid h-20 max-w-6xl grid-cols-3 items-center gap-4 px-4 md:gap-8 md:px-8">
+      <div className="mx-auto w-full grid h-20 max-w-8xl grid-cols-3 items-center gap-4 px-4 md:gap-8 md:px-8">
         <Link
           href="/"
           className="flex items-center gap-3 justify-self-start"
