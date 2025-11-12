@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import starLogo from "@/assets/Logo/star-logo-yellow.svg";
+import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
 
 export default function SignInPage() {
@@ -74,4 +74,3 @@ export default function SignInPage() {
     </div>
   );
 }
-
