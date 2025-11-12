@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
+import { Button, GoogleIcon } from "@/components/Button";
 
 export default function SignInPage() {
   return (
@@ -37,14 +38,32 @@ export default function SignInPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* TODO: Add Continue with Google button */}
-            {/* TODO: Add Continue as Guest button */}
-          </div>
+            <Button
+              variant="outline"
+              size="lg"
+              fullWidth
+              icon={<GoogleIcon />}
+              iconPosition="left"
+              className="border-neutral-300"
+              shape="rounded"
+            >
+              Continue with Google
+            </Button>
 
-          <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
-            <span className="h-px flex-1 bg-neutral-200" />
-            OR
-            <span className="h-px flex-1 bg-neutral-200" />
+            <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
+              <span className="h-px flex-1 bg-neutral-200" />
+              OR
+              <span className="h-px flex-1 bg-neutral-200" />
+            </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              shape="rounded"
+            >
+              Continue as Guest
+            </Button>
           </div>
         </div>
 
