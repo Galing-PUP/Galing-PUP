@@ -37,10 +37,10 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header />
       <main>
-        <section className="flex flex-col items-center justify-center bg-red-900">
+        <section className="flex flex-col items-center justify-center bg-red-900 py-8">
           <span>
             <Crown className="text-yellow-600" /> Choose your plan
           </span>
@@ -49,7 +49,7 @@ export default function PricingPage() {
           Choose the plan that fits your research needs.
         </section>
         {/* Pricing Cards Grid */}
-        <section className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <section className="flex items-center justify-center gap-8 py-16 bg-white">
           {/* Free Tier Card */}
           <PricingCard
             title="Free Tier"
@@ -82,7 +82,7 @@ export default function PricingPage() {
           />
         </section>
 
-        <section className="flex flex-col items-center justify-center bg-slate-100 text-black">
+        <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-10 gap-y-4">
           <h2 className="font-extrabold text-3xl">Why Go Premium?</h2>
           <p>
             Unlock the full potential of GALING PUP with Premium features designed for serious researchers
@@ -107,12 +107,12 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="flex flex-col items-center justify-center bg-white text-black py-16 px-8">
-          <h2 className="font-extrabold text-3xl mb-12">Feature Comparison</h2>
+        <section className="flex flex-col items-center justify-center bg-white text-black py-10 gap-y-4">
+          <h2 className="font-extrabold text-3xl">Feature Comparison</h2>
           <FeatureComparisonTable features={comparisonFeatures} />
         </section>
 
-        <section className="flex flex-col items-center justify-center bg-slate-100 text-black">
+        <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-10 gap-y-4">
           <h2 className="font-extrabold text-3xl">Frequently Asked Questions</h2>
           
           <div className="w-full max-w-4xl space-y-6">
@@ -131,7 +131,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="flex flex-col items-center justify-center bg-red-900 text-white">
+        <section className="flex flex-col items-center justify-center bg-red-900 text-white py-10 gap-y-4">
           <Crown className="text-yellow-600" />
           <h2>Ready to Upgrade?</h2>
           <p>Join hundreds of Premium members enjoying unlimited access to academic resources</p>
