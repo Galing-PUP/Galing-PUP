@@ -1,10 +1,10 @@
 "use client";
 
-import { Header } from "@/components/Header";
-import { SearchBar } from "@/components/SearchBar";
-import { FilterBox } from "@/components/Filter-Box";
-import { SearchResultCard } from "@/components/SearchResultCard";
-import { SortDropdown } from "@/components/Sort-Dropdown";
+import { Header } from "@/components/header";
+import { SearchBar } from "@/components/search-bar";
+import { FilterBox } from "@/components/filter-box";
+import { SearchResultCard } from "@/components/search-result-card";
+import { SortDropdown } from "@/components/sort-dropdown";
 import { mockResults } from "@/data/mockResults";
 import { useState } from "react";
 

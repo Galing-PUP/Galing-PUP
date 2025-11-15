@@ -1,5 +1,5 @@
 
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header";
 import { Abstract } from "@/components/paper/abstract";
 import { ActionButtons } from "@/components/paper/action-buttons";
 import { AiInsights } from "@/components/paper/ai-insights";
