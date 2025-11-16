@@ -1,6 +1,6 @@
 "use client";
 
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header";
 import { PricingCard } from "@/components/pricing/pricing-card";
 import { BenefitCard } from "@/components/pricing/benefit-card";
 import { FeatureComparisonTable } from "@/components/pricing/feature-comparison-table";

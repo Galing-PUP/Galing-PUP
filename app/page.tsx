@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header";
 import BackgroundGraphic from "@/assets/Graphics/background-homepage.png";
 import LogoDefault from "@/assets/Logo/logo-default.png";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/search-bar";
 
 export default function Home() {
   return (

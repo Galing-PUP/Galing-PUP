@@ -1,3 +1,6 @@
+
+import Link from "next/link";
+
 type SearchResult = {
   id: number;
   title: string;
@@ -25,9 +28,11 @@ export function SearchResultCard({
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="flex-1">
           {/* Title */}
-          <h3 className="mb-2 text-lg font-bold text-red-900 hover:text-[#6b0504] transition-colors">
-            {result.title}
-          </h3>
+          <Link href={`/paper/${result.id}`}>
+            <h3 className="mb-2 text-lg font-bold text-red-900 hover:text-[#6b0504] transition-colors">
+              {result.title}
+            </h3>
+          </Link>
 
           {/* Authors and Details */}
           <div className="mb-3 text-sm text-gray-600">

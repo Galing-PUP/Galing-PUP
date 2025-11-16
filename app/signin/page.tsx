@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import { Button, GoogleIcon } from "@/components/Button";
+import { Button, GoogleIcon } from "@/components/button";
 
 export default function SignInPage() {
   return (
