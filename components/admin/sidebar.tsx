@@ -7,12 +7,7 @@ import StarLogo from "@/assets/Logo/star-logo-yellow.png";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, SVGProps, ComponentType } from "react";
 
-import UploadIcon from "@/assets/Icons/small/upload-icon.svg";
-import ArchiveIcon from "@/assets/Icons/small/archive-icon.svg";
-import UserIcon from "@/assets/Icons/small/user-icon.svg";
-import PaperIcon from "@/assets/Icons/small/paper-icon.svg";
-import SignoutIcon from "@/assets/Icons/small/signout-icon.svg";
-import { UsersIcon } from "lucide-react";
+import { Upload, Archive, User, FileText, LogOut } from "lucide-react";
 
 // Props for the navigation item
 type NavItem = {
@@ -27,27 +22,27 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: "Submit Publication",
     href: "/admin/submit",
-    icon: UploadIcon,
+    icon: Upload,
   },
   {
     label: "Published Works",
     href: "/admin/works",
-    icon: ArchiveIcon,
+    icon: Archive,
   },
   {
     label: "User Role Manager",
     href: "/admin/users",
-    icon: UserIcon,
+    icon: User,
   },
   {
     label: "Content Approval",
     href: "/admin/approval",
-    icon: PaperIcon,
+    icon: FileText,
   },
    {
     label: "Sign Out",
     href: "/signout",
-    icon: SignoutIcon,
+    icon: LogOut,
   },
 ];
 
