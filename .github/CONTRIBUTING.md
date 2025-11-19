@@ -2,6 +2,29 @@
 
 We welcome contributions! Please follow these guidelines to maintain code quality and consistency.
 
+- [Contributing](#contributing)
+    - [Branch Workflow](#branch-workflow)
+      - [Workflow Steps](#workflow-steps)
+    - [File Naming Conventions](#file-naming-conventions)
+      - [Components](#components)
+      - [Pages (App Router)](#pages-app-router)
+      - [Utilities \& Data](#utilities--data)
+      - [Types \& Interfaces](#types--interfaces)
+    - [Code Style Guidelines](#code-style-guidelines)
+      - [TypeScript](#typescript)
+      - [React Components](#react-components)
+      - [Styling](#styling)
+      - [Imports](#imports)
+    - [Using Next.js MCP Server (VS Code Copilot Users)](#using-nextjs-mcp-server-vs-code-copilot-users)
+    - [Adding shadcn/ui Components](#adding-shadcnui-components)
+    - [Project Structure](#project-structure)
+    - [Commit Message Convention](#commit-message-convention)
+    - [Testing](#testing)
+    - [Pull Request Guidelines](#pull-request-guidelines)
+  - [Deployment](#deployment)
+  - [Learn More](#learn-more)
+  - [Support](#support)
+
 ### Branch Workflow
 
 - **`main`** - Production-ready code. Deployments happen from this branch.
@@ -21,6 +44,31 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
    ```
 
 2. **Make your changes** following the coding standards below.
+
+>[!IMPORTANT] **Commit Message Guidelines (Conventional Commits)**  
+> Use these prefixes in your commit messages to maintain consistency and clarity.
+
+- `feat:` Add a new feature or capability  
+  Example: `feat: implement search filter component`
+
+- `fix:` Correct a bug or resolve an issue  
+  Example: `fix: resolve navigation error on mobile`
+
+- `chore:` Maintenance tasks or refactoring that does not affect functionality  
+  Example: `chore: update dependencies`  
+
+- `docs:` Documentation-only changes  
+  Example: `docs: update CONTRIBUTING.md`
+
+- `style:` Code style, formatting, or whitespace changes (no logic change)  
+  Example: `style: fix indentation in utils.ts`
+
+- `refactor:` Code restructuring without adding features or fixing bugs  
+  Example: `refactor: simplify search-bar component logic`
+
+- `test:` Add or update tests  
+  Example: `test: add unit tests for login component`
+
 
 3. **Commit your changes**:
 
