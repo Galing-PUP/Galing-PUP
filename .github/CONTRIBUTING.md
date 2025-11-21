@@ -1,18 +1,8 @@
-# Galing-PUP
+# Contributing
 
-![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+We welcome contributions! Please follow these guidelines to maintain code quality and consistency.
 
-
-A Next.js application for academic research paper discovery and analysis, built with Next.js 16, React 19, and shadcn/ui.
-
-
-- [Galing-PUP](#galing-pup)
-  - [Tech Stack](#tech-stack)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-  - [Contributing](#contributing)
+- [Contributing](#contributing)
     - [Branch Workflow](#branch-workflow)
       - [Workflow Steps](#workflow-steps)
     - [File Naming Conventions](#file-naming-conventions)
@@ -35,62 +25,6 @@ A Next.js application for academic research paper discovery and analysis, built 
   - [Learn More](#learn-more)
   - [Support](#support)
 
-
-## Tech Stack
-
-- **Framework:** [Next.js 16](https://nextjs.org) (App Router)
-- **React:** 19.2.0
-- **Styling:** [Tailwind CSS v4](https://tailwindcss.com)
-- **UI Components:** [shadcn/ui](https://ui.shadcn.com)
-- **Icons:** [Lucide React](https://lucide.dev)
-- **Type Safety:** TypeScript
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm, yarn, pnpm, or bun
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/Galing-PUP/Galing-PUP.git
-   cd Galing-PUP
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   # or
-   bun install
-   ```
-
-3. Run the development server:
-
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   # or
-   bun dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Contributing
-
-We welcome contributions! Please follow these guidelines to maintain code quality and consistency.
-
 ### Branch Workflow
 
 - **`main`** - Production-ready code. Deployments happen from this branch.
@@ -108,7 +42,6 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
    # or
    git checkout -b fix/your-fix-name
    ```
-
 
 2. **Make your changes** following the coding standards below.
 
@@ -135,6 +68,7 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
 
 - `test:` Add or update tests  
   Example: `test: add unit tests for login component`
+
 
 3. **Commit your changes**:
 
