@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
+import { SignInModal } from "./SignInModal";
 
 type NavItem = {
   label: string;
@@ -48,6 +49,7 @@ export function Header({
   className = "",
 }: HeaderProps) {
   const pathname = usePathname();
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
   const activeLookup = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -64,9 +66,14 @@ export function Header({
   }, [navItems, pathname]);
 
   return (
-    <header
-      className={`w-full border-b border-neutral-200 bg-white ${className}`}
-    >
+    <>
+      <SignInModal
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+      />
+      <header
+        className={`w-full border-b border-neutral-200 bg-white ${className}`}
+      >
       <div className="mx-auto w-full grid h-20 max-w-8xl grid-cols-3 items-center gap-4 px-4 md:gap-8 md:px-8">
         <Link
           href="/"
@@ -106,8 +113,8 @@ export function Header({
 
         {/* Authentication Buttons (Sign In, Create Account) */}
         <div className="hidden items-center justify-self-end gap-4 md:flex col-start-3 col-end-4">
-          <Link
-            href={signIn.href}
+          <button
+            onClick={() => setIsSignInModalOpen(true)}
             className="flex items-center gap-2 text-sm font-bold text-red-700 transition-colors duration-200 hover:text-gray-900"
           >
             <svg
@@ -125,7 +132,7 @@ export function Header({
               <path d="M20.59 21a8 8 0 0 0-17.18 0" />
             </svg>
             <span>{signIn.label}</span>
-          </Link>
+          </button>
 
           <Link
             href={primaryAction.href}
@@ -158,6 +165,7 @@ export function Header({
         </div>
       </div>
     </header>
+    </>
   );
 }
 
