@@ -40,11 +40,11 @@ export default function PricingPage() {
     <div className="min-h-screen">
       <Header />
       <main>
-        <section className="flex flex-col items-center justify-center bg-red-900 py-8">
-          <span>
+        <section className="flex flex-col items-center justify-center bg-red-900 py-8 text-white">
+          <span className="text-white flex items-center gap-2">
             <Crown className="text-yellow-600" /> Choose your plan
           </span>
-          <h2 className="font-extrabold text-3xl">Subscription Plans</h2>
+          <h2 className="font-extrabold text-3xl text-white">Subscription Plans</h2>
           Start with our free tier or unlock unlimited access with Premium.
           Choose the plan that fits your research needs.
         </section>
