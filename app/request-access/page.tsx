@@ -10,7 +10,7 @@ import sideIllustration from "@/assets/Graphics/side-img-staff-registration.png"
 export default function RequestAccessPage() {
   // State to track form values
   const [formData, setFormData] = useState({
-    fullName: "Tonie Marie U. Followe",
+    fullName: "",
     college: "",
     email: "",
     idNumber: "",
