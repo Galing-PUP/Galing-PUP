@@ -141,7 +141,8 @@ export default function RequestAccessPage() {
                   > 
                     <option value="">Select your college or department</option>
                     <option value="CAF">College of Accountancy and Finance (CAF)</option>
-                    <option value="CEA">College of Engineering and Architecture (CEA)</option>
+                    <option value="CE">College of Engineering (CEA)</option>
+                    <option value="CADBE">College of Architecture, Design and the Built Environment (CADBE)</option>
                     <option value="CAL">College of Arts and Letters (CAL)</option>
                     <option value="CBA">College of Business Administration (CBA)</option>
                     <option value="COC">College of Communication (COC)</option>
