@@ -1,10 +1,66 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 import sideIllustration from "@/assets/Graphics/side-img-staff-registration.png";
 
 export default function RequestAccessPage() {
+  // State to track form values
+  const [formData, setFormData] = useState({
+    fullName: "",
+    college: "",
+    email: "",
+    idNumber: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [fileName, setFileName] = useState("No file chosen");
+  const [hasFile, setHasFile] = useState(false);
+  
+  // State for password visibility toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Handle text input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle file input changes
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFileName(e.target.files[0].name);
+      setHasFile(true);
+    } else {
+      setFileName("No file chosen");
+      setHasFile(false);
+    }
+  };
+
+  // Logic to determine if the button should be enabled
+  const doPasswordsMatch =
+    formData.password && formData.password === formData.confirmPassword;
+  
+  const areAllFieldsFilled =
+    formData.fullName.trim() !== "" &&
+    formData.college !== "" &&
+    formData.email.trim() !== "" &&
+    formData.idNumber.trim() !== "" &&
+    formData.password.trim() !== "" &&
+    formData.confirmPassword.trim() !== "";
+
+  const isFormValid = doPasswordsMatch && areAllFieldsFilled && hasFile;
+
   return (
     <div className="flex h-screen overflow-hidden bg-white">
       {/* Left Side - Background Illustration */}
@@ -58,7 +114,10 @@ export default function RequestAccessPage() {
                 <input
                   type="text"
                   id="fullName"
-                  defaultValue="Tonie Marie U. Followe"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  required
                   className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                 />
               </div>
@@ -74,11 +133,16 @@ export default function RequestAccessPage() {
                 <div className="relative">
                   <select
                     id="college"
+                    name="college"
+                    value={formData.college}
+                    onChange={handleInputChange}
+                    required
                     className="w-full appearance-none rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                   > 
                     <option value="">Select your college or department</option>
                     <option value="CAF">College of Accountancy and Finance (CAF)</option>
-                    <option value="CEA">College of Engineering and Architecture (CEA)</option>
+                    <option value="CE">College of Engineering (CEA)</option>
+                    <option value="CADBE">College of Architecture, Design and the Built Environment (CADBE)</option>
                     <option value="CAL">College of Arts and Letters (CAL)</option>
                     <option value="CBA">College of Business Administration (CBA)</option>
                     <option value="COC">College of Communication (COC)</option>
@@ -121,6 +185,10 @@ export default function RequestAccessPage() {
                   <input
                     type="email"
                     id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
                     placeholder="Enter your official email address"
                     className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                   />
@@ -135,6 +203,10 @@ export default function RequestAccessPage() {
                   <input
                     type="text"
                     id="idNumber"
+                    name="idNumber"
+                    value={formData.idNumber}
+                    onChange={handleInputChange}
+                    required
                     placeholder="Enter your ID number"
                     className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                   />
@@ -143,6 +215,7 @@ export default function RequestAccessPage() {
 
               {/* Password and Confirm Password Row */}
               <div className="grid grid-cols-2 gap-4">
+                {/* Password Field */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="password"
@@ -150,13 +223,32 @@ export default function RequestAccessPage() {
                   >
                     Password
                   </label>
-                  <input
-                    type="password"
-                    id="password"
-                    placeholder="Enter your password"
-                    className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter your password"
+                      className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 focus:outline-none"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Confirm Password Field */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="confirmPassword"
@@ -164,12 +256,41 @@ export default function RequestAccessPage() {
                   >
                     Confirm Password
                   </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    placeholder="Confirm your password"
-                    className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Confirm your password"
+                      className={`w-full rounded-md border px-3.5 py-2.5 pr-10 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 
+                        ${
+                          formData.confirmPassword && !doPasswordsMatch
+                            ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                            : "border-neutral-300 focus:border-neutral-400 focus:ring-neutral-400"
+                        }
+                      `}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-600 focus:outline-none"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                    {/* Visual hint if passwords don't match */}
+                    {formData.confirmPassword && !doPasswordsMatch && (
+                      <p className="absolute -bottom-5 left-0 text-xs text-red-600">
+                        Passwords do not match
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -191,11 +312,13 @@ export default function RequestAccessPage() {
                   <input
                     type="file"
                     id="idImage"
+                    name="idImage"
                     accept="image/*"
+                    onChange={handleFileChange}
                     className="hidden"
                   />
                   <div className="flex flex-1 items-center rounded-r-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-400">
-                    No file chosen
+                    {fileName}
                   </div>
                 </div>
               </div>
@@ -210,7 +333,14 @@ export default function RequestAccessPage() {
                 </Link>
                 <button
                   type="submit"
-                  className="rounded-md bg-[#7C1D1D] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5a1515]"
+                  disabled={!isFormValid}
+                  className={`rounded-md px-6 py-2.5 text-sm font-semibold text-white transition 
+                    ${
+                      isFormValid
+                        ? "bg-[#7C1D1D] hover:bg-[#5a1515] cursor-pointer"
+                        : "bg-neutral-400 cursor-not-allowed opacity-70"
+                    }
+                  `}
                 >
                   Create Account Request
                 </button>
