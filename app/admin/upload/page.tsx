@@ -261,30 +261,29 @@ export default function Upload() {
               Authorship & Academic Details
             </h3>
 
-            {/* Authors and Adviser Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label
-                  htmlFor="authors"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Authors
-                </label>
-                <input
-                  type="text"
-                  id="authors"
-                  name="authors"
-                  value={formData.authors}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                  style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
-                  }
-                  placeholder="Enter all authors (e.g., Juan Dela Cruz, Maria Santos)"
-                  required
-                />
-              </div>
+            {/* Authors - Full Row */}
+            <div className="mb-6">
+              <label
+                htmlFor="authors"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Authors
+              </label>
+              <input
+                type="text"
+                id="authors"
+                name="authors"
+                value={formData.authors}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                placeholder="Enter all authors (e.g., Juan Dela Cruz, Maria Santos)"
+                required
+              />
+            </div>
 
+            {/* Adviser and Campus Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label
                   htmlFor="adviser"
@@ -306,10 +305,7 @@ export default function Upload() {
                   required
                 />
               </div>
-            </div>
 
-            {/* Campus and College Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label
                   htmlFor="campus"
@@ -337,7 +333,10 @@ export default function Upload() {
                   <option value="unisan">Unisan Branch</option>
                 </select>
               </div>
+            </div>
 
+            {/* College and Department Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label
                   htmlFor="college"
@@ -373,10 +372,7 @@ export default function Upload() {
                   </option>
                 </select>
               </div>
-            </div>
 
-            {/* Department and Library Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <label
                   htmlFor="department"
@@ -413,28 +409,27 @@ export default function Upload() {
                   <option value="accounting">Department of Accounting</option>
                 </select>
               </div>
+            </div>
 
-              <div>
-                <label
-                  htmlFor="library"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Library
-                </label>
-                <input
-                  type="text"
-                  id="library"
-                  name="library"
-                  value={formData.library}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                  style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
-                  }
-                  placeholder="Enter the affiliated library"
-                  required
-                />
-              </div>
+            {/* Library - Full Row */}
+            <div className="mb-6">
+              <label
+                htmlFor="library"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Library
+              </label>
+              <input
+                type="text"
+                id="library"
+                name="library"
+                value={formData.library}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                placeholder="Enter the affiliated library"
+                required
+              />
             </div>
           </div>
 
