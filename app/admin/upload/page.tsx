@@ -77,7 +77,7 @@ export default function Upload() {
         <form onSubmit={handleSubmit}>
           {/* Form Header */}
           <div className="mb-6 border-b pb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
+            <h2 className="text-xl font-bold text-gray-800">
               Publication Submission Form
             </h2>
             <p className="text-sm text-gray-500">All fields are required</p>
@@ -165,18 +165,37 @@ export default function Upload() {
                 >
                   Date of Publication
                 </label>
-                <input
-                  type="date"
-                  id="datePublished"
-                  name="datePublished"
-                  value={formData.datePublished}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                  style={
-                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
-                  }
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    id="datePublished"
+                    name="datePublished"
+                    value={formData.datePublished}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent scheme-light [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    style={
+                      {
+                        "--tw-ring-color": "#4B5563",
+                      } as React.CSSProperties
+                    }
+                    required
+                  />
+                  <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* Resource Type */}
@@ -187,24 +206,43 @@ export default function Upload() {
                 >
                   Resource Type
                 </label>
-                <select
-                  id="resourceType"
-                  name="resourceType"
-                  value={formData.resourceType}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
-                  style={
-                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
-                  }
-                  required
-                >
-                  <option value="">Select type of resource</option>
-                  <option value="thesis">Thesis</option>
-                  <option value="capstone">Capstone</option>
-                  <option value="article">Article</option>
-                  <option value="dissertation">Dissertation</option>
-                  <option value="journal">Journal</option>
-                </select>
+                <div className="relative">
+                  <select
+                    id="resourceType"
+                    name="resourceType"
+                    value={formData.resourceType}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white appearance-none"
+                    style={
+                      {
+                        "--tw-ring-color": "#4B5563",
+                      } as React.CSSProperties
+                    }
+                    required
+                  >
+                    <option value="">Select type of resource</option>
+                    <option value="thesis">Thesis</option>
+                    <option value="capstone">Capstone</option>
+                    <option value="article">Article</option>
+                    <option value="dissertation">Dissertation</option>
+                    <option value="journal">Journal</option>
+                  </select>
+                  <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* Visibility */}
@@ -313,25 +351,44 @@ export default function Upload() {
                 >
                   Campus
                 </label>
-                <select
-                  id="campus"
-                  name="campus"
-                  value={formData.campus}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
-                  style={
-                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
-                  }
-                  required
-                >
-                  <option value="">Select your campus or branch</option>
-                  <option value="main">Main Campus (Sta. Mesa)</option>
-                  <option value="bataan">Bataan Branch</option>
-                  <option value="bansud">Bansud Branch</option>
-                  <option value="lopez">Lopez Branch</option>
-                  <option value="mulanay">Mulanay Branch</option>
-                  <option value="unisan">Unisan Branch</option>
-                </select>
+                <div className="relative">
+                  <select
+                    id="campus"
+                    name="campus"
+                    value={formData.campus}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white appearance-none"
+                    style={
+                      {
+                        "--tw-ring-color": "#4B5563",
+                      } as React.CSSProperties
+                    }
+                    required
+                  >
+                    <option value="">Select your campus or branch</option>
+                    <option value="main">Main Campus (Sta. Mesa)</option>
+                    <option value="bataan">Bataan Branch</option>
+                    <option value="bansud">Bansud Branch</option>
+                    <option value="lopez">Lopez Branch</option>
+                    <option value="mulanay">Mulanay Branch</option>
+                    <option value="unisan">Unisan Branch</option>
+                  </select>
+                  <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -344,33 +401,52 @@ export default function Upload() {
                 >
                   College
                 </label>
-                <select
-                  id="college"
-                  name="college"
-                  value={formData.college}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
-                  style={
-                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
-                  }
-                  required
-                >
-                  <option value="">
-                    Select the college name (e.g., College of Engineering)
-                  </option>
-                  <option value="coe">College of Engineering</option>
-                  <option value="cics">
-                    College of Computer and Information Sciences
-                  </option>
-                  <option value="cba">
-                    College of Business Administration
-                  </option>
-                  <option value="coed">College of Education</option>
-                  <option value="coss">College of Social Sciences</option>
-                  <option value="caf">
-                    College of Architecture and Fine Arts
-                  </option>
-                </select>
+                <div className="relative">
+                  <select
+                    id="college"
+                    name="college"
+                    value={formData.college}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white appearance-none"
+                    style={
+                      {
+                        "--tw-ring-color": "#4B5563",
+                      } as React.CSSProperties
+                    }
+                    required
+                  >
+                    <option value="">
+                      Select the college name (e.g., College of Engineering)
+                    </option>
+                    <option value="coe">College of Engineering</option>
+                    <option value="cics">
+                      College of Computer and Information Sciences
+                    </option>
+                    <option value="cba">
+                      College of Business Administration
+                    </option>
+                    <option value="coed">College of Education</option>
+                    <option value="coss">College of Social Sciences</option>
+                    <option value="caf">
+                      College of Architecture and Fine Arts
+                    </option>
+                  </select>
+                  <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -380,34 +456,53 @@ export default function Upload() {
                 >
                   Department
                 </label>
-                <select
-                  id="department"
-                  name="department"
-                  value={formData.department}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
-                  style={
-                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
-                  }
-                  required
-                >
-                  <option value="">
-                    Select your department (e.g., Department of Computer
-                    Science)
-                  </option>
-                  <option value="cs">Department of Computer Science</option>
-                  <option value="it">
-                    Department of Information Technology
-                  </option>
-                  <option value="ce">Department of Civil Engineering</option>
-                  <option value="me">
-                    Department of Mechanical Engineering
-                  </option>
-                  <option value="ee">
-                    Department of Electrical Engineering
-                  </option>
-                  <option value="accounting">Department of Accounting</option>
-                </select>
+                <div className="relative">
+                  <select
+                    id="department"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white appearance-none"
+                    style={
+                      {
+                        "--tw-ring-color": "#4B5563",
+                      } as React.CSSProperties
+                    }
+                    required
+                  >
+                    <option value="">
+                      Select your department (e.g., Department of Computer
+                      Science)
+                    </option>
+                    <option value="cs">Department of Computer Science</option>
+                    <option value="it">
+                      Department of Information Technology
+                    </option>
+                    <option value="ce">Department of Civil Engineering</option>
+                    <option value="me">
+                      Department of Mechanical Engineering
+                    </option>
+                    <option value="ee">
+                      Department of Electrical Engineering
+                    </option>
+                    <option value="accounting">Department of Accounting</option>
+                  </select>
+                  <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
 
