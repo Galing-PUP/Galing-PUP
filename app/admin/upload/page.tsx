@@ -107,7 +107,7 @@ export default function Upload() {
                 value={formData.title}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                style={{ "--tw-ring-color": "#4B5563" } as React.CSSProperties}
                 placeholder="Enter the full title of the publication"
                 required
               />
@@ -128,7 +128,7 @@ export default function Upload() {
                 onChange={handleInputChange}
                 rows={6}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent resize-none"
-                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                style={{ "--tw-ring-color": "#4B5563" } as React.CSSProperties}
                 placeholder="Enter a brief summary of your research (150-300 words)"
                 required
               />
@@ -149,7 +149,7 @@ export default function Upload() {
                 value={formData.keywords}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                style={{ "--tw-ring-color": "#4B5563" } as React.CSSProperties}
                 placeholder="Enter relevant keywords separated by commas (e.g., AI, machine learning, data analysis)"
                 required
               />
@@ -173,7 +173,7 @@ export default function Upload() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                   style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
+                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
                   }
                   required
                 />
@@ -194,7 +194,7 @@ export default function Upload() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
                   style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
+                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
                   }
                   required
                 >
@@ -223,8 +223,8 @@ export default function Upload() {
                       className="w-4 h-4 focus:ring-2"
                       style={
                         {
-                          accentColor: "#800000",
-                          "--tw-ring-color": "#800000",
+                          accentColor: "#4B5563",
+                          "--tw-ring-color": "#4B5563",
                         } as React.CSSProperties
                       }
                     />
@@ -240,8 +240,8 @@ export default function Upload() {
                       className="w-4 h-4 focus:ring-2"
                       style={
                         {
-                          accentColor: "#800000",
-                          "--tw-ring-color": "#800000",
+                          accentColor: "#4B5563",
+                          "--tw-ring-color": "#4B5563",
                         } as React.CSSProperties
                       }
                     />
@@ -276,7 +276,7 @@ export default function Upload() {
                 value={formData.authors}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                style={{ "--tw-ring-color": "#4B5563" } as React.CSSProperties}
                 placeholder="Enter all authors (e.g., Juan Dela Cruz, Maria Santos)"
                 required
               />
@@ -299,7 +299,7 @@ export default function Upload() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                   style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
+                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
                   }
                   placeholder="Enter the full name of your adviser"
                   required
@@ -320,7 +320,7 @@ export default function Upload() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
                   style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
+                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
                   }
                   required
                 >
@@ -351,7 +351,7 @@ export default function Upload() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
                   style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
+                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
                   }
                   required
                 >
@@ -387,7 +387,7 @@ export default function Upload() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent bg-white"
                   style={
-                    { "--tw-ring-color": "#800000" } as React.CSSProperties
+                    { "--tw-ring-color": "#4B5563" } as React.CSSProperties
                   }
                   required
                 >
@@ -426,7 +426,7 @@ export default function Upload() {
                 value={formData.library}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
-                style={{ "--tw-ring-color": "#800000" } as React.CSSProperties}
+                style={{ "--tw-ring-color": "#4B5563" } as React.CSSProperties}
                 placeholder="Enter the affiliated library"
                 required
               />
@@ -452,7 +452,7 @@ export default function Upload() {
               <div className="flex items-center gap-4">
                 <label
                   htmlFor="file"
-                  className="px-6 py-2 bg-pink-100 text-gray-700 rounded-md cursor-pointer hover:bg-pink-200 transition-colors border border-pink-200"
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-md cursor-pointer hover:bg-gray-200 transition-colors border border-gray-300"
                 >
                   Upload File
                 </label>
@@ -465,9 +465,11 @@ export default function Upload() {
                   accept=".pdf,.doc,.docx"
                   required
                 />
-                <span className="text-sm text-gray-500">
-                  {formData.file ? formData.file.name : "No file chosen"}
-                </span>
+                <div className="flex-1 px-4 py-2 border border-gray-300 rounded-md">
+                  <span className="text-sm text-gray-500">
+                    {formData.file ? formData.file.name : "No file chosen"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
