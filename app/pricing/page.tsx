@@ -48,7 +48,9 @@ export default function PricingPage() {
             Subscription Plans
           </h2>
           <div className="text-center">
-            <p>Start with our free tier or unlock unlimited access with Premium.</p>
+            <p>
+              Start with our free tier or unlock unlimited access with Premium.
+            </p>
             <p>Choose the plan that fits your research needs.</p>
           </div>
         </section>
@@ -139,18 +141,18 @@ export default function PricingPage() {
         </section>
 
         <section className="flex flex-col items-center justify-center bg-red-900 text-white py-10 gap-y-4">
-          <span className="text-white flex items-center gap-2">
-            <Crown className="text-yellow-600" /> <h2>Ready to Upgrade?</h2>
-          </span>
+          <Crown className="text-yellow-400 w-10 h-10" />
+          <h2 className="text-3xl">Ready to Upgrade?</h2>
           <p>
             Join hundreds of Premium members enjoying unlimited access to
             academic resources
           </p>
-          <button>
+          {/* commenting the button below, since we don't plan to implement a 'free trial' program */}
+          {/* <button>
             <span className="text-white flex items-center gap-2">
-              <Crown className="text-yellow-600" /> Upgrade to Premium
+              <Crown className="text-yellow-400" /> Upgrade to Premium
             </span>
-          </button>
+          </button> */}
         </section>
       </main>
     </div>
