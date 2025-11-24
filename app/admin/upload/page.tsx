@@ -250,40 +250,67 @@ export default function Upload() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Visibility
                 </label>
-                <div className="flex items-center gap-6 h-10">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="flex border border-gray-300 rounded-md overflow-hidden h-10">
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-3 cursor-pointer transition-colors ${
+                      formData.visibility === "public"
+                        ? "bg-red-100"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="visibility"
                       value="public"
                       checked={formData.visibility === "public"}
                       onChange={handleInputChange}
-                      className="w-4 h-4 focus:ring-2"
-                      style={
-                        {
-                          accentColor: "#4B5563",
-                          "--tw-ring-color": "#4B5563",
-                        } as React.CSSProperties
-                      }
+                      className="sr-only"
                     />
-                    <span className="text-sm text-gray-700">Public</span>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.visibility === "public"
+                          ? "border-[#800000]"
+                          : "border-gray-400"
+                      }`}
+                    >
+                      {formData.visibility === "public" && (
+                        <div className="w-3 h-3 rounded-full bg-[#800000]" />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      Public
+                    </span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="w-px bg-gray-300" />
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-3 cursor-pointer transition-colors ${
+                      formData.visibility === "restricted"
+                        ? "bg-red-100"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="visibility"
                       value="restricted"
                       checked={formData.visibility === "restricted"}
                       onChange={handleInputChange}
-                      className="w-4 h-4 focus:ring-2"
-                      style={
-                        {
-                          accentColor: "#4B5563",
-                          "--tw-ring-color": "#4B5563",
-                        } as React.CSSProperties
-                      }
+                      className="sr-only"
                     />
-                    <span className="text-sm text-gray-700">Restricted</span>
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.visibility === "restricted"
+                          ? "border-[#800000]"
+                          : "border-gray-400"
+                      }`}
+                    >
+                      {formData.visibility === "restricted" && (
+                        <div className="w-3 h-3 rounded-full bg-[#800000]" />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      Restricted
+                    </span>
                   </label>
                 </div>
               </div>
