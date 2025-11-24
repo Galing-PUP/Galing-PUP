@@ -40,13 +40,17 @@ export default function PricingPage() {
     <div className="min-h-screen">
       <Header />
       <main>
-        <section className="flex flex-col items-center justify-center bg-red-900 py-8 text-white">
-          <span className="text-white flex items-center gap-2">
-            <Crown className="text-yellow-600" /> Choose your plan
+        <section className="flex flex-col items-center justify-center space-y-6 bg-red-900 py-8 text-white">
+          <span className="bg-white/10 rounded-full px-3 py-1 flex items-center gap-2">
+            <Crown className="text-yellow-400 w-4 h-4" /> Choose your plan
           </span>
-          <h2 className="font-extrabold text-3xl text-white">Subscription Plans</h2>
-          Start with our free tier or unlock unlimited access with Premium.
-          Choose the plan that fits your research needs.
+          <h2 className="font-extrabold text-3xl text-white">
+            Subscription Plans
+          </h2>
+          <div className="text-center">
+            <p>Start with our free tier or unlock unlimited access with Premium.</p>
+            <p>Choose the plan that fits your research needs.</p>
+          </div>
         </section>
         {/* Pricing Cards Grid */}
         <section className="flex items-center justify-center gap-8 py-16 bg-white">
@@ -85,7 +89,8 @@ export default function PricingPage() {
         <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-10 gap-y-4">
           <h2 className="font-extrabold text-3xl">Why Go Premium?</h2>
           <p>
-            Unlock the full potential of GALING PUP with Premium features designed for serious researchers
+            Unlock the full potential of GALING PUP with Premium features
+            designed for serious researchers
           </p>
           {/* Grid for benefits cards */}
           <div className="flex items-center justify-center gap-8">
@@ -113,8 +118,10 @@ export default function PricingPage() {
         </section>
 
         <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-10 gap-y-4">
-          <h2 className="font-extrabold text-3xl">Frequently Asked Questions</h2>
-          
+          <h2 className="font-extrabold text-3xl">
+            Frequently Asked Questions
+          </h2>
+
           <div className="w-full max-w-4xl space-y-6">
             <FAQCard
               question="What payment methods do you accept?"
@@ -132,11 +139,17 @@ export default function PricingPage() {
         </section>
 
         <section className="flex flex-col items-center justify-center bg-red-900 text-white py-10 gap-y-4">
-          <Crown className="text-yellow-600" />
-          <h2>Ready to Upgrade?</h2>
-          <p>Join hundreds of Premium members enjoying unlimited access to academic resources</p>
+          <span className="text-white flex items-center gap-2">
+            <Crown className="text-yellow-600" /> <h2>Ready to Upgrade?</h2>
+          </span>
+          <p>
+            Join hundreds of Premium members enjoying unlimited access to
+            academic resources
+          </p>
           <button>
-            <span><Crown className="text-yellow-600" />Upgrade to Premium</span>
+            <span className="text-white flex items-center gap-2">
+              <Crown className="text-yellow-600" /> Upgrade to Premium
+            </span>
           </button>
         </section>
       </main>
