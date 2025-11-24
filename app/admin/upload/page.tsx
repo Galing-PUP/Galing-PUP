@@ -8,6 +8,7 @@ import { FormDatePicker } from "@/components/admin/publications/form-date-picker
 import { VisibilityToggle } from "@/components/admin/publications/visibility-toggle";
 import { FormFileUpload } from "@/components/admin/publications/form-file-upload";
 
+// 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
   // Form state
   const [formData, setFormData] = useState({
