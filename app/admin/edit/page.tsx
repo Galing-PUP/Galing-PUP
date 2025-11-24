@@ -161,11 +161,12 @@ export default function Edit() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-semibold" style={{ color: "#800000" }}>
-            Edit Publication
+            Update Publication Details
           </h1>
         </div>
         <p className="text-gray-600">
-          Update the publication details using the form below.
+          Please review and update the publication materials and necessary
+          information for this thesis using the form below.
         </p>
       </div>
 
@@ -388,7 +389,7 @@ export default function Edit() {
                 (e.currentTarget.style.backgroundColor = "#800000")
               }
             >
-              Update Publication
+              Submit for Approval
             </button>
           </div>
         </form>
