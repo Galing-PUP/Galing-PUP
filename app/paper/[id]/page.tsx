@@ -17,7 +17,7 @@ export default async function PaperPage(props : {params: Promise<{id: string}>})
   console.log("Displaying paper for ID:", id);
 
   return (
-    <div className="min-h-screen">1
+    <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
@@ -31,7 +31,7 @@ export default async function PaperPage(props : {params: Promise<{id: string}>})
 
             {/*download, generate citation, add to library, share button*/}
             <div>
-              <ActionButtons />
+              <ActionButtons paperId={parseInt(id)} />
             </div>
 
             {/* Abstract content of the paper*/}
