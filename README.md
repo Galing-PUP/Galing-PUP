@@ -252,6 +252,87 @@ This ensures:
 - AI assistant uses official docs instead of outdated knowledge
 - Proper context for Next.js 16 features (App Router, Server Components, etc.)
 
+### Prisma ORM & Supabase
+
+
+
+#### Supabase (Local)
+
+Galing-PUP application uses Supabase PostgreSQL as the backend database for CRUD operations.
+
+**Running locally**
+
+> [!NOTE] 
+> For macOS 15 or lower If the health check fails, pass the flag `--ignore-health-check` to run anyway.
+
+**Prerequisites:** Docker or Docker Desktop must be installed.
+
+>[!NOTE]
+> If `docker-desktop` fails to run the engine, try exporting via `export DOCKER_HOST=unix:///var/run/docker.sock`
+
+**Start Supabase locally:** run `bunx supabase start` or `npx supabase start`
+
+**Setup Supabase for Prisma**
+
+#### Supabase (Web)
+
+**1. Create a new project**
+  - Go to "New Project"
+  - Enter Project Name, Database Password, Region
+  - Wait for the project to initialize
+
+**2. Retrieve connection details**
+ - Go to "Settings" -> "Database"
+ - Copy the "Connection String" (PostgreSQL URL)
+ - This URL will be used to connect Prisma or other clients
+
+```sql
+create user "prisma" with password 'galingpuplocal' bypassrls createdb;
+
+-- Extend Prisma's privileges to Postgres (required for dashboard visibility)
+grant "prisma" to "postgres";
+
+-- Grant permissions on relevant schemas (public)
+grant usage on schema public to prisma;
+grant create on schema public to prisma;
+grant all on all tables in schema public to prisma;
+grant all on all routines in schema public to prisma;
+grant all on all sequences in schema public to prisma;
+
+alter default privileges for role postgres in schema public grant all on tables to prisma;
+alter default privileges for role postgres in schema public grant all on routines to prisma;
+alter default privileges for role postgres in schema public grant all on sequences to prisma;
+```
+
+**Note:** Copy the Supabase PostgreSQL URL for connecting Prisma. Supabase uses PostgreSQL as the default database.
+
+### Prisma
+
+Prisma is an ORM (Object-Relational Mapper) that abstracts database operations, providing high-level CRUD operations and reducing the need for raw SQL.
+
+- Please watch the [youtube video](https://www.youtube.com/watch?v=RebA5J-rlwg) how prisma mechanics works and manages data.
+- Quickstart guide on [prisma](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres)
+- Latest Changes in [Prisma 7](https://www.prisma.io/docs/orm/more/upgrade-guides/upgrading-versions/upgrading-to-prisma-7) as of November 18, 2025
+
+
+#### Setup
+
+`bunx prisma migrate` or `npx prisma migrate`
+
+####  Migrating
+
+Creates a SQL migration file for rollback to older version in case of errors
+
+`bunx prisma migrate dev` or `npx prisma migrate dev`
+
+#### Seeding 
+
+Populate the database for testing
+
+`bunx prisma db seed` or `npx prisma db seed`
+
+
+
 ### Adding shadcn/ui Components
 
 To add new shadcn/ui components:
