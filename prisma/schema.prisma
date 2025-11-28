@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -11,4 +8,180 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ---------------------------------------------------------
+// USER MANAGEMENT
+// ---------------------------------------------------------
+
+model USER {
+  User_ID           Int      @id @default(autoincrement())
+  Username          String   @unique @db.VarChar(255)
+  Email             String   @unique @db.VarChar(255)
+  Password_Hash     String   @db.VarChar(255)
+  Registration_Date DateTime @db.Date
+  Is_Verified       Boolean
+
+  // Foreign Keys
+  Current_Role_ID Int
+  Tier_ID         Int
+
+  // Relations
+  Role             ROLE              @relation(fields: [Current_Role_ID], references: [Role_ID])
+  SubscriptionTier SUBSCRIPTION_TIER @relation(fields: [Tier_ID], references: [Tier_ID])
+  
+  Bookmarks        USER_BOOKMARK[]
+  UploadedDocs     DOCUMENT[]        @relation("UserUploads")
+  ActivityLogs     ACTIVITY_LOG[]
+}
+
+model ROLE {
+  Role_ID   Int    @id @default(autoincrement())
+  Role_Name String @db.VarChar(255)
+
+  Users USER[]
+}
+
+model SUBSCRIPTION_TIER {
+  Tier_ID              Int     @id @default(autoincrement())
+  Tier_Name            String  @db.VarChar(255)
+  Daily_Download_Limit Int
+  Daily_Citation_Limit Int
+  Max_Bookmarks        Int
+  Has_Ads              Boolean
+  Has_AI_Insights      Boolean
+
+  Users USER[]
+}
+
+// ---------------------------------------------------------
+// DOCUMENT MANAGEMENT
+// ---------------------------------------------------------
+
+model DOCUMENT {
+  Document_ID     Int      @id @default(autoincrement())
+  Title           String   @db.VarChar(255)
+  Abstract        String   @db.Text
+  File_Path       String   @db.VarChar(255)
+  Date_Published  DateTime @db.Date
+  Visibility      String   @db.VarChar(50) // 'Public' or 'Restricted'
+  Downloads_Count Int      @default(0)
+  Citation_Count  Int      @default(0)
+  AI_Summary      String?  @db.Text
+  AI_Insights     String?  @db.Text
+
+  // Foreign Keys
+  Uploader_ID     Int
+  Course_ID       Int
+  ResourceType_ID Int
+  Library_ID      Int
+
+  // Relations
+  Uploader     USER             @relation("UserUploads", fields: [Uploader_ID], references: [User_ID])
+  Course       COURSE           @relation(fields: [Course_ID], references: [Course_ID])
+  ResourceType RESOURCE_TYPE    @relation(fields: [ResourceType_ID], references: [ResourceType_ID])
+  Library      LIBRARY          @relation(fields: [Library_ID], references: [Library_ID])
+
+  Bookmarks    USER_BOOKMARK[]
+  Authors      DOCUMENT_AUTHOR[]
+  Keywords     DOCUMENT_KEYWORD[]
+  ActivityLogs ACTIVITY_LOG[]
+}
+
+model USER_BOOKMARK {
+  User_ID         Int
+  Document_ID     Int
+  Date_Bookmarked DateTime @db.Date
+
+  User     USER     @relation(fields: [User_ID], references: [User_ID])
+  Document DOCUMENT @relation(fields: [Document_ID], references: [Document_ID])
+
+  @@id([User_ID, Document_ID])
+}
+
+model DOCUMENT_AUTHOR {
+  Document_ID  Int
+  Author_ID    Int
+  Author_Order Int
+
+  Document DOCUMENT @relation(fields: [Document_ID], references: [Document_ID])
+  Author   AUTHOR   @relation(fields: [Author_ID], references: [Author_ID])
+
+  @@id([Document_ID, Author_ID])
+}
+
+model AUTHOR {
+  Author_ID Int    @id @default(autoincrement())
+  Full_Name String @db.VarChar(255)
+  Email     String @db.VarChar(255)
+
+  Documents DOCUMENT_AUTHOR[]
+}
+
+model DOCUMENT_KEYWORD {
+  Document_ID Int
+  Keyword_ID  Int
+
+  Document DOCUMENT @relation(fields: [Document_ID], references: [Document_ID])
+  Keyword  KEYWORD  @relation(fields: [Keyword_ID], references: [Keyword_ID])
+
+  @@id([Document_ID, Keyword_ID])
+}
+
+model KEYWORD {
+  Keyword_ID   Int    @id @default(autoincrement())
+  Keyword_Text String @unique @db.VarChar(255)
+
+  Documents DOCUMENT_KEYWORD[]
+}
+
+// ---------------------------------------------------------
+// ACADEMIC & INSTITUTIONAL
+// ---------------------------------------------------------
+
+model COURSE {
+  Course_ID   Int    @id @default(autoincrement())
+  Course_Name String @db.VarChar(255)
+  Course_Abbr String @db.VarChar(50)
+  College_ID  Int
+
+  College   COLLEGE    @relation(fields: [College_ID], references: [College_ID])
+  Documents DOCUMENT[]
+}
+
+model COLLEGE {
+  College_ID   Int    @id @default(autoincrement())
+  College_Name String @db.VarChar(255)
+  College_Abbr String @db.VarChar(50)
+
+  Courses COURSE[]
+}
+
+model RESOURCE_TYPE {
+  ResourceType_ID Int    @id @default(autoincrement())
+  Type_Name       String @db.VarChar(255)
+
+  Documents DOCUMENT[]
+}
+
+model LIBRARY {
+  Library_ID Int    @id @default(autoincrement())
+  Name       String @db.VarChar(255)
+
+  Documents DOCUMENT[]
+}
+
+// ---------------------------------------------------------
+// LOGGING
+// ---------------------------------------------------------
+
+model ACTIVITY_LOG {
+  Log_ID        BigInt   @id @default(autoincrement())
+  User_ID       Int
+  Document_ID   Int?    
+  Activity_Type String   @db.VarChar(255)
+  Created_At    DateTime @default(now())
+
+  User     USER      @relation(fields: [User_ID], references: [User_ID])
+  Document DOCUMENT? @relation(fields: [Document_ID], references: [Document_ID])
 }

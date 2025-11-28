@@ -1,7 +1,5 @@
-
--- PRISMA setup script for Supabase (PostgreSQL) 
 -- Create custom user
-create user "prisma" with password 'custom_password' bypassrls createdb;
+create user "prisma" with password 'galingpuplocal' bypassrls createdb;
 
 -- extend prisma's privileges to postgres (necessary to view changes in Dashboard)
 grant "prisma" to "postgres";
