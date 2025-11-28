@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation"; 
 import { FormInput } from "@/components/admin/publications/form-input";
 import { FormTextarea } from "@/components/admin/publications/form-textarea";
 import { FormSelect } from "@/components/admin/publications/form-select";
@@ -8,8 +9,10 @@ import { FormDatePicker } from "@/components/admin/publications/form-date-picker
 import { VisibilityToggle } from "@/components/admin/publications/visibility-toggle";
 import { FormFileUpload } from "@/components/admin/publications/form-file-upload";
 
-// 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
-export default function Upload() {
+export default function Edit() {
+  const params = useParams();
+  const documentId = Array.isArray(params.id) ? params.id[0] : params.id;
+
   // Form state
   const [formData, setFormData] = useState({
     title: "",
@@ -26,6 +29,8 @@ export default function Upload() {
     library: "",
     file: null as File | null,
   });
+
+  const [isLoading, setIsLoading] = useState(true);
 
   // Dropdown options
   const resourceTypeOptions = [
@@ -66,6 +71,52 @@ export default function Upload() {
     { value: "accounting", label: "Department of Accounting" },
   ];
 
+  // Fetch existing document data
+  useEffect(() => {
+    if (documentId) {
+      // TODO: Fetch document data from backend using documentId
+      // Using mock data from mockPublications.ts for now
+      const fetchDocumentData = async () => {
+        try {
+          // Simulating API call
+          // const response = await fetch(`/api/documents/${documentId}`);
+          // const data = await response.json();
+
+          // Mock data for demonstration
+          const { getPublicationById } = await import(
+            "@/data/mockPublications"
+          );
+          const publication = getPublicationById(documentId);
+
+          if (publication) {
+            setFormData({
+              title: publication.title,
+              abstract: publication.abstract,
+              keywords: publication.keywords,
+              datePublished: publication.datePublished,
+              resourceType: publication.resourceType,
+              visibility: publication.visibility,
+              authors: publication.authors,
+              adviser: publication.adviser,
+              campus: publication.campus,
+              college: publication.college,
+              department: publication.department,
+              library: publication.library,
+              file: null,
+            });
+          }
+
+          setIsLoading(false);
+        } catch (error) {
+          console.error("Error fetching document:", error);
+          setIsLoading(false);
+        }
+      };
+
+      fetchDocumentData();
+    }
+  }, [documentId]);
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -82,27 +133,25 @@ export default function Upload() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // TODO: Implement backend submission
+    console.log("Form updated:", formData);
+    // TODO: Implement backend update with documentId
   };
 
   const handleCancel = () => {
-    setFormData({
-      title: "",
-      abstract: "",
-      keywords: "",
-      datePublished: "",
-      resourceType: "",
-      visibility: "public",
-      authors: "",
-      adviser: "",
-      campus: "",
-      college: "",
-      department: "",
-      library: "",
-      file: null,
-    });
+    // TODO: Navigate back or reload original data
+    window.history.back();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-[#800000] rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600">Loading document...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -110,12 +159,12 @@ export default function Upload() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-semibold" style={{ color: "#800000" }}>
-            Welcome to the Publication Portal!
+            Update Publication Details
           </h1>
         </div>
         <p className="text-gray-600">
-          Please upload your publication materials and necessary information
-          using the form below.
+          Please review and update the publication materials and necessary
+          information for this thesis using the form below.
         </p>
       </div>
 
@@ -125,7 +174,7 @@ export default function Upload() {
           {/* Form Header */}
           <div className="mb-6 border-b pb-4">
             <h2 className="text-xl font-bold text-gray-800">
-              Publication Submission Form
+              Publication Edit Form
             </h2>
             <p className="text-sm text-gray-500">All fields are required</p>
           </div>
@@ -290,8 +339,12 @@ export default function Upload() {
               className="text-lg font-semibold mb-4"
               style={{ color: "#800000" }}
             >
-              File Submission
+              File Update
             </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Upload a new file only if you want to replace the existing
+              document.
+            </p>
 
             <FormFileUpload
               label="File Upload"
@@ -299,6 +352,7 @@ export default function Upload() {
               name="file"
               file={formData.file}
               onChange={handleFileChange}
+              required={false}
             />
           </div>
 
