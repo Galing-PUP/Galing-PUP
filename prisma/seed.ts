@@ -95,7 +95,7 @@ async function main() {
 
   // Unique Colleges from mockPublications
   const collegeMap: Record<string, string> = {
-    "cics": "College of Computer and Information Sciences",
+    "ccis": "College of Computer and Information Sciences",
     "ce": "College of Engineering",
     "cba": "College of Business Administration",
     "coed": "College of Education",
