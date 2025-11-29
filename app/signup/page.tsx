@@ -13,7 +13,9 @@ export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Email validation
   const isEmailValid = email.endsWith("@gmail.com") || email === "";
@@ -28,6 +30,7 @@ export default function SignUpPage() {
   };
 
   const isPasswordValid = Object.values(passwordValidation).every(Boolean);
+  const doPasswordsMatch = password === confirmPassword && confirmPassword !== "";
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -147,6 +150,50 @@ export default function SignUpPage() {
               )}
             </div>
 
+            {/* Confirm Password Field */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-700">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  className={`w-full rounded-lg border px-4 py-3 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                    doPasswordsMatch
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
+                      : confirmPassword
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                      : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 transition hover:text-neutral-600"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {confirmPassword && !doPasswordsMatch && (
+                <p className="text-sm text-red-600">
+                  Passwords do not match
+                </p>
+              )}
+              {doPasswordsMatch && (
+                <p className="text-sm text-green-600">
+                  ✓ Passwords match
+                </p>
+              )}
+            </div>
+
             {/* Sign Up Button */}
             <Button
               type="button"
@@ -154,7 +201,7 @@ export default function SignUpPage() {
               size="lg"
               fullWidth
               shape="rounded"
-              disabled={!username || !isEmailValid || !isPasswordValid}
+              disabled={!username || !isEmailValid || !isPasswordValid || !doPasswordsMatch}
               onClick={() => {
                 // TODO: Implement signup logic when database is ready
                 console.log("Sign up clicked - functionality to be implemented");
