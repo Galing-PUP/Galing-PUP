@@ -17,6 +17,17 @@ export default function SignUpPage() {
 
   // Email validation
   const isEmailValid = email.endsWith("@gmail.com") || email === "";
+  
+  // Password validation rules
+  const passwordValidation = {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+  };
+
+  const isPasswordValid = Object.values(passwordValidation).every(Boolean);
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -113,6 +124,27 @@ export default function SignUpPage() {
                   )}
                 </button>
               </div>
+              
+              {/* Password validation hints */}
+              {password && (
+                <div className="flex flex-col gap-1 text-sm">
+                  <p className={passwordValidation.minLength ? "text-green-600" : "text-neutral-500"}>
+                    {passwordValidation.minLength ? "✓" : "○"} At least 8 characters
+                  </p>
+                  <p className={passwordValidation.hasUppercase ? "text-green-600" : "text-neutral-500"}>
+                    {passwordValidation.hasUppercase ? "✓" : "○"} At least one uppercase letter
+                  </p>
+                  <p className={passwordValidation.hasLowercase ? "text-green-600" : "text-neutral-500"}>
+                    {passwordValidation.hasLowercase ? "✓" : "○"} At least one lowercase letter
+                  </p>
+                  <p className={passwordValidation.hasNumber ? "text-green-600" : "text-neutral-500"}>
+                    {passwordValidation.hasNumber ? "✓" : "○"} At least one number
+                  </p>
+                  <p className={passwordValidation.hasSpecial ? "text-green-600" : "text-neutral-500"}>
+                    {passwordValidation.hasSpecial ? "✓" : "○"} At least one special character
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Sign Up Button */}
@@ -122,7 +154,7 @@ export default function SignUpPage() {
               size="lg"
               fullWidth
               shape="rounded"
-              disabled={!username || !isEmailValid}
+              disabled={!username || !isEmailValid || !isPasswordValid}
               onClick={() => {
                 // TODO: Implement signup logic when database is ready
                 console.log("Sign up clicked - functionality to be implemented");
