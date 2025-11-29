@@ -94,6 +94,13 @@ export default function SignInPage() {
                 Continue as Guest
               </Button>
             </div>
+
+            <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
+              <span className="h-px flex-1 bg-neutral-200" />
+              Or continue with
+              <span className="h-px flex-1 bg-neutral-200" />
+            </div>
+
             <Button
               variant="outline"
               size="lg"
@@ -104,21 +111,6 @@ export default function SignInPage() {
               shape="rounded"
             >
               Continue with Google
-            </Button>
-
-            <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
-              <span className="h-px flex-1 bg-neutral-200" />
-              OR
-              <span className="h-px flex-1 bg-neutral-200" />
-            </div>
-
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              shape="rounded"
-            >
-              Continue as Guest
             </Button>
           </div>
         </div>
