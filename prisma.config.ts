@@ -9,6 +9,7 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "bun run prisma/seed.ts",
   },
+  // When using actual supabase, use the DIRECT_URL as DATABASE_URL
   datasource: {
     url: env("DATABASE_URL")
   },
