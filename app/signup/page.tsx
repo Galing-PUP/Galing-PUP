@@ -31,6 +31,22 @@ export default function SignUpPage() {
 
   const isPasswordValid = Object.values(passwordValidation).every(Boolean);
   const doPasswordsMatch = password === confirmPassword && confirmPassword !== "";
+
+  // Generate password error message
+  const getPasswordError = () => {
+    if (!password) return "";
+    const errors = [];
+    if (!passwordValidation.minLength) errors.push("at least 8 characters");
+    if (!passwordValidation.hasUppercase) errors.push("one uppercase letter");
+    if (!passwordValidation.hasLowercase) errors.push("one lowercase letter");
+    if (!passwordValidation.hasNumber) errors.push("one number");
+    if (!passwordValidation.hasSpecial) errors.push("one special character");
+    
+    if (errors.length === 0) return "";
+    return `Password must contain ${errors.join(", ")}.`;
+  };
+
+  const passwordError = getPasswordError();
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -106,6 +122,11 @@ export default function SignUpPage() {
               <label htmlFor="password" className="text-sm font-medium text-neutral-700">
                 Password
               </label>
+              {passwordError && (
+                <p className="text-sm text-red-600">
+                  {passwordError}
+                </p>
+              )}
               <div className="relative">
                 <input
                   id="password"
@@ -127,27 +148,6 @@ export default function SignUpPage() {
                   )}
                 </button>
               </div>
-              
-              {/* Password validation hints */}
-              {password && (
-                <div className="flex flex-col gap-1 text-sm">
-                  <p className={passwordValidation.minLength ? "text-green-600" : "text-neutral-500"}>
-                    {passwordValidation.minLength ? "✓" : "○"} At least 8 characters
-                  </p>
-                  <p className={passwordValidation.hasUppercase ? "text-green-600" : "text-neutral-500"}>
-                    {passwordValidation.hasUppercase ? "✓" : "○"} At least one uppercase letter
-                  </p>
-                  <p className={passwordValidation.hasLowercase ? "text-green-600" : "text-neutral-500"}>
-                    {passwordValidation.hasLowercase ? "✓" : "○"} At least one lowercase letter
-                  </p>
-                  <p className={passwordValidation.hasNumber ? "text-green-600" : "text-neutral-500"}>
-                    {passwordValidation.hasNumber ? "✓" : "○"} At least one number
-                  </p>
-                  <p className={passwordValidation.hasSpecial ? "text-green-600" : "text-neutral-500"}>
-                    {passwordValidation.hasSpecial ? "✓" : "○"} At least one special character
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Confirm Password Field */}
