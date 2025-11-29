@@ -63,6 +63,27 @@ export default function SignInPage() {
                 className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
               />
             </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                shape="rounded"
+              >
+                Sign In
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                shape="rounded"
+                className="border-neutral-300"
+              >
+                Continue as Guest
+              </Button>
+            </div>
             <Button
               variant="outline"
               size="lg"
