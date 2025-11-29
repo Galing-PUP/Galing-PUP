@@ -103,17 +103,13 @@ export default function SignInPage() {
               <span className="h-px flex-1 bg-neutral-200" />
             </div>
 
-            <Button
-              variant="outline"
-              size="lg"
-              fullWidth
-              icon={<GoogleIcon />}
-              iconPosition="left"
-              className="border-neutral-300"
-              shape="rounded"
+            <button
+              type="button"
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+              onClick={() => {}}
             >
-              Continue with Google
-            </Button>
+              <GoogleIcon />
+            </button>
           </div>
         </div>
 
