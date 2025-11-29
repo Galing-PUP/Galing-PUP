@@ -64,6 +64,16 @@ export default function SignInPage() {
               />
             </div>
 
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-sm font-medium text-[#7C1D1D] hover:underline"
+                onClick={(e) => e.preventDefault()}
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             <div className="flex gap-3">
               <Button
                 variant="primary"
