@@ -50,6 +50,19 @@ export default function SignInPage() {
                 className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
               />
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
+              />
+            </div>
             <Button
               variant="outline"
               size="lg"
