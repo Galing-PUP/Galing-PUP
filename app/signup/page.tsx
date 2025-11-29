@@ -11,6 +11,10 @@ import { Button } from "@/components/button";
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+
+  // Email validation
+  const isEmailValid = email.endsWith("@gmail.com") || email === "";
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -57,6 +61,30 @@ export default function SignUpPage() {
               />
             </div>
 
+            {/* Email Field */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="yourname@gmail.com"
+                className={`rounded-lg border px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                  !isEmailValid
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                }`}
+              />
+              {!isEmailValid && (
+                <p className="text-sm text-red-600">
+                  Email must end with @gmail.com
+                </p>
+              )}
+            </div>
+
             {/* Sign Up Button */}
             <Button
               type="button"
@@ -64,7 +92,7 @@ export default function SignUpPage() {
               size="lg"
               fullWidth
               shape="rounded"
-              disabled={!username}
+              disabled={!username || !isEmailValid}
               onClick={() => {
                 // TODO: Implement signup logic when database is ready
                 console.log("Sign up clicked - functionality to be implemented");
