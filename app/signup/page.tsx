@@ -1,11 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
+import { Button } from "@/components/button";
 
 export default function SignUpPage() {
+  const [username, setUsername] = useState("");
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -37,7 +42,36 @@ export default function SignUpPage() {
           </div>
 
           <form className="flex flex-col gap-6">
-            {/* Form fields will be added here */}
+            {/* Username Field */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="username" className="text-sm font-medium text-neutral-700">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
+              />
+            </div>
+
+            {/* Sign Up Button */}
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              fullWidth
+              shape="rounded"
+              disabled={!username}
+              onClick={() => {
+                // TODO: Implement signup logic when database is ready
+                console.log("Sign up clicked - functionality to be implemented");
+              }}
+            >
+              Sign Up
+            </Button>
           </form>
         </div>
 
