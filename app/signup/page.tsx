@@ -49,7 +49,7 @@ export default function SignUpPage() {
   const passwordError = getPasswordError();
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
-      <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
+      <div className="flex w-full flex-col px-6 py-6 lg:w-1/2 lg:px-16 lg:py-8">
         <Link
           href="/"
           className="flex w-fit items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-700"
@@ -58,28 +58,28 @@ export default function SignUpPage() {
           Back
         </Link>
 
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-10">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6">
           <Image
             src={starLogo}
             alt="Galing PUP star logo"
-            width={64}
-            height={64}
+            width={56}
+            height={56}
             priority
-            className="h-14 w-14"
+            className="h-12 w-12"
           />
 
-          <div className="flex flex-col gap-3">
-            <h1 className="text-3xl font-semibold text-neutral-900">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold text-neutral-900">
               Create your account
             </h1>
-            <p className="text-base text-neutral-500">
+            <p className="text-sm text-neutral-500">
               Join us to start your learning journey.
             </p>
           </div>
 
-          <form className="flex flex-col gap-6">
+          <form className="flex flex-col gap-4">
             {/* Username Field */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label htmlFor="username" className="text-sm font-medium text-neutral-700">
                 Username
               </label>
@@ -89,12 +89,12 @@ export default function SignUpPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
+                className="rounded-lg border border-neutral-300 px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
               />
             </div>
 
             {/* Email Field */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-sm font-medium text-neutral-700">
                 Email
               </label>
@@ -104,7 +104,7 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="yourname@gmail.com"
-                className={`rounded-lg border px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
                   !isEmailValid
                     ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
                     : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
@@ -118,7 +118,7 @@ export default function SignUpPage() {
             </div>
 
             {/* Password Field */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label htmlFor="password" className="text-sm font-medium text-neutral-700">
                 Password
               </label>
@@ -134,7 +134,7 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
+                  className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
                 />
                 <button
                   type="button"
@@ -151,7 +151,7 @@ export default function SignUpPage() {
             </div>
 
             {/* Confirm Password Field */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-700">
                 Confirm Password
               </label>
@@ -162,7 +162,7 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className={`w-full rounded-lg border px-4 py-3 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
                     doPasswordsMatch
                       ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
                       : confirmPassword
