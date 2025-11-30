@@ -1,6 +1,6 @@
 // tests/db/connection.test.ts
-import { prisma } from "@/lib/db";
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { prisma } from "@/lib/db";
 
 afterAll(async () => {
   await prisma.$disconnect();
