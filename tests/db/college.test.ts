@@ -76,7 +76,6 @@ describe("College Model Tests", () => {
         expect(found?.College_Name).toBe(TEST_COLLEGE_ENTRY.college_name);
     });
 
-    // TODO : modify the prisma schema to add unique constraints before running these tests
     // ---------------------------------------------------------
     // 3. DUPLICATE / CONSTRAINT TEST (The "Assert Fail" Case)
     // ---------------------------------------------------------
