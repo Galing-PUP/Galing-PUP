@@ -151,8 +151,8 @@ model COURSE {
 
 model COLLEGE {
   College_ID   Int    @id @default(autoincrement())
-  College_Name String @db.VarChar(255)
-  College_Abbr String @db.VarChar(50)
+  College_Name String @unique @db.VarChar(255)
+  College_Abbr String @unique @db.VarChar(50)
 
   Courses COURSE[]
 }
