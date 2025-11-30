@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -14,174 +11,200 @@ datasource db {
 // USER MANAGEMENT
 // ---------------------------------------------------------
 
-model USER {
-  User_ID           Int      @id @default(autoincrement())
-  Username          String   @unique @db.VarChar(255)
-  Email             String   @unique @db.VarChar(255)
-  Password_Hash     String   @db.VarChar(255)
-  Registration_Date DateTime @db.Date
-  Is_Verified       Boolean
+model User {
+  id               Int      @id @default(autoincrement()) @map("user_id")
+  username         String   @unique @db.VarChar(255)
+  email            String   @unique @db.VarChar(255)
+  passwordHash     String   @map("password_hash") @db.VarChar(255)
+  registrationDate DateTime @map("registration_date") @db.Date
+  isVerified       Boolean  @map("is_verified")
 
-  // Foreign Keys
-  Current_Role_ID Int
-  Tier_ID         Int
+  // Foreign Keys (CamelCase in Code -> Snake_case in DB)
+  currentRoleId Int @map("current_role_id")
+  tierId        Int @map("tier_id")
 
   // Relations
-  Role             ROLE              @relation(fields: [Current_Role_ID], references: [Role_ID])
-  SubscriptionTier SUBSCRIPTION_TIER @relation(fields: [Tier_ID], references: [Tier_ID])
-  
-  Bookmarks        USER_BOOKMARK[]
-  UploadedDocs     DOCUMENT[]        @relation("UserUploads")
-  ActivityLogs     ACTIVITY_LOG[]
+  role             Role             @relation(fields: [currentRoleId], references: [id])
+  subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
+
+  bookmarks    UserBookmark[]
+  uploadedDocs Document[]     @relation("UserUploads")
+  activityLogs ActivityLog[]
+
+  // Map to plural table name
+  @@map("users")
 }
 
-model ROLE {
-  Role_ID   Int    @id @default(autoincrement())
-  Role_Name String @db.VarChar(255)
+model Role {
+  id       Int    @id @default(autoincrement()) @map("role_id")
+  roleName String @map("role_name") @db.VarChar(255)
 
-  Users USER[]
+  users User[]
+
+  @@map("roles")
 }
 
-model SUBSCRIPTION_TIER {
-  Tier_ID              Int     @id @default(autoincrement())
-  Tier_Name            String  @db.VarChar(255)
-  Daily_Download_Limit Int
-  Daily_Citation_Limit Int
-  Max_Bookmarks        Int
-  Has_Ads              Boolean
-  Has_AI_Insights      Boolean
+model SubscriptionTier {
+  id                 Int     @id @default(autoincrement()) @map("tier_id")
+  tierName           String  @map("tier_name") @db.VarChar(255)
+  dailyDownloadLimit Int     @map("daily_download_limit")
+  dailyCitationLimit Int     @map("daily_citation_limit")
+  maxBookmarks       Int     @map("max_bookmarks")
+  hasAds             Boolean @map("has_ads")
+  hasAiInsights      Boolean @map("has_ai_insights")
 
-  Users USER[]
+  users User[]
+
+  @@map("subscription_tiers")
 }
 
 // ---------------------------------------------------------
 // DOCUMENT MANAGEMENT
 // ---------------------------------------------------------
 
-model DOCUMENT {
-  Document_ID     Int      @id @default(autoincrement())
-  Title           String   @db.VarChar(255)
-  Abstract        String   @db.Text
-  File_Path       String   @db.VarChar(255)
-  Date_Published  DateTime @db.Date
-  Visibility      String   @db.VarChar(50) // 'Public' or 'Restricted'
-  Downloads_Count Int      @default(0)
-  Citation_Count  Int      @default(0)
-  AI_Summary      String?  @db.Text
-  AI_Insights     String?  @db.Text
+model Document {
+  id            Int      @id @default(autoincrement()) @map("document_id")
+  title         String   @db.VarChar(255)
+  abstract      String   @db.Text
+  filePath      String   @map("file_path") @db.VarChar(255)
+  datePublished DateTime @map("date_published") @db.Date
+  visibility    String   @db.VarChar(50) // 'Public' or 'Restricted'
+  downloadsCount Int     @default(0) @map("downloads_count")
+  citationCount  Int     @default(0) @map("citation_count")
+  aiSummary     String?  @map("ai_summary") @db.Text
+  aiInsights    String?  @map("ai_insights") @db.Text
 
   // Foreign Keys
-  Uploader_ID     Int
-  Course_ID       Int
-  ResourceType_ID Int
-  Library_ID      Int
+  uploaderId     Int @map("uploader_id")
+  courseId       Int @map("course_id")
+  resourceTypeId Int @map("resource_type_id")
+  libraryId      Int @map("library_id")
 
   // Relations
-  Uploader     USER             @relation("UserUploads", fields: [Uploader_ID], references: [User_ID])
-  Course       COURSE           @relation(fields: [Course_ID], references: [Course_ID])
-  ResourceType RESOURCE_TYPE    @relation(fields: [ResourceType_ID], references: [ResourceType_ID])
-  Library      LIBRARY          @relation(fields: [Library_ID], references: [Library_ID])
+  uploader     User         @relation("UserUploads", fields: [uploaderId], references: [id])
+  course       Course       @relation(fields: [courseId], references: [id])
+  resourceType ResourceType @relation(fields: [resourceTypeId], references: [id])
+  library      Library      @relation(fields: [libraryId], references: [id])
 
-  Bookmarks    USER_BOOKMARK[]
-  Authors      DOCUMENT_AUTHOR[]
-  Keywords     DOCUMENT_KEYWORD[]
-  ActivityLogs ACTIVITY_LOG[]
+  bookmarks    UserBookmark[]
+  authors      DocumentAuthor[]
+  keywords     DocumentKeyword[]
+  activityLogs ActivityLog[]
+
+  @@map("documents")
 }
 
-model USER_BOOKMARK {
-  User_ID         Int
-  Document_ID     Int
-  Date_Bookmarked DateTime @db.Date
+model UserBookmark {
+  userId     Int      @map("user_id")
+  documentId Int      @map("document_id")
+  dateBookmarked DateTime @map("date_bookmarked") @db.Date
 
-  User     USER     @relation(fields: [User_ID], references: [User_ID])
-  Document DOCUMENT @relation(fields: [Document_ID], references: [Document_ID])
+  user     User     @relation(fields: [userId], references: [id])
+  document Document @relation(fields: [documentId], references: [id])
 
-  @@id([User_ID, Document_ID])
+  @@id([userId, documentId])
+  @@map("user_bookmarks")
 }
 
-model DOCUMENT_AUTHOR {
-  Document_ID  Int
-  Author_ID    Int
-  Author_Order Int
+model DocumentAuthor {
+  documentId  Int @map("document_id")
+  authorId    Int @map("author_id")
+  authorOrder Int @map("author_order")
 
-  Document DOCUMENT @relation(fields: [Document_ID], references: [Document_ID])
-  Author   AUTHOR   @relation(fields: [Author_ID], references: [Author_ID])
+  document Document @relation(fields: [documentId], references: [id])
+  author   Author   @relation(fields: [authorId], references: [id])
 
-  @@id([Document_ID, Author_ID])
+  @@id([documentId, authorId])
+  @@map("document_authors")
 }
 
-model AUTHOR {
-  Author_ID Int    @id @default(autoincrement())
-  Full_Name String @db.VarChar(255)
-  Email     String @db.VarChar(255)
+model Author {
+  id       Int    @id @default(autoincrement()) @map("author_id")
+  fullName String @map("full_name") @db.VarChar(255)
+  email    String @db.VarChar(255)
 
-  Documents DOCUMENT_AUTHOR[]
+  documents DocumentAuthor[]
+
+  @@map("authors")
 }
 
-model DOCUMENT_KEYWORD {
-  Document_ID Int
-  Keyword_ID  Int
+model DocumentKeyword {
+  documentId Int @map("document_id")
+  keywordId  Int @map("keyword_id")
 
-  Document DOCUMENT @relation(fields: [Document_ID], references: [Document_ID])
-  Keyword  KEYWORD  @relation(fields: [Keyword_ID], references: [Keyword_ID])
+  document Document @relation(fields: [documentId], references: [id])
+  keyword  Keyword  @relation(fields: [keywordId], references: [id])
 
-  @@id([Document_ID, Keyword_ID])
+  @@id([documentId, keywordId])
+  @@map("document_keywords")
 }
 
-model KEYWORD {
-  Keyword_ID   Int    @id @default(autoincrement())
-  Keyword_Text String @unique @db.VarChar(255)
+model Keyword {
+  id          Int    @id @default(autoincrement()) @map("keyword_id")
+  keywordText String @unique @map("keyword_text") @db.VarChar(255)
 
-  Documents DOCUMENT_KEYWORD[]
+  documents DocumentKeyword[]
+
+  @@map("keywords")
 }
 
 // ---------------------------------------------------------
 // ACADEMIC & INSTITUTIONAL
 // ---------------------------------------------------------
 
-model COURSE {
-  Course_ID   Int    @id @default(autoincrement())
-  Course_Name String @db.VarChar(255)
-  Course_Abbr String @db.VarChar(50)
-  College_ID  Int
+model Course {
+  id          Int    @id @default(autoincrement()) @map("course_id")
+  courseName  String @map("course_name") @db.VarChar(255)
+  courseAbbr  String @map("course_abbr") @db.VarChar(50)
+  collegeId   Int    @map("college_id")
 
-  College   COLLEGE    @relation(fields: [College_ID], references: [College_ID])
-  Documents DOCUMENT[]
+  college   College    @relation(fields: [collegeId], references: [id])
+  documents Document[]
+
+  @@map("courses")
 }
 
-model COLLEGE {
-  College_ID   Int    @id @default(autoincrement())
-  College_Name String @unique @db.VarChar(255)
-  College_Abbr String @unique @db.VarChar(50)
+model College {
+  id          Int    @id @default(autoincrement()) @map("college_id")
+  collegeName String @unique @map("college_name") @db.VarChar(255)
+  collegeAbbr String @unique @map("college_abbr") @db.VarChar(50)
 
-  Courses COURSE[]
+  courses Course[]
+
+  @@map("colleges")
 }
 
-model RESOURCE_TYPE {
-  ResourceType_ID Int    @id @default(autoincrement())
-  Type_Name       String @db.VarChar(255)
+model ResourceType {
+  id       Int    @id @default(autoincrement()) @map("resource_type_id")
+  typeName String @map("type_name") @db.VarChar(255)
 
-  Documents DOCUMENT[]
+  documents Document[]
+
+  @@map("resource_types")
 }
 
-model LIBRARY {
-  Library_ID Int    @id @default(autoincrement())
-  Name       String @db.VarChar(255)
+model Library {
+  id   Int    @id @default(autoincrement()) @map("library_id")
+  name String @db.VarChar(255)
 
-  Documents DOCUMENT[]
+  documents Document[]
+
+  @@map("libraries")
 }
 
 // ---------------------------------------------------------
 // LOGGING
 // ---------------------------------------------------------
 
-model ACTIVITY_LOG {
-  Log_ID        BigInt   @id @default(autoincrement())
-  User_ID       Int
-  Document_ID   Int?    
-  Activity_Type String   @db.VarChar(255)
-  Created_At    DateTime @default(now())
+model ActivityLog {
+  id           BigInt   @id @default(autoincrement()) @map("log_id")
+  userId       Int      @map("user_id")
+  documentId   Int?     @map("document_id")
+  activityType String   @map("activity_type") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  User     USER      @relation(fields: [User_ID], references: [User_ID])
-  Document DOCUMENT? @relation(fields: [Document_ID], references: [Document_ID])
+  user     User      @relation(fields: [userId], references: [id])
+  document Document? @relation(fields: [documentId], references: [id])
+
+  @@map("activity_logs")
 }

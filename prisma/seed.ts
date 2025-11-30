@@ -5,7 +5,6 @@ import { mockUsers } from "@/data/mockUsers";
 import { mockPublications } from "@/data/mockPublications";
 import { mockResults } from "@/data/mockResults";
 
-
 async function main() {
   console.log("🌱 Starting seed...");
 
@@ -15,26 +14,26 @@ async function main() {
   console.log("Seeding Subscription Tiers...");
   const tiers = [
     {
-      Tier_Name: "Free",
-      Daily_Download_Limit: 5,
-      Daily_Citation_Limit: 5,
-      Max_Bookmarks: 10,
-      Has_Ads: true,
-      Has_AI_Insights: false,
+      tierName: "Free",
+      dailyDownloadLimit: 5,
+      dailyCitationLimit: 5,
+      maxBookmarks: 10,
+      hasAds: true,
+      hasAiInsights: false,
     },
     {
-      Tier_Name: "Paid",
-      Daily_Download_Limit: 100,
-      Daily_Citation_Limit: 100,
-      Max_Bookmarks: 500,
-      Has_Ads: false,
-      Has_AI_Insights: true,
+      tierName: "Paid",
+      dailyDownloadLimit: 100,
+      dailyCitationLimit: 100,
+      maxBookmarks: 500,
+      hasAds: false,
+      hasAiInsights: true,
     },
   ];
 
-  for (const tier of tiers) {
-    await prisma.sUBSCRIPTION_TIER.upsert({
-      where: { Tier_ID: tiers.indexOf(tier) + 1 }, // Assuming ID 1 and 2
+  for (const [i, tier] of tiers.entries()) {
+    await prisma.subscriptionTier.upsert({
+      where: { id: i + 1 }, // Using primary key for upsert
       update: {},
       create: tier,
     });
@@ -45,12 +44,12 @@ async function main() {
   // ---------------------------------------------------------
   console.log("Seeding Roles...");
   const roles = ["Viewer", "Registered", "Admin", "Superadmin"];
-  
-  for (const roleName of roles) {
-    await prisma.rOLE.upsert({
-      where: { Role_ID: roles.indexOf(roleName) + 1 },
+
+  for (const [i, roleName] of roles.entries()) {
+    await prisma.role.upsert({
+      where: { id: i + 1 },
       update: {},
-      create: { Role_Name: roleName },
+      create: { roleName },
     });
   }
 
@@ -58,34 +57,38 @@ async function main() {
   // 3. USERS
   // ---------------------------------------------------------
   console.log("Seeding Users...");
-  
+
   // Helper to map string role to ID
   const getRoleId = (roleStr: string) => {
-    const map: Record<string, number> = { "Viewer": 1, "Registered": 2, "Admin": 3, "Superadmin": 4 };
+    const map: Record<string, number> = {
+      Viewer: 1,
+      Registered: 2,
+      Admin: 3,
+      Superadmin: 4,
+    };
     return map[roleStr] || 2; // Default to Registered
   };
 
   for (const user of mockUsers) {
-    // Generate a username from email if not present
     const username = user.email.split("@")[0];
-    
-    await prisma.uSER.upsert({
-      where: { Email: user.email },
+
+    await prisma.user.upsert({
+      where: { email: user.email },
       update: {},
       create: {
-        Username: username,
-        Email: user.email,
-        Password_Hash: "hashed_placeholder_123", // In real app, use bcrypt
-        Registration_Date: new Date(),
-        Is_Verified: user.status === "Active",
-        Current_Role_ID: getRoleId(user.role),
-        Tier_ID: 1, // Default to Free
+        username,
+        email: user.email,
+        passwordHash: "hashed_placeholder_123", // hash properly using bcrypt for non-mock data
+        registrationDate: new Date(),
+        isVerified: user.status === "Active",
+        currentRoleId: getRoleId(user.role),
+        tierId: 1, // default to Free
       },
     });
   }
 
-  // Fetch a valid uploader ID (e.g., the first admin) to use for documents
-  const uploader = await prisma.uSER.findFirst();
+  // Fetch a valid uploader ID (e.g., first created user)
+  const uploader = await prisma.user.findFirst();
   if (!uploader) throw new Error("No users created");
 
   // ---------------------------------------------------------
@@ -93,45 +96,70 @@ async function main() {
   // ---------------------------------------------------------
   console.log("Seeding Academic Structures...");
 
-  // Unique Colleges from mockPublications
   const collegeMap: Record<string, string> = {
-    "ccis": "College of Computer and Information Sciences",
-    "ce": "College of Engineering",
-    "cba": "College of Business Administration",
-    "coed": "College of Education",
-    "cs" : "College of Science",
-    "itech": "Institute of Technology",
-    "cadbe": "College of Architecture, Design, and Built Environment",
-    "caf" : "College of Accountancy and Finance",
-    "cpspa" : "College of Political Science and Public Administration",
-    "chk" : "College of Human Kinetics",
-    "cthtm" : "College of Tourism and Hospitality Management",
+    ccis: "College of Computer and Information Sciences",
+    ce: "College of Engineering",
+    cba: "College of Business Administration",
+    coed: "College of Education",
+    cs: "College of Science",
+    itech: "Institute of Technology",
+    cadbe: "College of Architecture, Design, and Built Environment",
+    caf: "College of Accountancy and Finance",
+    cpspa: "College of Political Science and Public Administration",
+    chk: "College of Human Kinetics",
+    cthtm: "College of Tourism and Hospitality Management",
   };
 
   for (const [abbr, name] of Object.entries(collegeMap)) {
-    await prisma.cOLLEGE.create({
-      data: {
-        College_Name: name,
-        College_Abbr: abbr.toUpperCase(),
+    await prisma.college.upsert({
+      where: { collegeName: name },
+      update: {},
+      create: {
+        collegeName: name,
+        collegeAbbr: abbr.toUpperCase(),
       },
     });
   }
-  
-  // Create a default college for unknown fields from mockResults
-  const defaultCollege = await prisma.cOLLEGE.create({
-    data: { College_Name: "General Sciences", College_Abbr: "GEN" }
+
+  // Ensure a default college exists
+  const defaultCollege = await prisma.college.upsert({
+    where: { collegeName: "General Sciences" },
+    update: {},
+    create: { collegeName: "General Sciences", collegeAbbr: "GEN" },
   });
 
   // Resource Types
-  const resourceTypes = ["Thesis", "Capstone", "Dissertation", "Article", "Research Paper"];
+  const resourceTypes = [
+    "Thesis",
+    "Capstone",
+    "Dissertation",
+    "Article",
+    "Research Paper",
+  ];
   for (const type of resourceTypes) {
-    await prisma.rESOURCE_TYPE.create({ data: { Type_Name: type } });
+    const existing = await prisma.resourceType.findFirst({
+      where: { typeName: type },
+    });
+    if (!existing) {
+      await prisma.resourceType.create({ data: { typeName: type } });
+    }
   }
 
   // Libraries
-  const libraries = ["Main Library", "Engineering Library", "Business Library", "Bataan Branch Library", "Lopez Branch Library"];
+  const libraries = [
+    "Main Library",
+    "Engineering Library",
+    "Business Library",
+    "Bataan Branch Library",
+    "Lopez Branch Library",
+  ];
   for (const lib of libraries) {
-    await prisma.lIBRARY.create({ data: { Name: lib } });
+    const existingLib = await prisma.library.findFirst({
+      where: { name: lib },
+    });
+    if (!existingLib) {
+      await prisma.library.create({ data: { name: lib } });
+    }
   }
 
   // ---------------------------------------------------------
@@ -141,20 +169,21 @@ async function main() {
 
   // Helper to handle Keywords
   const attachKeywords = async (docId: number, keywordString: string) => {
-    // Deduplicate keywords using Set to avoid P2002 error
-    const rawKeywords = keywordString.split(",").map(k => k.trim());
-    const uniqueKeywords = [...new Set(rawKeywords)].filter(k => k.length > 0);
+    const rawKeywords = keywordString.split(",").map((k) => k.trim());
+    const uniqueKeywords = [...new Set(rawKeywords)].filter(
+      (k) => k.length > 0,
+    );
 
     for (const kText of uniqueKeywords) {
-      const keyword = await prisma.kEYWORD.upsert({
-        where: { Keyword_Text: kText },
+      const keyword = await prisma.keyword.upsert({
+        where: { keywordText: kText },
         update: {},
-        create: { Keyword_Text: kText },
+        create: { keywordText: kText },
       });
 
-      // Now safe to create the link
-      await prisma.dOCUMENT_KEYWORD.create({
-        data: { Document_ID: docId, Keyword_ID: keyword.Keyword_ID },
+      // link
+      await prisma.documentKeyword.create({
+        data: { documentId: docId, keywordId: keyword.id },
       });
     }
   };
@@ -163,99 +192,113 @@ async function main() {
   const attachAuthors = async (docId: number, authorsList: string[]) => {
     let order = 1;
     for (const authName of authorsList) {
-      // Simple author creation (duplication possible if names vary slightly, but fine for seed)
-      // In prod, you'd check email or unique ID
-      const author = await prisma.aUTHOR.create({
-        data: { Full_Name: authName.trim(), Email: `author_${Math.random().toString(36).substr(2, 5)}@example.com` }
-      });
-      
-      await prisma.dOCUMENT_AUTHOR.create({
+      const author = await prisma.author.create({
         data: {
-          Document_ID: docId,
-          Author_ID: author.Author_ID,
-          Author_Order: order++,
-        }
+          fullName: authName.trim(),
+          email: `author_${Math.random().toString(36).substring(2, 8)}@example.com`,
+        },
+      });
+
+      await prisma.documentAuthor.create({
+        data: {
+          documentId: docId,
+          authorId: author.id,
+          authorOrder: order++,
+        },
       });
     }
   };
 
   // --- Process mockPublications ---
   for (const pub of mockPublications) {
-    // Find or create Course
-    let course = await prisma.cOURSE.findFirst({ where: { Course_Abbr: pub.department.toUpperCase() } });
+    // Find or create Course by abbreviation
+    let course = await prisma.course.findFirst({
+      where: { courseAbbr: pub.department.toUpperCase() },
+    });
     if (!course) {
-        // Find the college ID
-        const college = await prisma.cOLLEGE.findFirst({ where: { College_Abbr: pub.college.toUpperCase() }});
-        course = await prisma.cOURSE.create({
-            data: {
-                Course_Name: pub.department.toUpperCase() + " Course", // Placeholder name
-                Course_Abbr: pub.department.toUpperCase(),
-                College_ID: college ? college.College_ID : defaultCollege.College_ID
-            }
-        });
+      const college = await prisma.college.findFirst({
+        where: { collegeAbbr: pub.college.toUpperCase() },
+      });
+      course = await prisma.course.create({
+        data: {
+          courseName: `${pub.department.toUpperCase()} Course`,
+          courseAbbr: pub.department.toUpperCase(),
+          collegeId: college ? college.id : defaultCollege.id,
+        },
+      });
     }
 
-    const resType = await prisma.rESOURCE_TYPE.findFirst({ where: { Type_Name: { contains: pub.resourceType, mode: 'insensitive' } } });
-    const library = await prisma.lIBRARY.findFirst({ where: { Name: pub.library } });
+    const resType = await prisma.resourceType.findFirst({
+      where: { typeName: { contains: pub.resourceType, mode: "insensitive" } },
+    });
+    const library = await prisma.library.findFirst({
+      where: { name: pub.library },
+    });
 
-    const doc = await prisma.dOCUMENT.create({
+    const doc = await prisma.document.create({
       data: {
-        Title: pub.title,
-        Abstract: pub.abstract,
-        File_Path: `/uploads/${pub.id}.pdf`,
-        Date_Published: new Date(pub.datePublished),
-        Visibility: pub.visibility,
-        Downloads_Count: Math.floor(Math.random() * 100),
-        Citation_Count: Math.floor(Math.random() * 20),
-        Uploader_ID: uploader.User_ID,
-        Course_ID: course.Course_ID,
-        ResourceType_ID: resType ? resType.ResourceType_ID : 1,
-        Library_ID: library ? library.Library_ID : 1,
+        title: pub.title,
+        abstract: pub.abstract,
+        filePath: `/uploads/${pub.id}.pdf`,
+        datePublished: new Date(pub.datePublished),
+        visibility: pub.visibility,
+        downloadsCount: Math.floor(Math.random() * 100),
+        citationCount: Math.floor(Math.random() * 20),
+        uploaderId: uploader.id,
+        courseId: course.id,
+        resourceTypeId: resType ? resType.id : 1,
+        libraryId: library ? library.id : 1,
       },
     });
 
-    await attachKeywords(doc.Document_ID, pub.keywords);
-    await attachAuthors(doc.Document_ID, pub.authors.split(","));
+    await attachKeywords(doc.id, pub.keywords);
+    await attachAuthors(doc.id, pub.authors.split(","));
   }
 
   // --- Process mockResults (Treating as Articles) ---
-  const articleType = await prisma.rESOURCE_TYPE.findFirst({ where: { Type_Name: "Article" } });
-  const mainLib = await prisma.lIBRARY.findFirst({ where: { Name: "Main Library" } });
+  const articleType = await prisma.resourceType.findFirst({
+    where: { typeName: "Article" },
+  });
+  const mainLib = await prisma.library.findFirst({
+    where: { name: "Main Library" },
+  });
 
   for (const res of mockResults) {
-    // Map Field to Course
-    // We try to find a course that matches the field, otherwise create a generic one
-    let course = await prisma.cOURSE.findFirst({ where: { Course_Name: res.field }});
+    let course = await prisma.course.findFirst({
+      where: { courseName: res.field },
+    });
     if (!course) {
-        course = await prisma.cOURSE.create({
-            data: {
-                Course_Name: res.field,
-                Course_Abbr: res.field.substring(0, 3).toUpperCase(),
-                College_ID: defaultCollege.College_ID
-            }
-        });
+      course = await prisma.course.create({
+        data: {
+          courseName: res.field,
+          courseAbbr: res.field.substring(0, 3).toUpperCase(),
+          collegeId: defaultCollege.id,
+        },
+      });
     }
 
-    const doc = await prisma.dOCUMENT.create({
+    const doc = await prisma.document.create({
       data: {
-        Title: res.title,
-        Abstract: res.abstract,
-        File_Path: `/uploads/res_${res.id}.pdf`,
-        Date_Published: new Date(res.date), // "January 2025" is parsable by new Date()
-        Visibility: "Public",
-        Downloads_Count: Math.floor(Math.random() * 500),
-        Citation_Count: Math.floor(Math.random() * 50),
-        Uploader_ID: uploader.User_ID,
-        Course_ID: course.Course_ID,
-        ResourceType_ID: articleType ? articleType.ResourceType_ID : 1,
-        Library_ID: mainLib ? mainLib.Library_ID : 1,
-      }
+        title: res.title,
+        abstract: res.abstract,
+        filePath: `/uploads/res_${res.id}.pdf`,
+        datePublished: new Date(res.date),
+        visibility: "Public",
+        downloadsCount: Math.floor(Math.random() * 500),
+        citationCount: Math.floor(Math.random() * 50),
+        uploaderId: uploader.id,
+        courseId: course.id,
+        resourceTypeId: articleType ? articleType.id : 1,
+        libraryId: mainLib ? mainLib.id : 1,
+      },
     });
 
-    // MockResults doesn't have keywords, so we extract some words from title for demo
-    const fakeKeywords = res.title.split(" ").filter(w => w.length > 5).join(", ");
-    await attachKeywords(doc.Document_ID, fakeKeywords);
-    await attachAuthors(doc.Document_ID, res.authors);
+    const fakeKeywords = res.title
+      .split(" ")
+      .filter((w) => w.length > 5)
+      .join(", ");
+    await attachKeywords(doc.id, fakeKeywords);
+    await attachAuthors(doc.id, res.authors);
   }
 
   console.log("✅ Seed completed!");
