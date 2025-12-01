@@ -26,8 +26,8 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Published Works",
-    href: "/admin/works",
-    icon: Archive,
+    href: "/admin/publication",
+    icon: Archive,  
   },
   {
     label: "User Role Manager",
