@@ -1,8 +1,19 @@
 "use client";
 
 import { Download, Library, Quote, Share2, Share } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { useLibrary } from "@/lib/hooks/useLibrary";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Reusable internal button component
 const ActionButton = ({
@@ -27,8 +38,8 @@ const ActionButton = ({
         primary
           ? "border-transparent bg-red-700 text-white shadow-sm hover:bg-red-800"
           : isActive
-          ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+            ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
       }
       focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
     `}
@@ -43,23 +54,80 @@ type ActionButtonsProps = {
 };
 
 export function ActionButtons({ paperId }: ActionButtonsProps) {
-  const { isBookmarked, toggleBookmark, addToLibrary, bookmarkCount, maxBookmarks } = useLibrary();
+  const {
+    isBookmarked,
+    toggleBookmark,
+    addToLibrary,
+    removeFromLibrary,
+    bookmarkCount,
+    maxBookmarks,
+  } = useLibrary();
   const isInLibrary = isBookmarked(paperId);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const handleLibraryClick = async () => {
     if (isInLibrary) {
-      await toggleBookmark(paperId);
+      // Show confirmation dialog before removing
+      setShowRemoveDialog(true);
     } else {
+      // Add to library
       const result = await addToLibrary(paperId);
-      if (!result.success && result.message === "Free tier limit reached") {
-        // Could show a toast notification here
-        alert(`You've reached the free tier limit of ${maxBookmarks} bookmarks. Upgrade to Premium for unlimited bookmarks!`);
+      if (result.success) {
+        toast.success("Added to library successfully");
+      } else {
+        if (result.message.includes("limit")) {
+          toast.error(
+            `You've reached the limit of ${maxBookmarks} bookmarks. Upgrade to Premium for unlimited bookmarks!`,
+          );
+        } else {
+          toast.error(result.message);
+        }
       }
+    }
+  };
+
+  const handleConfirmRemove = async () => {
+    setIsRemoving(true);
+    const result = await removeFromLibrary(paperId);
+    setIsRemoving(false);
+
+    if (result.success) {
+      setShowRemoveDialog(false);
+      toast.success("Removed from library successfully");
+    } else {
+      toast.error(result.message);
+      setShowRemoveDialog(false);
     }
   };
 
   return (
     <>
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from Library</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this document from your library?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmRemove();
+              }}
+              disabled={isRemoving}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isRemoving ? "Removing..." : "Remove"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <ActionButton icon={Download} label="Download PDF" primary />
         <ActionButton
