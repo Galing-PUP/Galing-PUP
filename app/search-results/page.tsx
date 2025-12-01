@@ -1,24 +1,60 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { Header } from "@/components/header";
 import { SearchBar } from "@/components/search-bar";
 import { FilterBox } from "@/components/filter-box";
 import { SearchResultCard } from "@/components/search-result-card";
 import { SortDropdown } from "@/components/sort-dropdown";
-import { mockResults } from "@/data/mockResults";
-import { useState } from "react";
+
+type SearchResult = {
+  id: number;
+  title: string;
+  authors: string[];
+  additionalAuthors: number;
+  field: string;
+  date: string;
+  abstract: string;
+  pdfUrl?: string;
+};
 
 export default function SearchResultsPage() {
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<"Newest to Oldest" | "Oldest to Newest" | "Most Relevant" | "Title A-Z" | "Title Z-A">("Newest to Oldest");
+  const [sortBy, setSortBy] = useState<
+    "Newest to Oldest" | "Oldest to Newest" | "Most Relevant" | "Title A-Z" | "Title Z-A"
+  >("Newest to Oldest");
+
   const resultsPerPage = 10;
-  const totalResults = mockResults.length;
-  const totalPages = Math.ceil(totalResults / resultsPerPage);
-  const startResult = (currentPage - 1) * resultsPerPage + 1;
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/search-results");
+        if (!res.ok) {
+          throw new Error(`Failed to load results: ${res.status}`);
+        }
+        const data: SearchResult[] = await res.json();
+        setResults(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, []);
+
+  const totalResults = results.length;
+  const totalPages = Math.ceil(totalResults / resultsPerPage) || 1;
+  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
-  
+
   // Get paginated results
-  const paginatedResults = mockResults.slice(
+  const paginatedResults = results.slice(
     (currentPage - 1) * resultsPerPage,
     currentPage * resultsPerPage
   );
