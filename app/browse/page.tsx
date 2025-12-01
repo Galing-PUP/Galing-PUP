@@ -20,7 +20,7 @@ type SearchResult = {
   pdfUrl?: string;
 };
 
-export default function SearchResultsPage() {
+export default function BrowsePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeSearchTerm = searchParams.get("q") ?? "";
@@ -36,7 +36,7 @@ export default function SearchResultsPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<
-    "Newest to Oldest" | "Oldest to Newest" | "Most Relevant" | "Title A-Z" | "Title Z-A"
+    "Newest to Oldest" | "Oldest to Newest" | "Title A-Z" | "Title Z-A"
   >("Newest to Oldest");
   const [courseOptions, setCourseOptions] = useState<string[]>([]);
 
@@ -89,7 +89,7 @@ export default function SearchResultsPage() {
         params.set("sort", sortBy);
 
         const query = params.toString();
-        const url = query ? `/api/search-results?${query}` : "/api/search-results";
+        const url = query ? `/api/browse?${query}` : "/api/browse";
 
         const res = await fetch(url);
         if (!res.ok) {
@@ -181,7 +181,7 @@ export default function SearchResultsPage() {
                 params.delete("q");
               }
               const query = params.toString();
-              router.push(`/search-results${query ? `?${query}` : ""}`);
+              router.push(`/browse${query ? `?${query}` : ""}`);
             }}
           />
         </div>

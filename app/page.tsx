@@ -25,7 +25,7 @@ export default function Home() {
     const trimmed = query.trim();
     if (!trimmed) return;
     const params = new URLSearchParams({ q: trimmed });
-    router.push(`/search-results?${params.toString()}`);
+    router.push(`/browse?${params.toString()}`);
   };
 
   // Live search under the bar (like instant results)
@@ -46,7 +46,7 @@ export default function Home() {
       try {
         const params = new URLSearchParams();
         params.set("q", trimmed);
-        const url = `/api/search-results?${params.toString()}`;
+        const url = `/api/browse?${params.toString()}`;
 
         const res = await fetch(url);
         if (!res.ok) {
@@ -103,7 +103,9 @@ export default function Home() {
               {loading && (
                 <p className="text-sm text-gray-500">Loading studies...</p>
               )}
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && (
+                <p className="text-sm text-red-600">{error}</p>
+              )}
               {!loading && !error && results.length > 0 && (
                 <div className="rounded-lg border border-gray-200 bg-white shadow-sm max-h-80 overflow-y-auto">
                   <ul className="divide-y divide-gray-100">
@@ -128,7 +130,7 @@ export default function Home() {
             className="mt-8 rounded-full bg-[#6b0504] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4a0403]"
             onClick={() => {
               // Go to the main search results page showing all studies
-              router.push("/search-results");
+              router.push("/browse");
             }}
           >
             <span className="inline-flex items-center gap-2">
