@@ -7,14 +7,67 @@ import { DocumentInfo } from "@/components/paper/document-info";
 import { DocumentStats } from "@/components/paper/document-stats";
 import { HeaderInfo } from "@/components/paper/header-info";
 import { Keywords } from "@/components/paper/keywords";
+import { prisma } from "@/lib/db";
+import { notFound } from "next/navigation";
 
+type PaperPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
-{/* TODO : make it dynamic per page, for meantime console.log the id params*/}
-export default async function PaperPage(props : {params: Promise<{id: string}>}) {
-  
-  {/*display in console the id in the /paper/<id> */}
-  const {id} = await props.params;
-  console.log("Displaying paper for ID:", id);
+export default async function PaperPage(props: PaperPageProps) {
+  const { id: idParam } = await props.params;
+  const id = Number(idParam);
+
+  if (Number.isNaN(id)) {
+    notFound();
+  }
+
+  const document = await prisma.document.findUnique({
+    where: { id },
+    include: {
+      authors: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          authorOrder: "asc",
+        },
+      },
+      course: {
+        include: {
+          college: true,
+        },
+      },
+      resourceType: true,
+      library: true,
+      keywords: {
+        include: {
+          keyword: true,
+        },
+      },
+    },
+  });
+
+  if (!document) {
+    notFound();
+  }
+
+  const authors = document.authors
+    .sort((a, b) => a.authorOrder - b.authorOrder)
+    .map((a) => a.author.fullName);
+
+  const yearPublished = document.datePublished.getFullYear().toString();
+  const courseName = document.course.courseName;
+  const department =
+    document.course.college?.collegeName ?? document.course.courseName;
+  const campus = document.library.name;
+  const documentType = document.resourceType.typeName;
+  const keywords = document.keywords.map((k) => k.keyword.keywordText);
+
+  const views = document.citationCount + document.downloadsCount;
+  const downloads = document.downloadsCount;
 
   return (
     <div className="min-h-screen">
@@ -23,20 +76,25 @@ export default async function PaperPage(props : {params: Promise<{id: string}>})
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Left Column */}
           <div className="flex w-full flex-col space-y-8 lg:w-2/3">
-
             {/* Paper Title info*/}
             <div>
-              <HeaderInfo />
+              <HeaderInfo
+                title={document.title}
+                authors={authors}
+                documentType={documentType}
+                yearPublished={yearPublished}
+                courseName={courseName}
+              />
             </div>
 
             {/*download, generate citation, add to library, share button*/}
             <div>
-              <ActionButtons paperId={parseInt(id)} />
+              <ActionButtons paperId={id} />
             </div>
 
             {/* Abstract content of the paper*/}
             <div>
-              <Abstract />
+              <Abstract text={document.abstract} />
             </div>
 
             {/* AI Insights Section */}
@@ -46,14 +104,18 @@ export default async function PaperPage(props : {params: Promise<{id: string}>})
 
             {/* Keywords Section tags*/}
             <div>
-              <Keywords />
+              <Keywords keywords={keywords} />
             </div>
           </div>
 
-            {/* Right Column */}
+          {/* Right Column */}
           <div className="sticky top-24 w-full space-y-6 lg:w-1/3">
-            <DocumentInfo />
-            <DocumentStats />
+            <DocumentInfo
+              yearPublished={yearPublished}
+              campus={campus}
+              department={department}
+            />
+            <DocumentStats views={views} downloads={downloads} />
           </div>
         </div>
       </main>
