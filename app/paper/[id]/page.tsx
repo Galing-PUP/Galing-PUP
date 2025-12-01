@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/header";
 import { Abstract } from "@/components/paper/abstract";
 import { ActionButtons } from "@/components/paper/action-buttons";
@@ -71,8 +70,7 @@ export default async function PaperPage(props: PaperPageProps) {
   const pdfUrl = document.filePath;
 
   const mainAuthor = authors[0] ?? "Unknown Author";
-  const additionalAuthors =
-    authors.length > 1 ? " et al." : "";
+  const additionalAuthors = authors.length > 1 ? " et al." : "";
   const citation = `${mainAuthor}${additionalAuthors} (${yearPublished}). ${document.title}. ${department}, ${campus}.`;
 
   return (
@@ -108,7 +106,7 @@ export default async function PaperPage(props: PaperPageProps) {
               <Abstract text={document.abstract} />
             </div>
 
-            {/* AI Insights Section */}
+            {/* TODO: use AI Insights Section only if user.role != premium */}
             <div>
               <AiInsights />
             </div>

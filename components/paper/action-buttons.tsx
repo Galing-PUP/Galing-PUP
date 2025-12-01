@@ -56,11 +56,21 @@ type ActionButtonsProps = {
   citation?: string;
 };
 
-export function ActionButtons({ paperId, pdfUrl, title, citation }: ActionButtonsProps) {
-  const { isBookmarked, toggleBookmark, addToLibrary, bookmarkCount, maxBookmarks } = useLibrary();
+export function ActionButtons({
+  paperId,
+  pdfUrl,
+  title,
+  citation,
+}: ActionButtonsProps) {
+  const { isBookmarked, addToLibrary, removeFromLibrary, maxBookmarks } =
+    useLibrary();
   const isInLibrary = isBookmarked(paperId);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [isCitationModalOpen, setIsCitationModalOpen] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState<"APA" | "MLA" | "Chicago">("APA");
+  const [selectedStyle, setSelectedStyle] = useState<"APA" | "MLA" | "Chicago">(
+    "APA",
+  );
   const [citationCount, setCitationCount] = useState(0);
   const [isCopiedModalOpen, setIsCopiedModalOpen] = useState(false);
   const CITATION_LIMIT = 5;
@@ -83,6 +93,20 @@ export function ActionButtons({ paperId, pdfUrl, title, citation }: ActionButton
           toast.error(result.message);
         }
       }
+    }
+  };
+
+  const handleConfirmRemove = async () => {
+    setIsRemoving(true);
+    const result = await removeFromLibrary(paperId);
+    setIsRemoving(false);
+
+    if (result.success) {
+      setShowRemoveDialog(false);
+      toast.success("Removed from library successfully");
+    } else {
+      toast.error(result.message);
+      setShowRemoveDialog(false);
     }
   };
 
@@ -117,7 +141,9 @@ export function ActionButtons({ paperId, pdfUrl, title, citation }: ActionButton
       await navigator.clipboard.writeText(url);
       alert("Link copied to clipboard.");
     } catch {
-      alert("Unable to share automatically. Please copy the URL from the address bar.");
+      alert(
+        "Unable to share automatically. Please copy the URL from the address bar.",
+      );
     }
   };
 
@@ -129,7 +155,7 @@ export function ActionButtons({ paperId, pdfUrl, title, citation }: ActionButton
 
     if (citationCount >= CITATION_LIMIT) {
       alert(
-        `You've reached the free limit of ${CITATION_LIMIT} citation generations for this session.`
+        `You've reached the free limit of ${CITATION_LIMIT} citation generations for this session.`,
       );
       return;
     }
@@ -282,7 +308,8 @@ export function ActionButtons({ paperId, pdfUrl, title, citation }: ActionButton
               Citation copied
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              The citation has been copied to your clipboard. You can now paste it into your document.
+              The citation has been copied to your clipboard. You can now paste
+              it into your document.
             </p>
             <div className="mt-4 flex justify-center">
               <button
