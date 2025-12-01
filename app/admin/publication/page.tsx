@@ -1,9 +1,28 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Filter, Menu, Pencil, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { mockPublications, Publication } from "@/data/mockPublications";
+import {
+  Search,
+  Filter,
+  Menu,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
+
+import { FilterBox, FilterValues } from "@/components/filter-box";
+import SortDropdown from "@/components/sort-dropdown";
+
+type AdminPublication = {
+  id: number;
+  title: string;
+  abstract: string;
+  field: string;
+  date: string;
+};
 
 // --- Configuration ---
 const ITEMS_PER_PAGE = 10; 
@@ -19,23 +38,125 @@ export default function PublicationPage() {
   const router = useRouter();
 
   // --- State ---
-  const [publications, setPublications] = useState<Publication[]>(mockPublications);
+  const [publications, setPublications] = useState<AdminPublication[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [publicationToDelete, setPublicationToDelete] = useState<Publication | null>(null);
+  const [publicationToDelete, setPublicationToDelete] = useState<AdminPublication | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+
+  const [filters, setFilters] = useState<FilterValues>({
+    campus: "All Campuses",
+    course: "All Courses",
+    year: "All Years",
+    documentType: "All Types",
+  });
+
+  type AdminSortOption =
+    | "Newest to Oldest"
+    | "Oldest to Newest"
+    | "Title A-Z"
+    | "Title Z-A";
+
+  const [sortBy, setSortBy] = useState<AdminSortOption>("Newest to Oldest");
+
+  // --- Load publications from backend ---
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/search-results");
+        if (!res.ok) {
+          throw new Error(`Failed to load publications: ${res.status}`);
+        }
+        const data: {
+          id: number;
+          title: string;
+          abstract: string;
+          field: string;
+          date: string;
+        }[] = await res.json();
+
+        const mapped: AdminPublication[] = data.map((item) => ({
+          id: item.id,
+          title: item.title,
+          abstract: item.abstract,
+          field: item.field,
+          date: item.date,
+        }));
+
+        setPublications(mapped);
+      } catch (e) {
+        console.error(e);
+        setError("Failed to load publications from the database.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, []);
 
   // --- Logic: Filtering ---
   const filteredData = useMemo(() => {
-    if (!searchQuery) return publications;
-    const lowerQuery = searchQuery.toLowerCase();
-    return publications.filter((pub) => 
-      pub.title.toLowerCase().includes(lowerQuery) || 
-      pub.keywords.toLowerCase().includes(lowerQuery)
-    );
-  }, [publications, searchQuery]);
+    let data = publications;
+
+    // Search by title or field
+    if (searchQuery.trim()) {
+      const lowerQuery = searchQuery.toLowerCase();
+      data = data.filter(
+        (pub) =>
+          pub.title.toLowerCase().includes(lowerQuery) ||
+          pub.field.toLowerCase().includes(lowerQuery),
+      );
+    }
+
+    // Course filter (maps to field)
+    if (filters.course !== "All Courses") {
+      data = data.filter((pub) => pub.field === filters.course);
+    }
+
+    // Year filter (extract year from formatted date string)
+    if (filters.year !== "All Years") {
+      data = data.filter((pub) => pub.date.includes(filters.year));
+    }
+
+    // Document type / campus filters are not wired to DB fields yet
+
+    // Sort
+    const sorted = [...data].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+
+      switch (sortBy) {
+        case "Oldest to Newest":
+          return dateA.getTime() - dateB.getTime();
+        case "Title A-Z":
+          return a.title.localeCompare(b.title);
+        case "Title Z-A":
+          return b.title.localeCompare(a.title);
+        case "Newest to Oldest":
+        default:
+          return dateB.getTime() - dateA.getTime();
+      }
+    });
+
+    return sorted;
+  }, [publications, searchQuery, filters, sortBy]);
+
+  const courseOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const pub of publications) {
+      if (pub.field) set.add(pub.field);
+    }
+    return Array.from(set).sort();
+  }, [publications]);
 
   // --- Logic: Pagination ---
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
@@ -48,7 +169,7 @@ export default function PublicationPage() {
   // --- Handlers ---
 
   // 1. Initiate Delete (Opens Modal)
-  const handleDeleteClick = (pub: Publication) => {
+  const handleDeleteClick = (pub: AdminPublication) => {
     setPublicationToDelete(pub);
     setIsDeleteModalOpen(true);
   };
@@ -70,7 +191,7 @@ export default function PublicationPage() {
   };
 
   // 3. Edit Handler
-  const handleEdit = (id: string) => {
+  const handleEdit = (id: number) => {
     router.push(`/admin/edit/${id}`);
   };
 
@@ -115,10 +236,18 @@ export default function PublicationPage() {
 
         {/* Filter Buttons */}
         <div className="flex items-center space-x-3 shrink-0">
-          <button className="p-2.5 rounded-full border hover:bg-gray-200 transition-colors" style={{ borderColor: COLORS.maroon }}>
+          <button
+            className="p-2.5 rounded-full border hover:bg-gray-200 transition-colors"
+            style={{ borderColor: COLORS.maroon }}
+            onClick={() => setIsFilterModalOpen(true)}
+          >
             <Filter size={22} color={COLORS.maroon} strokeWidth={1.5} />
           </button>
-          <button className="p-2.5 rounded-full border hover:bg-gray-200 transition-colors" style={{ borderColor: COLORS.maroon }}>
+          <button
+            className="p-2.5 rounded-full border hover:bg-gray-200 transition-colors"
+            style={{ borderColor: COLORS.maroon }}
+            onClick={() => setIsSortModalOpen(true)}
+          >
             <Menu size={22} color={COLORS.maroon} strokeWidth={1.5} />
           </button>
         </div>
@@ -136,14 +265,26 @@ export default function PublicationPage() {
             </tr>
           </thead>
           <tbody className="divide-y" style={{ borderColor: COLORS.border }}>
-            {currentData.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="py-10 text-center text-gray-500">
+                  Loading publications...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={4} className="py-10 text-center text-red-600">
+                  {error}
+                </td>
+              </tr>
+            ) : currentData.length > 0 ? (
               currentData.map((pub) => {
-                const year = pub.datePublished.split("-")[0];
+                const year = pub.date.split(" ").pop();
                 return (
                   <tr key={pub.id} className="group hover:bg-white/50 transition-colors">
                     <td className="py-6 pr-6 leading-relaxed font-normal max-w-2xl" style={{ color: COLORS.textMain }}>{pub.title}</td>
                     <td className="px-6 py-6 whitespace-nowrap" style={{ color: COLORS.textMain }}>{year}</td>
-                    <td className="px-6 py-6" style={{ color: COLORS.textMain }}><span className="capitalize">{pub.keywords.split(',')[0]}</span></td>
+                    <td className="px-6 py-6" style={{ color: COLORS.textMain }}><span className="capitalize">{pub.field}</span></td>
                     <td className="px-6 py-6 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end space-x-6">
                         <button onClick={() => handleEdit(pub.id)} className="hover:scale-110 transition-transform">
@@ -188,6 +329,48 @@ export default function PublicationPage() {
           <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="flex items-center hover:text-gray-800 space-x-1 disabled:opacity-30">
              <span>Next</span> <ChevronRight size={16} />
           </button>
+        </div>
+      )}
+
+      {/* --- FILTER MODAL --- */}
+      {isFilterModalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <button
+              onClick={() => setIsFilterModalOpen(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Filters</h2>
+            <FilterBox
+              courseOptions={courseOptions}
+              onChange={(next) => {
+                setFilters(next);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* --- SORT MODAL --- */}
+      {isSortModalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
+            <button
+              onClick={() => setIsSortModalOpen(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Sort by</h2>
+            <SortDropdown
+              value={sortBy}
+              onChange={(value) => {
+                setSortBy(value as AdminSortOption);
+              }}
+            />
+          </div>
         </div>
       )}
 

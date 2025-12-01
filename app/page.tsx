@@ -25,7 +25,7 @@ export default function Home() {
     const trimmed = query.trim();
     if (!trimmed) return;
     const params = new URLSearchParams({ q: trimmed });
-    router.push(`/search-results?${params.toString()}`);
+    router.push(`/browse?${params.toString()}`);
   };
 
   // Live search under the bar (like instant results)
@@ -130,7 +130,7 @@ export default function Home() {
             className="mt-8 rounded-full bg-[#6b0504] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4a0403]"
             onClick={() => {
               // Go to the main search results page showing all studies
-              router.push("/search-results");
+              router.push("/browse");
             }}
           >
             <span className="inline-flex items-center gap-2">

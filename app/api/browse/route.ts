@@ -92,9 +92,6 @@ export async function GET(req: NextRequest) {
     case "Title Z-A":
       orderBy = { title: "desc" };
       break;
-    case "Most Relevant":
-      orderBy = { downloadsCount: "desc" };
-      break;
     case "Newest to Oldest":
     default:
       orderBy = { datePublished: "desc" };

@@ -1,9 +1,8 @@
 "use client";
 
-type SortOption = 
+type SortOption =
   | "Newest to Oldest"
   | "Oldest to Newest"
-  | "Most Relevant"
   | "Title A-Z"
   | "Title Z-A";
 
@@ -34,7 +33,6 @@ export function SortDropdown({
       >
         <option>Newest to Oldest</option>
         <option>Oldest to Newest</option>
-        <option>Most Relevant</option>
         <option>Title A-Z</option>
         <option>Title Z-A</option>
       </select>

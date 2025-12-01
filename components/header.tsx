@@ -27,7 +27,7 @@ type HeaderProps = {
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/", exact: true },
-  { label: "Browse", href: "/search-results" },
+  { label: "Browse", href: "/browse" },
   { label: "My Library", href: "/library" },
   { label: "Pricing", href: "/pricing" },
 ];
