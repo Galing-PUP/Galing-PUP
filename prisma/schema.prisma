@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------
+// USER MANAGEMENT
+// ---------------------------------------------------------
+
+model User {
+  id               Int      @id @default(autoincrement()) @map("user_id")
+  username         String   @unique @db.VarChar(255)
+  email            String   @unique @db.VarChar(255)
+  passwordHash     String   @map("password_hash") @db.VarChar(255)
+  registrationDate DateTime @map("registration_date") @db.Date
+  isVerified       Boolean  @map("is_verified")
+
+  // Foreign Keys (CamelCase in Code -> Snake_case in DB)
+  currentRoleId Int @map("current_role_id")
+  tierId        Int @map("tier_id")
+
+  // Relations
+  role             Role             @relation(fields: [currentRoleId], references: [id])
+  subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
+
+  bookmarks    UserBookmark[]
+  uploadedDocs Document[]     @relation("UserUploads")
+  activityLogs ActivityLog[]
+
+  // Map to plural table name
+  @@map("users")
+}
+
+model Role {
+  id       Int    @id @default(autoincrement()) @map("role_id")
+  roleName String @map("role_name") @db.VarChar(255)
+
+  users User[]
+
+  @@map("roles")
+}
+
+model SubscriptionTier {
+  id                 Int     @id @default(autoincrement()) @map("tier_id")
+  tierName           String  @map("tier_name") @db.VarChar(255)
+  dailyDownloadLimit Int     @map("daily_download_limit")
+  dailyCitationLimit Int     @map("daily_citation_limit")
+  maxBookmarks       Int     @map("max_bookmarks")
+  hasAds             Boolean @map("has_ads")
+  hasAiInsights      Boolean @map("has_ai_insights")
+
+  users User[]
+
+  @@map("subscription_tiers")
+}
+
+// ---------------------------------------------------------
+// DOCUMENT MANAGEMENT
+// ---------------------------------------------------------
+
+model Document {
+  id            Int      @id @default(autoincrement()) @map("document_id")
+  title         String   @db.VarChar(255)
+  abstract      String   @db.Text
+  filePath      String   @map("file_path") @db.VarChar(255)
+  datePublished DateTime @map("date_published") @db.Date
+  visibility    String   @db.VarChar(50) // 'Public' or 'Restricted'
+  downloadsCount Int     @default(0) @map("downloads_count")
+  citationCount  Int     @default(0) @map("citation_count")
+  aiSummary     String?  @map("ai_summary") @db.Text
+  aiInsights    String?  @map("ai_insights") @db.Text
+
+  // Foreign Keys
+  uploaderId     Int @map("uploader_id")
+  courseId       Int @map("course_id")
+  resourceTypeId Int @map("resource_type_id")
+  libraryId      Int @map("library_id")
+
+  // Relations
+  uploader     User         @relation("UserUploads", fields: [uploaderId], references: [id])
+  course       Course       @relation(fields: [courseId], references: [id])
+  resourceType ResourceType @relation(fields: [resourceTypeId], references: [id])
+  library      Library      @relation(fields: [libraryId], references: [id])
+
+  bookmarks    UserBookmark[]
+  authors      DocumentAuthor[]
+  keywords     DocumentKeyword[]
+  activityLogs ActivityLog[]
+
+  @@map("documents")
+}
+
+model UserBookmark {
+  userId     Int      @map("user_id")
+  documentId Int      @map("document_id")
+  dateBookmarked DateTime @map("date_bookmarked") @db.Date
+
+  user     User     @relation(fields: [userId], references: [id])
+  document Document @relation(fields: [documentId], references: [id])
+
+  @@id([userId, documentId])
+  @@map("user_bookmarks")
+}
+
+model DocumentAuthor {
+  documentId  Int @map("document_id")
+  authorId    Int @map("author_id")
+  authorOrder Int @map("author_order")
+
+  document Document @relation(fields: [documentId], references: [id])
+  author   Author   @relation(fields: [authorId], references: [id])
+
+  @@id([documentId, authorId])
+  @@map("document_authors")
+}
+
+model Author {
+  id       Int    @id @default(autoincrement()) @map("author_id")
+  fullName String @map("full_name") @db.VarChar(255)
+  email    String @db.VarChar(255)
+
+  documents DocumentAuthor[]
+
+  @@map("authors")
+}
+
+model DocumentKeyword {
+  documentId Int @map("document_id")
+  keywordId  Int @map("keyword_id")
+
+  document Document @relation(fields: [documentId], references: [id])
+  keyword  Keyword  @relation(fields: [keywordId], references: [id])
+
+  @@id([documentId, keywordId])
+  @@map("document_keywords")
+}
+
+model Keyword {
+  id          Int    @id @default(autoincrement()) @map("keyword_id")
+  keywordText String @unique @map("keyword_text") @db.VarChar(255)
+
+  documents DocumentKeyword[]
+
+  @@map("keywords")
+}
+
+// ---------------------------------------------------------
+// ACADEMIC & INSTITUTIONAL
+// ---------------------------------------------------------
+
+model Course {
+  id          Int    @id @default(autoincrement()) @map("course_id")
+  courseName  String @map("course_name") @db.VarChar(255)
+  courseAbbr  String @map("course_abbr") @db.VarChar(50)
+  collegeId   Int    @map("college_id")
+
+  college   College    @relation(fields: [collegeId], references: [id])
+  documents Document[]
+
+  @@map("courses")
+}
+
+model College {
+  id          Int    @id @default(autoincrement()) @map("college_id")
+  collegeName String @unique @map("college_name") @db.VarChar(255)
+  collegeAbbr String @unique @map("college_abbr") @db.VarChar(50)
+
+  courses Course[]
+
+  @@map("colleges")
+}
+
+model ResourceType {
+  id       Int    @id @default(autoincrement()) @map("resource_type_id")
+  typeName String @map("type_name") @db.VarChar(255)
+
+  documents Document[]
+
+  @@map("resource_types")
+}
+
+model Library {
+  id   Int    @id @default(autoincrement()) @map("library_id")
+  name String @db.VarChar(255)
+
+  documents Document[]
+
+  @@map("libraries")
+}
+
+// ---------------------------------------------------------
+// LOGGING
+// ---------------------------------------------------------
+
+model ActivityLog {
+  id           BigInt   @id @default(autoincrement()) @map("log_id")
+  userId       Int      @map("user_id")
+  documentId   Int?     @map("document_id")
+  activityType String   @map("activity_type") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id])
+  document Document? @relation(fields: [documentId], references: [id])
+
+  @@map("activity_logs")
+}
