@@ -1,10 +1,82 @@
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import BackgroundGraphic from "@/assets/Graphics/background-homepage.png";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SearchBar } from "@/components/search-bar";
 
+type HomeSearchResult = {
+  id: number;
+  title: string;
+};
+
 export default function Home() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<HomeSearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const goToSearchResults = () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const params = new URLSearchParams({ q: trimmed });
+    router.push(`/search-results?${params.toString()}`);
+  };
+
+  // Live search under the bar (like instant results)
+  useEffect(() => {
+    let abort = false;
+
+    const run = async () => {
+      const trimmed = query.trim();
+      if (!trimmed) {
+        setResults([]);
+        setLoading(false);
+        setError(null);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        params.set("q", trimmed);
+        const url = `/api/search-results?${params.toString()}`;
+
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`Search failed: ${res.status}`);
+        }
+        const data: HomeSearchResult[] = await res.json();
+        if (!abort) {
+          setResults(data);
+        }
+      } catch (e) {
+        console.error(e);
+        if (!abort) {
+          setError("Something went wrong while searching.");
+        }
+      } finally {
+        if (!abort) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Small debounce so we don't fire on every keystroke too aggressively
+    const handle = setTimeout(run, 250);
+
+    return () => {
+      abort = true;
+      clearTimeout(handle);
+    };
+  }, [query]);
+
   return (
     <>
       <Header />
@@ -17,11 +89,49 @@ export default function Home() {
             className="h-32 w-auto md:h-40"
           />
 
-          <SearchBar className="mt-10 max-w-6xl" size="md" />
+          <div className="w-full max-w-6xl mt-10">
+            <SearchBar
+              className="w-full"
+              size="md"
+              value={query}
+              onChange={setQuery}
+              onSubmit={goToSearchResults}
+            />
+
+            {/* Inline results list */}
+            <div className="mt-4">
+              {loading && (
+                <p className="text-sm text-gray-500">Loading studies...</p>
+              )}
+              {error && (
+                <p className="text-sm text-red-600">{error}</p>
+              )}
+              {!loading && !error && results.length > 0 && (
+                <div className="rounded-lg border border-gray-200 bg-white shadow-sm max-h-80 overflow-y-auto">
+                  <ul className="divide-y divide-gray-100">
+                    {results.map((r) => (
+                      <li key={r.id}>
+                        <Link
+                          href={`/paper/${r.id}`}
+                          className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                        >
+                          {r.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
 
           <button
             type="button"
             className="mt-8 rounded-full bg-[#6b0504] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4a0403]"
+            onClick={() => {
+              // Go to the main search results page showing all studies
+              router.push("/search-results");
+            }}
           >
             <span className="inline-flex items-center gap-2">
               Explore All Studies
