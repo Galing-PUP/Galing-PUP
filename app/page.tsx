@@ -68,8 +68,8 @@ export default function Home() {
       }
     };
 
-    // Small debounce so we don't fire on every keystroke too aggressively
-    const handle = setTimeout(run, 250);
+    // Debounce the search by 1 second
+    const handle = setTimeout(run, 1000);
 
     return () => {
       abort = true;
@@ -103,9 +103,7 @@ export default function Home() {
               {loading && (
                 <p className="text-sm text-gray-500">Loading studies...</p>
               )}
-              {error && (
-                <p className="text-sm text-red-600">{error}</p>
-              )}
+              {error && <p className="text-sm text-red-600">{error}</p>}
               {!loading && !error && results.length > 0 && (
                 <div className="rounded-lg border border-gray-200 bg-white shadow-sm max-h-80 overflow-y-auto">
                   <ul className="divide-y divide-gray-100">
