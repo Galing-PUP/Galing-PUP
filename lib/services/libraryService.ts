@@ -1,134 +1,234 @@
 /**
- * Library Service - Abstracts data persistence layer
- * 
- * Currently uses localStorage, but can easily be swapped to API calls
- * by changing the implementation functions below.
+ * Library Service - API-based bookmark management
+ *
+ * Connects to the backend API for bookmark operations.
+ * TODO: Update to use auth session userId once auth system is implemented
  */
 
-const LIBRARY_STORAGE_KEY = "galing-pup-library";
+// Temporary user ID - will be replaced with auth session
+// TODO: Remove this once auth is implemented
+const TEMP_USER_ID = 1;
 
-// ============================================
-// CURRENT IMPLEMENTATION: localStorage
-// ============================================
+interface BookmarkDocument {
+  id: number;
+  title: string;
+  abstract: string;
+  datePublished: string;
+  downloadsCount: number;
+  citationCount: number;
+  authors: string[];
+  course: string;
+  college: string;
+  resourceType: string;
+  filePath: string;
+}
 
+interface BookmarkData {
+  documentId: number;
+  dateBookmarked: string;
+  document: BookmarkDocument;
+}
+
+interface BookmarkResponse {
+  success: boolean;
+  message?: string;
+  bookmarks?: BookmarkData[];
+  count?: number;
+  maxBookmarks?: number;
+  currentCount?: number;
+}
+
+interface BookmarkStatusResponse {
+  success: boolean;
+  isBookmarked: boolean;
+  dateBookmarked?: Date | null;
+}
+
+/**
+ * Get all bookmarks for the current user
+ */
 export async function getBookmarks(): Promise<number[]> {
-  // TODO: Replace with API call when backend is ready
-  // Example: const response = await fetch('/api/library');
-  // return response.json();
-  
-  if (typeof window === "undefined") return [];
-  
-  const stored = localStorage.getItem(LIBRARY_STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch (e) {
-      console.error("Error parsing library data:", e);
+  try {
+    // TODO: Remove userId param once auth is implemented
+    const response = await fetch(`/api/bookmarks?userId=${TEMP_USER_ID}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store", // Don't cache bookmark data
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch bookmarks:", response.statusText);
       return [];
     }
+
+    const data: BookmarkResponse = await response.json();
+
+    if (data.success && data.bookmarks) {
+      return data.bookmarks.map((bookmark) => bookmark.documentId);
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching bookmarks:", error);
+    return [];
   }
-  return [];
 }
 
-export async function addBookmark(paperId: number): Promise<{ success: boolean; message: string }> {
-  // TODO: Replace with API call when backend is ready
-  // Example: 
-  // const response = await fetch('/api/library', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ paperId })
-  // });
-  // return response.json();
-  
-  if (typeof window === "undefined") {
-    return { success: false, message: "Not available on server" };
+/**
+ * Add a bookmark for the current user
+ */
+export async function addBookmark(
+  documentId: number,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // TODO: Remove userId param once auth is implemented
+    const response = await fetch(`/api/bookmarks?userId=${TEMP_USER_ID}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ documentId }),
+    });
+
+    const data: BookmarkResponse = await response.json();
+
+    if (!response.ok) {
+      // Handle specific error cases
+      if (response.status === 409) {
+        return { success: false, message: "Already bookmarked" };
+      }
+      if (response.status === 403) {
+        return {
+          success: false,
+          message: data.message || "Bookmark limit reached",
+        };
+      }
+      if (response.status === 404) {
+        return { success: false, message: "Document not found" };
+      }
+      return {
+        success: false,
+        message: data.message || "Failed to add bookmark",
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || "Added to library",
+    };
+  } catch (error) {
+    console.error("Error adding bookmark:", error);
+    return {
+      success: false,
+      message: "Network error. Please try again.",
+    };
   }
-  
-  const current = await getBookmarks();
-  if (current.includes(paperId)) {
-    return { success: false, message: "Already in library" };
-  }
-  
-  const updated = [...current, paperId];
-  localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(updated));
-  return { success: true, message: "Added to library" };
 }
 
-export async function removeBookmark(paperId: number): Promise<{ success: boolean; message: string }> {
-  // TODO: Replace with API call when backend is ready
-  // Example:
-  // const response = await fetch(`/api/library/${paperId}`, {
-  //   method: 'DELETE'
-  // });
-  // return response.json();
-  
-  if (typeof window === "undefined") {
-    return { success: false, message: "Not available on server" };
+/**
+ * Remove a bookmark for the current user
+ */
+export async function removeBookmark(
+  documentId: number,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // TODO: Remove userId param once auth is implemented
+    const response = await fetch(
+      `/api/bookmarks/${documentId}?userId=${TEMP_USER_ID}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const data: BookmarkResponse = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { success: false, message: "Bookmark not found" };
+      }
+      return {
+        success: false,
+        message: data.message || "Failed to remove bookmark",
+      };
+    }
+
+    return {
+      success: true,
+      message: data.message || "Removed from library",
+    };
+  } catch (error) {
+    console.error("Error removing bookmark:", error);
+    return {
+      success: false,
+      message: "Network error. Please try again.",
+    };
   }
-  
-  const current = await getBookmarks();
-  const updated = current.filter((id) => id !== paperId);
-  localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(updated));
-  return { success: true, message: "Removed from library" };
 }
 
-export async function checkBookmarkStatus(paperId: number): Promise<boolean> {
-  // TODO: Replace with API call when backend is ready
-  // Example: const response = await fetch(`/api/library/${paperId}/status`);
-  // const data = await response.json();
-  // return data.isBookmarked;
-  
-  const bookmarks = await getBookmarks();
-  return bookmarks.includes(paperId);
+/**
+ * Check if a document is bookmarked
+ */
+export async function checkBookmarkStatus(
+  documentId: number,
+): Promise<boolean> {
+  try {
+    // TODO: Remove userId param once auth is implemented
+    const response = await fetch(
+      `/api/bookmarks/${documentId}?userId=${TEMP_USER_ID}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data: BookmarkStatusResponse = await response.json();
+    return data.isBookmarked;
+  } catch (error) {
+    console.error("Error checking bookmark status:", error);
+    return false;
+  }
 }
 
-// ============================================
-// FUTURE IMPLEMENTATION: API Calls
-// ============================================
-// 
-// When you have a backend, simply replace the functions above with:
-//
-// export async function getBookmarks(): Promise<number[]> {
-//   const response = await fetch('/api/user/library', {
-//     credentials: 'include' // for auth cookies
-//   });
-//   if (!response.ok) throw new Error('Failed to fetch bookmarks');
-//   const data = await response.json();
-//   return data.bookmarkIds;
-// }
-//
-// export async function addBookmark(paperId: number): Promise<{ success: boolean; message: string }> {
-//   const response = await fetch('/api/user/library', {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     credentials: 'include',
-//     body: JSON.stringify({ paperId })
-//   });
-//   if (!response.ok) {
-//     const error = await response.json();
-//     return { success: false, message: error.message || 'Failed to add bookmark' };
-//   }
-//   return { success: true, message: "Added to library" };
-// }
-//
-// export async function removeBookmark(paperId: number): Promise<{ success: boolean; message: string }> {
-//   const response = await fetch(`/api/user/library/${paperId}`, {
-//     method: 'DELETE',
-//     credentials: 'include'
-//   });
-//   if (!response.ok) {
-//     const error = await response.json();
-//     return { success: false, message: error.message || 'Failed to remove bookmark' };
-//   }
-//   return { success: true, message: "Removed from library" };
-// }
-//
-// export async function checkBookmarkStatus(paperId: number): Promise<boolean> {
-//   const response = await fetch(`/api/user/library/${paperId}/status`, {
-//     credentials: 'include'
-//   });
-//   if (!response.ok) return false;
-//   const data = await response.json();
-//   return data.isBookmarked;
-// }
+/**
+ * Get detailed bookmark data (for library page)
+ */
+export async function getDetailedBookmarks(): Promise<BookmarkData[]> {
+  try {
+    // TODO: Remove userId param once auth is implemented
+    const response = await fetch(`/api/bookmarks?userId=${TEMP_USER_ID}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
 
+    if (!response.ok) {
+      console.error("Failed to fetch detailed bookmarks:", response.statusText);
+      return [];
+    }
+
+    const data: BookmarkResponse = await response.json();
+
+    if (data.success && data.bookmarks) {
+      return data.bookmarks;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching detailed bookmarks:", error);
+    return [];
+  }
+}
