@@ -40,9 +40,11 @@ const ActionButton = ({
 
 type ActionButtonsProps = {
   paperId: number;
+  pdfUrl?: string | null;
+  title?: string;
 };
 
-export function ActionButtons({ paperId }: ActionButtonsProps) {
+export function ActionButtons({ paperId, pdfUrl, title }: ActionButtonsProps) {
   const { isBookmarked, toggleBookmark, addToLibrary, bookmarkCount, maxBookmarks } = useLibrary();
   const isInLibrary = isBookmarked(paperId);
 
@@ -58,10 +60,50 @@ export function ActionButtons({ paperId }: ActionButtonsProps) {
     }
   };
 
+  const handleDownloadClick = () => {
+    if (!pdfUrl) {
+      alert("PDF is not available for this document.");
+      return;
+    }
+
+    try {
+      window.open(pdfUrl, "_blank", "noopener,noreferrer");
+    } catch {
+      // Fallback: just change location if window.open is blocked
+      window.location.href = pdfUrl;
+    }
+  };
+
+  const handleShareClick = async () => {
+    const url = window.location.href;
+    const shareTitle = title ?? "Check out this paper from Galing-PUP";
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, url });
+        return;
+      } catch {
+        // User cancelled or share failed, fall through to clipboard fallback
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("Link copied to clipboard.");
+    } catch {
+      alert("Unable to share automatically. Please copy the URL from the address bar.");
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <ActionButton icon={Download} label="Download PDF" primary />
+        <ActionButton
+          icon={Download}
+          label="Download PDF"
+          primary
+          onClick={handleDownloadClick}
+        />
         <ActionButton
           icon={Library}
           label={isInLibrary ? "Remove from Library" : "Add to Library"}
@@ -69,7 +111,7 @@ export function ActionButtons({ paperId }: ActionButtonsProps) {
           isActive={isInLibrary}
         />
         <ActionButton icon={Quote} label="Generate Citation" />
-        <ActionButton icon={Share2} label="Share" />
+        <ActionButton icon={Share2} label="Share" onClick={handleShareClick} />
       </div>
       {/* Standalone Share icon from image */}
       <div className="mt-4 flex justify-center">

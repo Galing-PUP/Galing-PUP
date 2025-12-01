@@ -46,7 +46,7 @@ export default function Home() {
       try {
         const params = new URLSearchParams();
         params.set("q", trimmed);
-        const url = `/api/search-results?${params.toString()}`;
+        const url = `/api/browse?${params.toString()}`;
 
         const res = await fetch(url);
         if (!res.ok) {

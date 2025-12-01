@@ -68,6 +68,7 @@ export default async function PaperPage(props: PaperPageProps) {
 
   const views = document.citationCount + document.downloadsCount;
   const downloads = document.downloadsCount;
+  const pdfUrl = document.filePath;
 
   return (
     <div className="min-h-screen">
@@ -89,7 +90,7 @@ export default async function PaperPage(props: PaperPageProps) {
 
             {/*download, generate citation, add to library, share button*/}
             <div>
-              <ActionButtons paperId={id} />
+              <ActionButtons paperId={id} pdfUrl={pdfUrl} title={document.title} />
             </div>
 
             {/* Abstract content of the paper*/}
