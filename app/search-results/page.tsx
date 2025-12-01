@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { Header } from "@/components/header";
 import { SearchBar } from "@/components/search-bar";
-import { FilterBox } from "@/components/filter-box";
+import { FilterBox, FilterValues } from "@/components/filter-box";
 import { SearchResultCard } from "@/components/search-result-card";
 import { SortDropdown } from "@/components/sort-dropdown";
 
@@ -20,24 +21,83 @@ type SearchResult = {
 };
 
 export default function SearchResultsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeSearchTerm = searchParams.get("q") ?? "";
+
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(activeSearchTerm);
+  const [filters, setFilters] = useState<FilterValues>({
+    campus: "All Campuses",
+    course: "All Courses",
+    year: "All Years",
+    documentType: "All Types",
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<
     "Newest to Oldest" | "Oldest to Newest" | "Most Relevant" | "Title A-Z" | "Title Z-A"
   >("Newest to Oldest");
+  const [courseOptions, setCourseOptions] = useState<string[]>([]);
 
   const resultsPerPage = 10;
 
   useEffect(() => {
-    async function load() {
+    async function loadCourses() {
       try {
-        const res = await fetch("/api/search-results");
+        const res = await fetch("/api/courses");
+        if (!res.ok) {
+          throw new Error(`Failed to load courses: ${res.status}`);
+        }
+        const data: { courseName: string }[] = await res.json();
+        setCourseOptions(data.map((c) => c.courseName));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadCourses();
+  }, []);
+
+  useEffect(() => {
+    setSearchTerm(activeSearchTerm);
+  }, [activeSearchTerm]);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+
+        if (activeSearchTerm.trim().length > 0) {
+          params.set("q", activeSearchTerm.trim());
+        }
+
+        if (filters.campus !== "All Campuses") {
+          params.set("campus", filters.campus);
+        }
+        if (filters.course !== "All Courses") {
+          params.set("course", filters.course);
+        }
+        if (filters.year !== "All Years") {
+          params.set("year", filters.year);
+        }
+        if (filters.documentType !== "All Types") {
+          params.set("documentType", filters.documentType);
+        }
+
+        params.set("sort", sortBy);
+
+        const query = params.toString();
+        const url = query ? `/api/search-results?${query}` : "/api/search-results";
+
+        const res = await fetch(url);
         if (!res.ok) {
           throw new Error(`Failed to load results: ${res.status}`);
         }
         const data: SearchResult[] = await res.json();
         setResults(data);
+        setCurrentPage(1);
       } catch (error) {
         console.error(error);
       } finally {
@@ -46,7 +106,7 @@ export default function SearchResultsPage() {
     }
 
     load();
-  }, []);
+  }, [activeSearchTerm, filters, sortBy]);
 
   const totalResults = results.length;
   const totalPages = Math.ceil(totalResults / resultsPerPage) || 1;
@@ -110,6 +170,19 @@ export default function SearchResultsPage() {
             placeholder="Search publications..."
             className="mx-auto max-w-4xl"
             size="sm"
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onSubmit={() => {
+              const trimmed = searchTerm.trim();
+              const params = new URLSearchParams(searchParams.toString());
+              if (trimmed) {
+                params.set("q", trimmed);
+              } else {
+                params.delete("q");
+              }
+              const query = params.toString();
+              router.push(`/search-results${query ? `?${query}` : ""}`);
+            }}
           />
         </div>
 
@@ -119,7 +192,12 @@ export default function SearchResultsPage() {
             {/* Left Sidebar - Filters */}
             <aside className="w-full lg:w-64 md:w-72 lg:flex-shrink-0 lg:pl-0 md:pl-0">
               <div className="sticky top-8">
-                <FilterBox />
+                <FilterBox
+                  courseOptions={courseOptions}
+                  onChange={(next) => {
+                    setFilters(next);
+                  }}
+                />
               </div>
             </aside>
 

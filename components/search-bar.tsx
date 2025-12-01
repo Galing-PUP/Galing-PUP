@@ -3,8 +3,15 @@ type SearchBarSize = "sm" | "md" | "lg" | "xl";
 type SearchBarProps = {
   className?: string;
   placeholder?: string;
+  /** Text shown inside the button (default: "Search") */
   buttonText?: string;
   size?: SearchBarSize;
+  /** Optional controlled value for the input */
+  value?: string;
+  /** Called whenever the input text changes */
+  onChange?: (value: string) => void;
+  /** Called when the user submits the search (button click or Enter) */
+  onSubmit?: () => void;
 };
 
 function getSizeConfig(size: SearchBarSize) {
@@ -50,6 +57,9 @@ export function SearchBar({
   placeholder = "Search by title, author, keywords...",
   buttonText = "Search",
   size = "md",
+  value,
+  onChange,
+  onSubmit,
 }: SearchBarProps) {
   const cfg = getSizeConfig(size);
 
@@ -75,10 +85,18 @@ export function SearchBar({
           type="text"
           placeholder={placeholder}
           className={`w-full rounded-l-full bg-white ${cfg.inputPadding} ${cfg.inputText} text-[#111827] placeholder:text-[#9ca3af] focus:outline-none`}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onSubmit?.();
+            }
+          }}
         />
         <button
           type="button"
           className={`m-2 rounded-full bg-[#6b0504] ${cfg.buttonPadding} ${cfg.buttonText} font-semibold text-white transition-colors hover:bg-[#4a0403]`}
+          onClick={onSubmit}
         >
           {buttonText}
         </button>
