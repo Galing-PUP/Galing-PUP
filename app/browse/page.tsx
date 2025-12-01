@@ -95,8 +95,8 @@ export default function BrowsePage() {
         if (!res.ok) {
           throw new Error(`Failed to load results: ${res.status}`);
         }
-        const data: SearchResult[] = await res.json();
-        setResults(data);
+        const data = await res.json();
+        setResults(data.results || []);
         setCurrentPage(1);
       } catch (error) {
         console.error(error);
@@ -110,20 +110,21 @@ export default function BrowsePage() {
 
   const totalResults = results.length;
   const totalPages = Math.ceil(totalResults / resultsPerPage) || 1;
-  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
+  const startResult =
+    totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   // Get paginated results
   const paginatedResults = results.slice(
     (currentPage - 1) * resultsPerPage,
-    currentPage * resultsPerPage
+    currentPage * resultsPerPage,
   );
 
   // Calculate which page numbers to display
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxPagesToShow = 3;
-    
+
     if (totalPages <= maxPagesToShow + 2) {
       // Show all pages if total pages is small
       for (let i = 1; i <= totalPages; i++) {
@@ -132,7 +133,7 @@ export default function BrowsePage() {
     } else {
       // Always show first page
       pages.push(1);
-      
+
       if (currentPage <= maxPagesToShow) {
         // Near the beginning
         for (let i = 2; i <= maxPagesToShow + 1; i++) {
@@ -156,7 +157,7 @@ export default function BrowsePage() {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -206,8 +207,8 @@ export default function BrowsePage() {
               {/* Results Header */}
               <div className="flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-4 md:flex-row md:items-center">
                 <p className="text-sm text-gray-600">
-                  Showing {startResult}-{endResult} of {totalResults.toLocaleString()}{" "}
-                  results
+                  Showing {startResult}-{endResult} of{" "}
+                  {totalResults.toLocaleString()} results
                 </p>
                 <SortDropdown value={sortBy} onChange={setSortBy} />
               </div>
@@ -223,7 +224,9 @@ export default function BrowsePage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pb-12 pt-6">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
                     disabled={currentPage === 1}
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -233,7 +236,10 @@ export default function BrowsePage() {
                   {getPageNumbers().map((page, index) => {
                     if (page === "...") {
                       return (
-                        <span key={`ellipsis-${index}`} className="px-2 text-sm text-gray-500">
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="px-2 text-sm text-gray-500"
+                        >
                           ...
                         </span>
                       );
@@ -255,7 +261,9 @@ export default function BrowsePage() {
                   })}
 
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
                     disabled={currentPage >= totalPages}
                     className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -270,4 +278,3 @@ export default function BrowsePage() {
     </>
   );
 }
-
