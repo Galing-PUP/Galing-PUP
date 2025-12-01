@@ -21,18 +21,22 @@ const StatCard = ({
 );
 
 type DocumentStatsProps = {
-  views: number;
   downloads: number;
+  citations: number;
 };
 
-export function DocumentStats({ views, downloads }: DocumentStatsProps) {
+export function DocumentStats({ downloads, citations }: DocumentStatsProps) {
   return (
     <section className="grid grid-cols-2 gap-4">
-      <StatCard icon={Eye} value={views.toLocaleString()} label="Views" />
       <StatCard
         icon={Download}
         value={downloads.toLocaleString()}
         label="Downloads"
+      />
+      <StatCard
+        icon={Eye}
+        value={citations.toLocaleString()}
+        label="Citations"
       />
     </section>
   );

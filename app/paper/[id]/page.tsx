@@ -66,9 +66,14 @@ export default async function PaperPage(props: PaperPageProps) {
   const documentType = document.resourceType.typeName;
   const keywords = document.keywords.map((k) => k.keyword.keywordText);
 
-  const views = document.citationCount + document.downloadsCount;
   const downloads = document.downloadsCount;
+  const citations = document.citationCount;
   const pdfUrl = document.filePath;
+
+  const mainAuthor = authors[0] ?? "Unknown Author";
+  const additionalAuthors =
+    authors.length > 1 ? " et al." : "";
+  const citation = `${mainAuthor}${additionalAuthors} (${yearPublished}). ${document.title}. ${department}, ${campus}.`;
 
   return (
     <div className="min-h-screen">
@@ -90,7 +95,12 @@ export default async function PaperPage(props: PaperPageProps) {
 
             {/*download, generate citation, add to library, share button*/}
             <div>
-              <ActionButtons paperId={id} pdfUrl={pdfUrl} title={document.title} />
+              <ActionButtons
+                paperId={id}
+                pdfUrl={pdfUrl}
+                title={document.title}
+                citation={citation}
+              />
             </div>
 
             {/* Abstract content of the paper*/}
@@ -116,7 +126,7 @@ export default async function PaperPage(props: PaperPageProps) {
               campus={campus}
               department={department}
             />
-            <DocumentStats views={views} downloads={downloads} />
+            <DocumentStats downloads={downloads} citations={citations} />
           </div>
         </div>
       </main>

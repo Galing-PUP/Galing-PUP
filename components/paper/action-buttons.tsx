@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, Library, Quote, Share2, Share } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { useLibrary } from "@/lib/hooks/useLibrary";
 
 // Reusable internal button component
@@ -42,11 +42,17 @@ type ActionButtonsProps = {
   paperId: number;
   pdfUrl?: string | null;
   title?: string;
+  citation?: string;
 };
 
-export function ActionButtons({ paperId, pdfUrl, title }: ActionButtonsProps) {
+export function ActionButtons({ paperId, pdfUrl, title, citation }: ActionButtonsProps) {
   const { isBookmarked, toggleBookmark, addToLibrary, bookmarkCount, maxBookmarks } = useLibrary();
   const isInLibrary = isBookmarked(paperId);
+  const [isCitationModalOpen, setIsCitationModalOpen] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<"APA" | "MLA" | "Chicago">("APA");
+  const [citationCount, setCitationCount] = useState(0);
+  const [isCopiedModalOpen, setIsCopiedModalOpen] = useState(false);
+  const CITATION_LIMIT = 5;
 
   const handleLibraryClick = async () => {
     if (isInLibrary) {
@@ -95,6 +101,53 @@ export function ActionButtons({ paperId, pdfUrl, title }: ActionButtonsProps) {
     }
   };
 
+  const handleGenerateCitationClick = () => {
+    if (!citation) {
+      alert("Citation details are not available for this document.");
+      return;
+    }
+
+    if (citationCount >= CITATION_LIMIT) {
+      alert(
+        `You've reached the free limit of ${CITATION_LIMIT} citation generations for this session.`
+      );
+      return;
+    }
+
+    setIsCitationModalOpen(true);
+  };
+
+  const buildStyledCitation = () => {
+    if (!citation) return "";
+
+    switch (selectedStyle) {
+      case "MLA":
+        // Simple MLA-like variation
+        return `${citation} (MLA style approximation)`;
+      case "Chicago":
+        // Simple Chicago-like variation
+        return `${citation} (Chicago style approximation)`;
+      case "APA":
+      default:
+        return `${citation} (APA style approximation)`;
+    }
+  };
+
+  const handleCopyStyledCitation = async () => {
+    const styledCitation = buildStyledCitation();
+    if (!styledCitation) return;
+
+    try {
+      await navigator.clipboard.writeText(styledCitation);
+      setCitationCount((prev) => prev + 1);
+      setIsCopiedModalOpen(true);
+    } catch {
+      alert(styledCitation);
+    }
+
+    setIsCitationModalOpen(false);
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -110,9 +163,94 @@ export function ActionButtons({ paperId, pdfUrl, title }: ActionButtonsProps) {
           onClick={handleLibraryClick}
           isActive={isInLibrary}
         />
-        <ActionButton icon={Quote} label="Generate Citation" />
+        <ActionButton
+          icon={Quote}
+          label="Generate Citation"
+          onClick={handleGenerateCitationClick}
+        />
         <ActionButton icon={Share2} label="Share" onClick={handleShareClick} />
       </div>
+
+      {isCitationModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Choose citation style
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Select a style and copy the generated citation. You have used{" "}
+              <span className="font-semibold">{citationCount}</span> of{" "}
+              <span className="font-semibold">{CITATION_LIMIT}</span> free
+              citations this session.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(["APA", "MLA", "Chicago"] as const).map((style) => (
+                <button
+                  key={style}
+                  type="button"
+                  onClick={() => setSelectedStyle(style)}
+                  className={`rounded-full px-4 py-1 text-sm font-medium border ${
+                    selectedStyle === style
+                      ? "bg-red-700 text-white border-red-700"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {style}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Preview
+              </label>
+              <div className="max-h-32 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-800">
+                {buildStyledCitation()}
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                onClick={() => setIsCitationModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800"
+                onClick={handleCopyStyledCitation}
+              >
+                Copy citation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isCopiedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg text-center">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Citation copied
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              The citation has been copied to your clipboard. You can now paste it into your document.
+            </p>
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                className="rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800"
+                onClick={() => setIsCopiedModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Standalone Share icon from image */}
       <div className="mt-4 flex justify-center">
         <button
