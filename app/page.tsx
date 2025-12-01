@@ -46,7 +46,7 @@ export default function Home() {
       try {
         const params = new URLSearchParams();
         params.set("q", trimmed);
-        const url = `/api/search-results?${params.toString()}`;
+        const url = `/api/browse?${params.toString()}`;
 
         const res = await fetch(url);
         if (!res.ok) {
@@ -69,7 +69,7 @@ export default function Home() {
     };
 
     // Small debounce so we don't fire on every keystroke too aggressively
-    const handle = setTimeout(run, 250);
+    const handle = setTimeout(run, 1000);
 
     return () => {
       abort = true;
@@ -160,7 +160,6 @@ export default function Home() {
           }}
         />
       </div>
-      
     </>
   );
 }

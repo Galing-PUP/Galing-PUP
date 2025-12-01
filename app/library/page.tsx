@@ -5,18 +5,52 @@ import { BookmarkCard } from "@/components/library/bookmark-card";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
 import { useLibrary } from "@/lib/hooks/useLibrary";
-import { mockResults } from "@/data/mockResults";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Filter, Search } from "lucide-react";
+import * as libraryService from "@/lib/services/libraryService";
+import { toast } from "sonner";
+
+interface BookmarkedPaper {
+  documentId: number;
+  dateBookmarked: string;
+  document: {
+    id: number;
+    title: string;
+    abstract: string;
+    datePublished: string;
+    downloadsCount: number;
+    citationCount: number;
+    authors: string[];
+    course: string;
+    college: string;
+    resourceType: string;
+    filePath: string;
+  };
+}
 
 export default function LibraryPage() {
-  const { bookmarkedIds, bookmarkCount, maxBookmarks } = useLibrary();
+  const { bookmarkCount, maxBookmarks, isLoading: hookLoading } = useLibrary();
   const [searchQuery, setSearchQuery] = useState("");
+  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkedPaper[]>(
+    [],
+  );
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Get bookmarked papers from mockResults
-  const bookmarkedPapers = useMemo(() => {
-    return mockResults.filter((paper) => bookmarkedIds.includes(paper.id));
-  }, [bookmarkedIds]);
+  // Fetch bookmarked papers from API on mount only
+  useEffect(() => {
+    async function fetchBookmarks() {
+      setIsLoading(true);
+      try {
+        const bookmarks = await libraryService.getDetailedBookmarks();
+        setBookmarkedPapers(bookmarks);
+      } catch (error) {
+        console.error("Error fetching bookmarks:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchBookmarks();
+  }, []);
 
   // Filter by search query
   const filteredPapers = useMemo(() => {
@@ -25,10 +59,12 @@ export default function LibraryPage() {
     const query = searchQuery.toLowerCase();
     return bookmarkedPapers.filter(
       (paper) =>
-        paper.title.toLowerCase().includes(query) ||
-        paper.authors.some((author) => author.toLowerCase().includes(query)) ||
-        paper.field.toLowerCase().includes(query) ||
-        paper.abstract.toLowerCase().includes(query)
+        paper.document.title.toLowerCase().includes(query) ||
+        paper.document.authors.some((author: string) =>
+          author.toLowerCase().includes(query),
+        ) ||
+        paper.document.course.toLowerCase().includes(query) ||
+        paper.document.abstract.toLowerCase().includes(query),
     );
   }, [bookmarkedPapers, searchQuery]);
 
@@ -90,10 +126,41 @@ export default function LibraryPage() {
           </div>
 
           {/* Bookmarked Papers */}
-          {filteredPapers.length > 0 ? (
+          {isLoading || hookLoading ? (
+            <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
+              <p className="text-lg font-medium text-gray-600">
+                Loading your bookmarks...
+              </p>
+            </div>
+          ) : filteredPapers.length > 0 ? (
             <div className="space-y-4">
-              {filteredPapers.map((paper) => (
-                <BookmarkCard key={paper.id} result={paper} />
+              {filteredPapers.map((bookmark) => (
+                <BookmarkCard
+                  key={bookmark.documentId}
+                  result={{
+                    id: bookmark.document.id,
+                    title: bookmark.document.title,
+                    authors: bookmark.document.authors,
+                    field: bookmark.document.course,
+                    college: bookmark.document.college,
+                    year: new Date(
+                      bookmark.document.datePublished,
+                    ).getFullYear(),
+                    abstract: bookmark.document.abstract,
+                    citations: bookmark.document.citationCount,
+                    downloads: bookmark.document.downloadsCount,
+                    type: bookmark.document.resourceType,
+                    dateBookmarked: bookmark.dateBookmarked,
+                  }}
+                  onRemove={() => {
+                    // Remove card from local state immediately
+                    setBookmarkedPapers((prev) =>
+                      prev.filter((b) => b.documentId !== bookmark.documentId),
+                    );
+                    toast.success("Bookmark removed successfully");
+                  }}
+                  onError={(message) => toast.error(message)}
+                />
               ))}
             </div>
           ) : (
@@ -102,12 +169,13 @@ export default function LibraryPage() {
                 {searchQuery
                   ? "No bookmarks match your search."
                   : bookmarkCount === 0
-                  ? "Your library is empty. Start bookmarking papers to save them here!"
-                  : "No bookmarks found."}
+                    ? "Your library is empty. Start bookmarking papers to save them here!"
+                    : "No bookmarks found."}
               </p>
               {!searchQuery && bookmarkCount === 0 && (
                 <p className="mt-2 text-sm text-gray-500">
-                  Visit any paper page and click "Add to Library" to get started.
+                  Visit any paper page and click &quot;Add to Library&quot; to
+                  get started.
                 </p>
               )}
             </div>
@@ -124,4 +192,3 @@ export default function LibraryPage() {
     </>
   );
 }
-
