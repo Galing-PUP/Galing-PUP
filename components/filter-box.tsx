@@ -2,26 +2,39 @@
 
 import { useState } from "react";
 
-type FilterBoxProps = {
-  className?: string;
+export type FilterValues = {
+  campus: string;
+  course: string;
+  year: string;
+  documentType: string;
 };
 
-export function FilterBox({ className = "" }: FilterBoxProps) {
+type FilterBoxProps = {
+  className?: string;
+  /** Notify parent when filters change */
+  onChange?: (filters: FilterValues) => void;
+  /** Available courses coming from the database */
+  courseOptions?: string[];
+};
+
+const DEFAULT_FILTERS: FilterValues = {
+  campus: "All Campuses",
+  course: "All Courses",
+  year: "All Years",
+  documentType: "All Types",
+};
+
+export function FilterBox({ className = "", onChange, courseOptions = [] }: FilterBoxProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [filters, setFilters] = useState({
-    campus: "All Campuses",
-    college: "All Colleges",
-    year: "All Years",
-    documentType: "All Types",
-  });
+  const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS);
+
+  const updateFilters = (next: FilterValues) => {
+    setFilters(next);
+    onChange?.(next);
+  };
 
   const handleClearFilters = () => {
-    setFilters({
-      campus: "All Campuses",
-      college: "All Colleges",
-      year: "All Years",
-      documentType: "All Types",
-    });
+    updateFilters(DEFAULT_FILTERS);
   };
 
   return (
@@ -46,7 +59,7 @@ export function FilterBox({ className = "" }: FilterBoxProps) {
             <select
               value={filters.campus}
               onChange={(e) =>
-                setFilters({ ...filters, campus: e.target.value })
+                updateFilters({ ...filters, campus: e.target.value })
               }
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#6b0504] focus:outline-none focus:ring-1 focus:ring-[#6b0504]"
             >
@@ -57,23 +70,22 @@ export function FilterBox({ className = "" }: FilterBoxProps) {
             </select>
           </div>
 
-          {/* College Filter */}
+          {/* Course Filter */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              College
+              Course
             </label>
             <select
-              value={filters.college}
+              value={filters.course}
               onChange={(e) =>
-                setFilters({ ...filters, college: e.target.value })
+                updateFilters({ ...filters, course: e.target.value })
               }
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#6b0504] focus:outline-none focus:ring-1 focus:ring-[#6b0504]"
             >
-              <option>All Colleges</option>
-              <option>College of Engineering</option>
-              <option>College of Science</option>
-              <option>College of Arts and Letters</option>
-              <option>College of Business</option>
+              <option>All Courses</option>
+              {courseOptions.map((course) => (
+                <option key={course}>{course}</option>
+              ))}
             </select>
           </div>
 
@@ -85,7 +97,7 @@ export function FilterBox({ className = "" }: FilterBoxProps) {
             <select
               value={filters.year}
               onChange={(e) =>
-                setFilters({ ...filters, year: e.target.value })
+                updateFilters({ ...filters, year: e.target.value })
               }
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#6b0504] focus:outline-none focus:ring-1 focus:ring-[#6b0504]"
             >
@@ -107,7 +119,7 @@ export function FilterBox({ className = "" }: FilterBoxProps) {
             <select
               value={filters.documentType}
               onChange={(e) =>
-                setFilters({ ...filters, documentType: e.target.value })
+                updateFilters({ ...filters, documentType: e.target.value })
               }
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#6b0504] focus:outline-none focus:ring-1 focus:ring-[#6b0504]"
             >
