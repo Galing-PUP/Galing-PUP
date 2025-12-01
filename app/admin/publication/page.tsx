@@ -71,7 +71,7 @@ export default function PublicationPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/search-results");
+        const res = await fetch("/api/browse");
         if (!res.ok) {
           throw new Error(`Failed to load publications: ${res.status}`);
         }
