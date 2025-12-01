@@ -1,3 +1,5 @@
+"use client";
+
 type SearchBarSize = "sm" | "md" | "lg" | "xl";
 
 type SearchBarProps = {
