@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -38,32 +40,76 @@ export default function SignInPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <Button
-              variant="outline"
-              size="lg"
-              fullWidth
-              icon={<GoogleIcon />}
-              iconPosition="left"
-              className="border-neutral-300"
-              shape="rounded"
-            >
-              Continue with Google
-            </Button>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+                Email or Username
+              </label>
+              <input
+                type="text"
+                id="email"
+                name="email"
+                placeholder="Enter your email or username"
+                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-sm font-medium text-[#7C1D1D] hover:underline"
+                onClick={(e) => e.preventDefault()}
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                shape="rounded"
+              >
+                Sign In
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                fullWidth
+                shape="rounded"
+                className="border-neutral-300"
+              >
+                Continue as Guest
+              </Button>
+            </div>
 
             <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
               <span className="h-px flex-1 bg-neutral-200" />
-              OR
+              Or continue with
               <span className="h-px flex-1 bg-neutral-200" />
             </div>
 
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              shape="rounded"
+            <button
+              type="button"
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+              onClick={() => {}}
             >
-              Continue as Guest
-            </Button>
+              <GoogleIcon />
+            </button>
           </div>
         </div>
 
