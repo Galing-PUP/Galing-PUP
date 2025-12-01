@@ -176,7 +176,7 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
 
 #### Pages (App Router)
 
-- Use **lowercase** for route folders: `app/search-results/page.tsx`
+- Use **lowercase** for route folders: `app/browse/page.tsx`
 - Dynamic routes use brackets: `app/paper/[id]/page.tsx`
 
 #### Utilities & Data
@@ -355,7 +355,7 @@ Galing-PUP/
 │   ├── page.tsx           # Home page
 │   ├── paper/[id]/        # Dynamic paper detail page
 │   ├── pricing/           # Pricing page
-│   ├── search-results/    # Search results page
+│   ├── browse/    # Search results page
 │   ├── signin/            # Sign-in page
 │   └── ...
 ├── components/            # React components
