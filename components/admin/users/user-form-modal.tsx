@@ -77,7 +77,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   const description = user ? "Update the user's details and save the changes." : "Fill in the details to add a new user.";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">
       <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>
