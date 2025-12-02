@@ -17,10 +17,13 @@ type UserFormModalProps = {
 export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalProps) {
   const [formData, setFormData] = useState<Partial<User>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [initialData, setInitialData] = useState<Partial<User>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setFormData(user || {});
+    const userData = user || {};
+    setFormData(userData);
+    setInitialData(userData);
     setSelectedFile(null);
   }, [isOpen, user]);
 
@@ -52,6 +55,22 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     if (file) {
       setSelectedFile(file);
     }
+  };
+
+  // Check if there are any changes
+  const hasChanges = () => {
+    if (selectedFile) return true;
+    if (!user) {
+      // For new users, check if any field has been filled
+      return !!(formData.name || formData.email || formData.id);
+    }
+    // For existing users, check if any field has changed
+    return (
+      formData.name !== initialData.name ||
+      formData.email !== initialData.email ||
+      formData.role !== initialData.role ||
+      formData.status !== initialData.status
+    );
   };
 
   const title = user ? "Edit User Information" : "Add New User";
@@ -123,7 +142,13 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           <Button variant="outline" shape="rounded" onClick={onClose} className="border-gray-300">
             Cancel
           </Button>
-          <Button variant="primary" shape="rounded" onClick={handleSave}>
+          <Button 
+            variant="primary" 
+            shape="rounded" 
+            onClick={handleSave}
+            disabled={!hasChanges()}
+            className={!hasChanges() ? "opacity-50 cursor-not-allowed" : ""}
+          >
             {user ? 'Save Changes' : 'Add User'}
           </Button>
         </div>
