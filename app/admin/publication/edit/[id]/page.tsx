@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation"; 
+import { useParams } from "next/navigation";
 import { FormInput } from "@/components/admin/publications/form-input";
 import { FormTextarea } from "@/components/admin/publications/form-textarea";
 import { FormSelect } from "@/components/admin/publications/form-select";
@@ -120,7 +120,7 @@ export default function Edit() {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -144,7 +144,7 @@ export default function Edit() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-[#800000] rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">Loading document...</p>
@@ -154,7 +154,7 @@ export default function Edit() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="w-full h-full relative">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
