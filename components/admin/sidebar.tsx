@@ -21,7 +21,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   {
     label: "Submit Publication",
-    href: "/admin/submit",
+    href: "/admin/upload",
     icon: Upload,
   },
   {
