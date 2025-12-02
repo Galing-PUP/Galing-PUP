@@ -1,4 +1,4 @@
-export type ContentStatus = "Pending" | "Flagged" | "Approved" | "Rejected";
+export type ContentStatus = "Pending" | "Approved" | "Rejected";
 export type ResourceType = "Dissertation" | "Thesis" | "Research Paper";
 
 export type ContentItem = {
