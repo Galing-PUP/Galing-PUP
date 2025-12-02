@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { FormInput } from "@/components/admin/publications/form-input";
 import { FormTextarea } from "@/components/admin/publications/form-textarea";
 import { FormSelect } from "@/components/admin/publications/form-select";
@@ -19,13 +19,15 @@ export default function Upload() {
     resourceType: "",
     visibility: "public",
     authors: "",
-    adviser: "",
-    campus: "",
-    college: "",
-    department: "",
+    courseId: "",
     library: "",
     file: null as File | null,
   });
+
+  const [courseOptions, setCourseOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dropdown options
   const resourceTypeOptions = [
@@ -36,54 +38,89 @@ export default function Upload() {
     { value: "journal", label: "Journal" },
   ];
 
-  const campusOptions = [
-    { value: "main", label: "Main Campus (Sta. Mesa)" },
-    { value: "bataan", label: "Bataan Branch" },
-    { value: "bansud", label: "Bansud Branch" },
-    { value: "lopez", label: "Lopez Branch" },
-    { value: "mulanay", label: "Mulanay Branch" },
-    { value: "unisan", label: "Unisan Branch" },
-  ];
+  useEffect(() => {
+    async function loadCourses() {
+      try {
+        const res = await fetch("/api/courses");
+        if (!res.ok) {
+          throw new Error(`Failed to load courses: ${res.status}`);
+        }
+        const data: { id: number; courseName: string }[] = await res.json();
+        setCourseOptions(
+          data.map((c) => ({
+            value: String(c.id),
+            label: c.courseName,
+          })),
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
-  const collegeOptions = [
-    { value: "coe", label: "College of Engineering" },
-    {
-      value: "cics",
-      label: "College of Computer and Information Sciences",
-    },
-    { value: "cba", label: "College of Business Administration" },
-    { value: "coed", label: "College of Education" },
-    { value: "coss", label: "College of Social Sciences" },
-    { value: "caf", label: "College of Architecture and Fine Arts" },
-  ];
-
-  const departmentOptions = [
-    { value: "cs", label: "Department of Computer Science" },
-    { value: "it", label: "Department of Information Technology" },
-    { value: "ce", label: "Department of Civil Engineering" },
-    { value: "me", label: "Department of Mechanical Engineering" },
-    { value: "ee", label: "Department of Electrical Engineering" },
-    { value: "accounting", label: "Department of Accounting" },
-  ];
+    loadCourses();
+  }, []);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData((prev) => ({ ...prev, file }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // TODO: Implement backend submission
+
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!formData.file) {
+      alert("Please select a file to upload.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const body = new FormData();
+    body.append("title", formData.title);
+    body.append("abstract", formData.abstract);
+    body.append("keywords", formData.keywords);
+    body.append("datePublished", formData.datePublished);
+    body.append("resourceType", formData.resourceType);
+    body.append("visibility", formData.visibility);
+    body.append("authors", formData.authors);
+    body.append("courseId", formData.courseId);
+    body.append("library", formData.library);
+    body.append("file", formData.file);
+
+    try {
+      const res = await fetch("/api/admin/documents", {
+        method: "POST",
+        body,
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to submit publication.");
+      }
+
+      const data = await res.json();
+      console.log("Document created:", data);
+      alert("Publication submitted successfully for approval.");
+      handleCancel();
+    } catch (error) {
+      console.error(error);
+      alert(
+        "There was an error submitting your publication. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -95,17 +132,14 @@ export default function Upload() {
       resourceType: "",
       visibility: "public",
       authors: "",
-      adviser: "",
-      campus: "",
-      college: "",
-      department: "",
+      courseId: "",
       library: "",
       file: null,
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="w-full h-full relative">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -226,48 +260,16 @@ export default function Upload() {
               />
             </div>
 
-            {/* Adviser and Campus Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <FormInput
-                label="Adviser"
-                id="adviser"
-                name="adviser"
-                value={formData.adviser}
-                onChange={handleInputChange}
-                placeholder="Enter the full name of your adviser"
-              />
-
+            {/* Course Row */}
+            <div className="mb-6">
               <FormSelect
-                label="Campus"
-                id="campus"
-                name="campus"
-                value={formData.campus}
+                label="Course"
+                id="courseId"
+                name="courseId"
+                value={formData.courseId}
                 onChange={handleInputChange}
-                placeholder="Select your campus or branch"
-                options={campusOptions}
-              />
-            </div>
-
-            {/* College and Department Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <FormSelect
-                label="College"
-                id="college"
-                name="college"
-                value={formData.college}
-                onChange={handleInputChange}
-                placeholder="Select the college name (e.g., College of Engineering)"
-                options={collegeOptions}
-              />
-
-              <FormSelect
-                label="Department"
-                id="department"
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                placeholder="Select your department (e.g., Department of Computer Science)"
-                options={departmentOptions}
+                placeholder="Select the course (e.g., BS Computer Science)"
+                options={courseOptions}
               />
             </div>
 
@@ -307,6 +309,7 @@ export default function Upload() {
             <button
               type="button"
               onClick={handleCancel}
+              disabled={isSubmitting}
               className="px-6 py-2 bg-white rounded-md transition-colors font-medium"
               style={{
                 color: "#800000",
@@ -324,6 +327,7 @@ export default function Upload() {
             </button>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="px-6 py-2 text-white rounded-md transition-colors font-medium shadow-md"
               style={{ backgroundColor: "#800000" }}
               onMouseEnter={(e) =>
@@ -333,7 +337,7 @@ export default function Upload() {
                 (e.currentTarget.style.backgroundColor = "#800000")
               }
             >
-              Submit for Approval
+              {isSubmitting ? "Submitting..." : "Submit for Approval"}
             </button>
           </div>
         </form>
