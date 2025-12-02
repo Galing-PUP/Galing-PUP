@@ -105,7 +105,6 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              title={item.label}
               className={`
                 group relative flex items-center font-bold transition-all duration-200
                 ${
@@ -143,7 +142,7 @@ export function Sidebar() {
               {!isExpanded && (
                 <span
                   className="
-                    pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2
+                    pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2
                     rounded-md border border-yellow-300/70 bg-yellow-100 px-3 py-1
                     text-xs font-semibold uppercase tracking-wide text-[#360000] shadow-lg
                     opacity-0 transition-opacity duration-200 group-hover:opacity-100
