@@ -1,7 +1,7 @@
 import type { User } from "@/types/users";
 import { RoleBadge } from "./role-badge";
 import { StatusBadge } from "./status-badge";
-import { UserCog, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 type UserTableRowProps = {
   user: User;
@@ -23,9 +23,6 @@ export function UserTableRow({ user }: UserTableRowProps) {
         <StatusBadge status={user.status} />
       </div>
       <div className="col-span-2 flex items-center space-x-2">
-        <button className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
-          <UserCog className="h-5 w-5" />
-        </button>
         <button className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
           <Pencil className="h-5 w-5" />
         </button>
