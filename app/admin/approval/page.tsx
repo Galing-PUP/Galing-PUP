@@ -38,7 +38,7 @@ export default function ContentApprovalPage() {
       )}
 
       <div className="space-y-8">
-        <UserStats />
+        {/* <UserStats /> */}
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <ContentManagementHeader />
           <ContentTabs />
