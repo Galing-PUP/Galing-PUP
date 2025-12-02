@@ -1,6 +1,6 @@
 "use client";
 
-import { Header } from "@/components/header";
+
 import { PricingCard } from "@/components/pricing/pricing-card";
 import { BenefitCard } from "@/components/pricing/benefit-card";
 import { FeatureComparisonTable } from "@/components/pricing/feature-comparison-table";
@@ -38,7 +38,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen">
-      <Header />
+
       <main>
         <section className="flex flex-col items-center justify-center space-y-6 bg-red-900 py-8 text-white">
           <span className="bg-white/10 rounded-full px-3 py-1 flex items-center gap-2">

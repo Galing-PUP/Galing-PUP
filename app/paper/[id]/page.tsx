@@ -9,16 +9,16 @@ import { HeaderInfo } from "@/components/paper/header-info";
 import { Keywords } from "@/components/paper/keywords";
 
 
-{/* TODO : make it dynamic per page, for meantime console.log the id params*/}
-export default async function PaperPage(props : {params: Promise<{id: string}>}) {
-  
-  {/*display in console the id in the /paper/<id> */}
-  const {id} = await props.params;
+{/* TODO : make it dynamic per page, for meantime console.log the id params*/ }
+export default async function PaperPage(props: { params: Promise<{ id: string }> }) {
+
+  {/*display in console the id in the /paper/<id> */ }
+  const { id } = await props.params;
   console.log("Displaying paper for ID:", id);
 
   return (
     <div className="min-h-screen">
-      <Header />
+
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Left Column */}
@@ -50,7 +50,7 @@ export default async function PaperPage(props : {params: Promise<{id: string}>})
             </div>
           </div>
 
-            {/* Right Column */}
+          {/* Right Column */}
           <div className="sticky top-24 w-full space-y-6 lg:w-1/3">
             <DocumentInfo />
             <DocumentStats />

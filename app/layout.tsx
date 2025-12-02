@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "galing na galing sa pup",
 };
 
+import { HeaderWrapper } from "@/components/header-wrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,6 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <HeaderWrapper />
         {children}
         <Toaster />
       </body>

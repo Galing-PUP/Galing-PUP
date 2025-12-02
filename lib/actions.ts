@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
-import { redirect } from "next/navigation";
+
 
 /**
  * Fetches the currently authenticated user's profile, including their subscription tier.
@@ -34,5 +34,4 @@ export async function getCurrentUser() {
 export async function signOut() {
     const supabase = await createClient();
     await supabase.auth.signOut();
-    redirect("/");
 }

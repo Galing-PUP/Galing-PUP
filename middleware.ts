@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/**
+ * Middleware to handle Supabase session management and protected routes.
+ * Refreshes the user's session if needed and handles redirects for authenticated users.
+ * 
+ * @param request - The incoming Next.js request.
+ * @returns The Next.js response.
+ */
 export async function middleware(request: NextRequest) {
     let response = NextResponse.next({
         request: {
@@ -33,7 +40,12 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // If user is logged in and tries to access signin or signup, redirect to home
+    if (user && (request.nextUrl.pathname === '/signin' || request.nextUrl.pathname === '/signup')) {
+        return NextResponse.redirect(new URL('/', request.url))
+    }
 
     return response
 }

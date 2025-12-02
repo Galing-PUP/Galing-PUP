@@ -19,18 +19,19 @@ type ActionLink = {
   label: string;
 };
 
+type UserProfile = {
+  username: string;
+  tierName: string;
+  email: string;
+};
+
 type HeaderProps = {
   navItems?: NavItem[];
   signIn?: ActionLink;
   primaryAction?: ActionLink;
   className?: string;
+  initialUser?: UserProfile | null;
 };
-
-type UserProfile = {
-  username: string;
-  tierName: string;
-  email: string;
-} | null;
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/", exact: true },
@@ -61,13 +62,18 @@ export function Header({
   signIn = DEFAULT_SIGN_IN,
   primaryAction = DEFAULT_PRIMARY_ACTION,
   className = "",
+  initialUser = null,
 }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [user, setUser] = useState<UserProfile>(null);
+  const [user, setUser] = useState<UserProfile | null>(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
 
   // Fetch user on mount
   useEffect(() => {
@@ -94,9 +100,9 @@ export function Header({
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
     setUser(null);
     setIsDropdownOpen(false);
+    await signOut();
     router.refresh();
   };
 
