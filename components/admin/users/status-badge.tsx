@@ -5,9 +5,10 @@ type StatusBadgeProps = {
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const styles = {
-    Active: "bg-green-100 text-green-800",
-    Inactive: "bg-gray-200 text-gray-700",
+  const styles: Record<UserStatus, string> = {
+    Accepted: "bg-green-100 text-green-800",
+    Pending: "bg-yellow-100 text-yellow-800",
+    Delete: "bg-red-100 text-red-800",
   };
 
   return (
