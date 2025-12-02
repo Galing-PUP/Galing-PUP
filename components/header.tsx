@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SignInModal } from "./SignInModal";
+import { getCurrentUser, signOut } from "@/lib/actions";
 
 type NavItem = {
   label: string;
@@ -25,6 +26,12 @@ type HeaderProps = {
   className?: string;
 };
 
+type UserProfile = {
+  username: string;
+  tierName: string;
+  email: string;
+} | null;
+
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/", exact: true },
   { label: "Browse", href: "/browse" },
@@ -42,6 +49,13 @@ const DEFAULT_PRIMARY_ACTION: ActionLink = {
   label: "Create Account",
 };
 
+/**
+ * Header component that displays navigation, authentication buttons, or user profile.
+ * Handles responsive design and user session state.
+ * 
+ * @param props - The component props.
+ * @returns The rendered Header component.
+ */
 export function Header({
   navItems = DEFAULT_NAV_ITEMS,
   signIn = DEFAULT_SIGN_IN,
@@ -49,7 +63,42 @@ export function Header({
   className = "",
 }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setUser(null);
+    setIsDropdownOpen(false);
+    router.refresh();
+  };
 
   const activeLookup = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -64,6 +113,16 @@ export function Header({
 
     return map;
   }, [navItems, pathname]);
+
+  // Get initials for avatar placeholder
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <>
@@ -110,35 +169,81 @@ export function Header({
             })}
           </nav>
 
-          {/* Authentication Buttons (Sign In, Create Account) */}
+          {/* Authentication Buttons or User Profile */}
           <div className="hidden items-center justify-self-end gap-4 md:flex col-start-3 col-end-4">
-            <button
-              onClick={() => setIsSignInModalOpen(true)}
-              className="flex items-center gap-2 text-sm font-bold text-red-700 transition-colors duration-200 hover:text-gray-900"
-            >
-              <svg
-                aria-hidden
-                width={18}
-                height={18}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z" />
-                <path d="M20.59 21a8 8 0 0 0-17.18 0" />
-              </svg>
-              <span>{signIn.label}</span>
-            </button>
+            {user ? (
+              <div className="flex items-center gap-3 relative" ref={dropdownRef}>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-semibold text-neutral-900 leading-tight">
+                    {user.username}
+                  </span>
+                  <span className="text-xs text-neutral-500 font-medium">
+                    {user.tierName} user
+                  </span>
+                </div>
 
-            <Link
-              href={primaryAction.href}
-              className="rounded-full bg-[#6b0504] px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#4a0403]"
-            >
-              {primaryAction.label}
-            </Link>
+                {/* User Avatar / Dropdown Trigger */}
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="h-10 w-10 rounded-full bg-[#6b0504] text-white flex items-center justify-center text-sm font-bold hover:bg-[#4a0403] transition-colors focus:outline-none focus:ring-2 focus:ring-[#6b0504] focus:ring-offset-2"
+                  aria-label="User menu"
+                >
+                  {/* TODO: Replace with actual user avatar image when available */}
+                  {getInitials(user.username)}
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 py-1 z-50">
+                    <button
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => {
+                        // TODO: Navigate to user preferences
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      User preferences
+                    </button>
+                    <button
+                      className="block w-full text-left px-4 py-2 text-sm text-[#800000] hover:bg-gray-100 font-medium"
+                      onClick={handleSignOut}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsSignInModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-bold text-red-700 transition-colors duration-200 hover:text-gray-900"
+                >
+                  <svg
+                    aria-hidden
+                    width={18}
+                    height={18}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z" />
+                    <path d="M20.59 21a8 8 0 0 0-17.18 0" />
+                  </svg>
+                  <span>{signIn.label}</span>
+                </button>
+
+                <Link
+                  href={primaryAction.href}
+                  className="rounded-full bg-[#6b0504] px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#4a0403]"
+                >
+                  {primaryAction.label}
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu (Toggle Navigation) */}
