@@ -46,6 +46,20 @@ export async function GET(request: NextRequest) {
         return new Response('User not found', { status: 404 })
     }
 
+    // If intent is signup, user MUST NOT exist
+    if (intent === 'signup' && existing) {
+        // Sign out the user immediately
+        await supabase.auth.signOut()
+
+        if (isPopup) {
+            return new NextResponse(
+                `<script>window.opener.postMessage({ type: 'OAUTH_ERROR', message: 'User already exists. Please sign in.' }, '*'); window.close();</script>`,
+                { headers: { 'Content-Type': 'text/html' } }
+            )
+        }
+        return new Response('User already exists', { status: 409 })
+    }
+
     // If user exists, update supabaseAuthId if missing
     if (existing) {
         if (!existing.supabaseAuthId) {
