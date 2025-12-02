@@ -21,22 +21,22 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   {
     label: "Submit Publication",
-    href: "/Admin/upload",
+    href: "/admin/upload",
     icon: Upload,
   },
   {
     label: "Published Works",
-    href: "/Admin/publication",
+    href: "/admin/publication",
     icon: Archive,  
   },
   {
     label: "User Role Manager",
-    href: "/Admin/users",
+    href: "/admin/users",
     icon: User,
   },
   {
     label: "Content Approval",
-    href: "/Admin/approval",
+    href: "/admin/approval",
     icon: FileText,
   },
   {
