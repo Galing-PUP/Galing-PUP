@@ -8,16 +8,10 @@ type ContentTableProps = {
   onView: (item: ContentItem) => void;
   onAccept: (itemId: string) => void;
   onReject: (itemId: string) => void;
-  onDelete: (itemId: string) => void;
+  onDeleteRequest: (item: ContentItem) => void;
 };
 
-export function ContentTable({ items, onView, onAccept, onReject, onDelete }: ContentTableProps) {
-  const handleDeleteClick = (id: string) => {
-    if (confirm("Are you sure you want to permanently delete this publication?")) {
-      onDelete(id);
-    }
-  };
-
+export function ContentTable({ items, onView, onAccept, onReject, onDeleteRequest }: ContentTableProps) {
   return (
     <div className="mt-4 flow-root">
       <div className="-mx-6 -my-2 overflow-x-auto">
@@ -57,7 +51,7 @@ export function ContentTable({ items, onView, onAccept, onReject, onDelete }: Co
                   <button title="Reject" onClick={() => onReject(item.id)} className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors">
                     <X className="h-5 w-5" />
                   </button>
-                  <button title="Delete" onClick={() => handleDeleteClick(item.id)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
+                  <button title="Delete" onClick={() => onDeleteRequest(item)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>

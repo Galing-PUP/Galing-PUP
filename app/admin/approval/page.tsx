@@ -8,11 +8,14 @@ import { ContentTable } from "@/components/admin/approval/content-table";
 import { mockContent } from "@/data/mockContent";
 import type { ContentItem } from "@/types/content";
 import { ViewPublicationModal } from "@/components/admin/approval/view-publication-modal";
+import { DeleteConfirmationDialog } from "@/components/admin/approval/delete-confirmation-dialog";
 
 export default function ContentApprovalPage() {
   const [allContentItems, setAllContentItems] = useState<ContentItem[]>(mockContent);
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [viewingItem, setViewingItem] = useState<ContentItem | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
 
   const handleAccept = (itemId: string) => {
     setAllContentItems((prevItems) =>
@@ -39,12 +42,16 @@ export default function ContentApprovalPage() {
     setAllContentItems((prevItems) =>
       prevItems.filter((item) => item.id !== itemId)
     );
-    setSelectedItem(null);
+    setItemToDelete(null);
     console.log(`Item ${itemId} has been deleted.`);
   };
 
   const handleView = (item: ContentItem) => {
-    setSelectedItem(item);
+    setViewingItem(item);
+  };
+
+  const handleDeleteRequest = (item: ContentItem) => {
+    setItemToDelete(item);
   };
 
   const filteredItems = useMemo(() => {
@@ -60,13 +67,24 @@ export default function ContentApprovalPage() {
 
   return (
     <>
-      {selectedItem && (
+      {/* View Modal */}
+      {viewingItem && (
         <ViewPublicationModal
-          isOpen={!!selectedItem}
-          item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          isOpen={!!viewingItem}
+          item={viewingItem}
+          onClose={() => setViewingItem(null)}
           onAccept={handleAccept}
           onReject={handleReject}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {itemToDelete && (
+        <DeleteConfirmationDialog
+          isOpen={!!itemToDelete}
+          item={itemToDelete}
+          onClose={() => setItemToDelete(null)}
+          onConfirm={handleDelete}
         />
       )}
 
@@ -80,7 +98,7 @@ export default function ContentApprovalPage() {
             onView={handleView}
             onAccept={handleAccept}
             onReject={handleReject}
-            onDelete={handleDelete}
+            onDeleteRequest={handleDeleteRequest}
           />
           <div className="mt-6 text-sm text-gray-500">
             Showing {filteredItems.length} of {allContentItems.length} total items
