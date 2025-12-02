@@ -10,10 +10,22 @@ import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
 import { UserFormModal } from "@/components/admin/users/user-form-modal";
 import { mockUsers } from "@/data/mockUsers";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   const handleSelectUser = (userId: string) => {
     setSelectedUserIds((prev) =>
@@ -39,6 +51,14 @@ export default function UserManagementPage() {
     setEditingUser(null);
   };
 
+  const confirmDeleteUser = () => {
+    if (!deletingUser) return;
+    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+    setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
+    alert(`User "${deletingUser.name}" has been deleted.`);
+    setDeletingUser(null);
+  };
+
   return (
     <div className="space-y-8">
       <UserStats />
@@ -60,6 +80,7 @@ export default function UserManagementPage() {
           onSelectAll={handleSelectAll}
           onSelectUser={handleSelectUser}
           onEditUser={(user) => setEditingUser(user)}
+          onDeleteUser={(user) => setDeletingUser(user)}
         />
 
         <div className="mt-6 text-sm text-gray-500">
@@ -73,6 +94,27 @@ export default function UserManagementPage() {
         onSave={handleSaveUser}
         user={editingUser}
       />
+
+      <AlertDialog
+        open={!!deletingUser}
+        onOpenChange={(isOpen) => !isOpen && setDeletingUser(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The chosen user will be permanently deleted from the database. This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteUser}>
+              Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

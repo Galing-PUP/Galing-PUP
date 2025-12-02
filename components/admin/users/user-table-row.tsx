@@ -8,9 +8,10 @@ type UserTableRowProps = {
   isSelected: boolean;
   onSelect: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 };
 
-export function UserTableRow({ user, isSelected, onSelect, onEdit }: UserTableRowProps) {
+export function UserTableRow({ user, isSelected, onSelect, onEdit, onDelete }: UserTableRowProps) {
   return (
     <div
       className={`grid grid-cols-12 items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
@@ -38,7 +39,7 @@ export function UserTableRow({ user, isSelected, onSelect, onEdit }: UserTableRo
         <button onClick={onEdit} className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
           <Pencil className="h-5 w-5" />
         </button>
-        <button className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
+        <button onClick={onDelete} className="rounded-full p-2 text-gray-500 hover:bg-red-100 hover:text-red-700">
           <Trash2 className="h-5 w-5" />
         </button>
       </div>

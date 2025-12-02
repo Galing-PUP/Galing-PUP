@@ -10,6 +10,7 @@ type UsersTableProps = {
   onSelectAll: () => void;
   onSelectUser: (userId: string) => void;
   onEditUser: (user: User) => void;
+  onDeleteUser: (user: User) => void;
 };
 
 export function UsersTable({
@@ -18,6 +19,7 @@ export function UsersTable({
   onSelectAll,
   onSelectUser,
   onEditUser,
+  onDeleteUser,
 }: UsersTableProps) {
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +55,6 @@ export function UsersTable({
               <div className="col-span-2">Actions</div>
             </div>
           </div>
-
           <div className="space-y-2">
             {users.map((user) => (
               <UserTableRow
@@ -62,6 +63,7 @@ export function UsersTable({
                 isSelected={selectedUserIds.includes(user.id)}
                 onSelect={() => onSelectUser(user.id)}
                 onEdit={() => onEditUser(user)}
+                onDelete={() => onDeleteUser(user)}
               />
             ))}
           </div>
