@@ -50,7 +50,7 @@ export default function Upload() {
           data.map((c) => ({
             value: String(c.id),
             label: c.courseName,
-          }))
+          })),
         );
       } catch (error) {
         console.error(error);
@@ -61,7 +61,7 @@ export default function Upload() {
   }, []);
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -115,7 +115,9 @@ export default function Upload() {
       handleCancel();
     } catch (error) {
       console.error(error);
-      alert("There was an error submitting your publication. Please try again.");
+      alert(
+        "There was an error submitting your publication. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -137,7 +139,7 @@ export default function Upload() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="w-full h-full relative">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
