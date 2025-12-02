@@ -1,6 +1,17 @@
+"use client";
+
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkles, Lock } from "lucide-react";
 
 export function AiInsights() {
+  const router = useRouter();
+
+  const handleUpgrade = useCallback(() => {
+    // Navigate to the pricing page when user clicks the upgrade button
+    router.push("/pricing");
+  }, [router]);
+
   return (
     <div className="rounded-lg border-l-4 border-purple-600 bg-purple-50 p-6">
       <div className="flex items-center gap-2">
@@ -27,6 +38,7 @@ export function AiInsights() {
         </p>
         <button
           type="button"
+          onClick={handleUpgrade}
           className="mt-4 rounded-lg bg-red-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
         >
           Upgrade to Premium

@@ -20,11 +20,24 @@ const StatCard = ({
   </div>
 );
 
-export function DocumentStats() {
+type DocumentStatsProps = {
+  downloads: number;
+  citations: number;
+};
+
+export function DocumentStats({ downloads, citations }: DocumentStatsProps) {
   return (
     <section className="grid grid-cols-2 gap-4">
-      <StatCard icon={Eye} value="3420" label="Views" />
-      <StatCard icon={Download} value="1250" label="Downloads" />
+      <StatCard
+        icon={Download}
+        value={downloads.toLocaleString()}
+        label="Downloads"
+      />
+      <StatCard
+        icon={Eye}
+        value={citations.toLocaleString()}
+        label="Citations"
+      />
     </section>
   );
 }

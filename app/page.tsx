@@ -67,7 +67,7 @@ export default function Home() {
       }
     };
 
-    // Small debounce so we don't fire on every keystroke too aggressively
+    // Debounce the search by 1 second
     const handle = setTimeout(run, 1000);
 
     return () => {

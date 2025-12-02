@@ -21,28 +21,29 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   {
     label: "Submit Publication",
-    href: "/admin/submit",
+    href: "/Admin/upload",
     icon: Upload,
   },
   {
     label: "Published Works",
-    href: "/admin/publication",
+    href: "/Admin/publication",
     icon: Archive,  
   },
   {
     label: "User Role Manager",
-    href: "/admin/users",
+    href: "/Admin/users",
     icon: User,
   },
   {
     label: "Content Approval",
-    href: "/admin/approval",
+    href: "/Admin/approval",
     icon: FileText,
   },
-   {
+  {
     label: "Sign Out",
-    href: "/signout",
+    href: "/",
     icon: LogOut,
+    exact: true,
   },
 ];
 
@@ -104,30 +105,53 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              title={item.label}
               className={`
-                flex items-center font-bold
-                transition-all duration-200 text-yellow-100 
+                group relative flex items-center font-bold transition-all duration-200
                 ${
                   isExpanded
-                    ? "justify-between rounded-lg p-3 px-4" 
-                    : "justify-center rounded-full p-1"  
+                    ? "justify-between rounded-lg p-3 px-4"
+                    : "justify-center rounded-full p-2"
                 }
                 ${
                   isActive
-                    ? "bg-yellow-400 font-bold text-yellow-600" 
-                    : "hover:bg-black/20 hover:text-yellow-500" 
+                    ? "bg-yellow-100 text-[#360000]"
+                    : "text-yellow-100 hover:bg-black/20 hover:text-yellow-500"
                 }
               `}
             >
               {isExpanded && (
-                <span className="flex-1 text-right mr-4 whitespace-nowrap text-yellow-500">
+                <span
+                  className={`mr-4 flex-1 whitespace-nowrap text-right ${
+                    isActive ? "text-[#360000]" : "text-yellow-500"
+                  }`}
+                >
                   {item.label}
                 </span>
               )}
-              {/* This DIV is always 40x40 and a circle */}
-              <div className="h-[40px] w-[40px] rounded-full bg-[#993333] flex items-center justify-center">
-                <Icon className="text-[#360000]" />
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                  isActive ? "bg-[#360000]" : "bg-[#993333]"
+                }`}
+              >
+                <Icon
+                  className={`h-5 w-5 ${
+                    isActive ? "text-yellow-200" : "text-[#360000]"
+                  }`}
+                />
               </div>
+              {!isExpanded && (
+                <span
+                  className="
+                    pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2
+                    rounded-md border border-yellow-300/70 bg-yellow-100 px-3 py-1
+                    text-xs font-semibold uppercase tracking-wide text-[#360000] shadow-lg
+                    opacity-0 transition-opacity duration-200 group-hover:opacity-100
+                  "
+                >
+                  {item.label}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -83,23 +83,11 @@ export function useLibrary() {
     return result;
   }, []);
 
-  const toggleBookmark = useCallback(
-    async (id: number) => {
-      if (isBookmarked(id)) {
-        return removeFromLibrary(id);
-      } else {
-        return addToLibrary(id);
-      }
-    },
-    [isBookmarked, addToLibrary, removeFromLibrary],
-  );
-
   return {
     bookmarkedIds,
     isBookmarked,
     addToLibrary,
     removeFromLibrary,
-    toggleBookmark,
     bookmarkCount: bookmarkedIds.length,
     maxBookmarks,
     tierName,
