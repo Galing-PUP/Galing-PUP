@@ -8,7 +8,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  * @param request - The incoming Next.js request.
  * @returns The Next.js response.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let response = NextResponse.next({
         request: {
             headers: request.headers,
