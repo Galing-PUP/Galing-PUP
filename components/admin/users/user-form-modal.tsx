@@ -59,13 +59,19 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
   // Check if there are any changes
   const hasChanges = () => {
-    if (selectedFile) return true;
     if (!user) {
-      // For new users, check if any field has been filled
-      return !!(formData.name || formData.email || formData.id);
+      // For new users, check if ALL required fields are filled
+      return !!(
+        formData.name?.trim() && 
+        formData.email?.trim() && 
+        formData.id?.trim() &&
+        formData.role &&
+        formData.status
+      );
     }
     // For existing users, check if any field has changed
     return (
+      selectedFile ||
       formData.name !== initialData.name ||
       formData.email !== initialData.email ||
       formData.role !== initialData.role ||
