@@ -130,6 +130,11 @@ export function Header({
       .slice(0, 2);
   };
 
+  // hides the header for admin pages
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <>
       <SignInModal
