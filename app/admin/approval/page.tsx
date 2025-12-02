@@ -12,12 +12,35 @@ import { ViewPublicationModal } from "@/components/admin/approval/view-publicati
 export default function ContentApprovalPage() {
   const [allContentItems, setAllContentItems] = useState<ContentItem[]>(mockContent);
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
-
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
 
-  const handleAction = (itemId: string) => {
-    setAllContentItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-    setSelectedItem(null); // Close the modal after any action
+  const handleAccept = (itemId: string) => {
+    setAllContentItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, status: "Accepted" } : item
+      )
+    );
+    setSelectedItem(null);
+    console.log(`Item ${itemId} has been accepted.`);
+  };
+
+  const handleReject = (itemId: string) => {
+    setAllContentItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, status: "Rejected" } : item
+      )
+    );
+    setSelectedItem(null);
+    console.log(`Item ${itemId} has been rejected.`);
+  };
+
+
+  const handleDelete = (itemId: string) => {
+    setAllContentItems((prevItems) =>
+      prevItems.filter((item) => item.id !== itemId)
+    );
+    setSelectedItem(null);
+    console.log(`Item ${itemId} has been deleted.`);
   };
 
   const handleView = (item: ContentItem) => {
@@ -42,8 +65,8 @@ export default function ContentApprovalPage() {
           isOpen={!!selectedItem}
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
-          onApprove={handleAction}
-          onReject={handleAction}
+          onAccept={handleAccept}
+          onReject={handleReject}
         />
       )}
 
@@ -52,7 +75,13 @@ export default function ContentApprovalPage() {
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <ContentManagementHeader />
           <ContentTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
-          <ContentTable items={filteredItems} onAction={handleAction} onView={handleView} />
+          <ContentTable
+            items={filteredItems}
+            onView={handleView}
+            onAccept={handleAccept}
+            onReject={handleReject}
+            onDelete={handleDelete}
+          />
           <div className="mt-6 text-sm text-gray-500">
             Showing {filteredItems.length} of {allContentItems.length} total items
           </div>
