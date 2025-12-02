@@ -24,8 +24,12 @@ import {
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    user: User | null;
+  }>({ isOpen: false, user: null });
 
   const handleSelectUser = (userId: string) => {
     setSelectedUserIds((prev) =>
@@ -43,12 +47,15 @@ export default function UserManagementPage() {
     setSelectedUserIds([]);
   };
 
-  const handleSaveUser = (updatedUser: User) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((u) => (u.id === updatedUser.id ? updatedUser : u))
-    );
-    alert(`Saved user: ${updatedUser.name}`);
-    setEditingUser(null);
+  const handleSaveUser = (userToSave: User) => {
+    if (modalState.user) {
+      setUsers((prev) => prev.map((u) => (u.id === userToSave.id ? userToSave : u)));
+      alert(`Updated user: ${userToSave.name}`);
+    } else {
+      setUsers((prev) => [userToSave, ...prev]);
+      alert(`Added new user: ${userToSave.name}`);
+    }
+    setModalState({ isOpen: false, user: null });
   };
 
   const confirmDeleteUser = () => {
@@ -64,7 +71,7 @@ export default function UserManagementPage() {
       <UserStats />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <UserManagementHeader />
+        <UserManagementHeader onAddNewUser={() => setModalState({ isOpen: true, user: null })} />
         <UserToolbar />
 
         {selectedUserIds.length > 0 && (
@@ -79,7 +86,7 @@ export default function UserManagementPage() {
           selectedUserIds={selectedUserIds}
           onSelectAll={handleSelectAll}
           onSelectUser={handleSelectUser}
-          onEditUser={(user) => setEditingUser(user)}
+          onEditUser={(user) => setModalState({ isOpen: true, user })}
           onDeleteUser={(user) => setDeletingUser(user)}
         />
 
@@ -89,10 +96,10 @@ export default function UserManagementPage() {
       </div>
 
       <UserFormModal
-        isOpen={!!editingUser}
-        onClose={() => setEditingUser(null)}
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ isOpen: false, user: null })}
         onSave={handleSaveUser}
-        user={editingUser}
+        user={modalState.user}
       />
 
       <AlertDialog

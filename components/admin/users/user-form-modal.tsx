@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { User, UserRole, UserStatus } from "@/types/users";
+import type { User } from "@/types/users";
 import { Button } from "@/components/button";
 import { FormInput } from "./form-input";
 import { FormSelect } from "./form-select";
@@ -15,18 +15,29 @@ type UserFormModalProps = {
 };
 
 export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalProps) {
-  const [formData, setFormData] = useState<Partial<User>>(user || {});
+  const [formData, setFormData] = useState<Partial<User>>({});
 
   useEffect(() => {
     setFormData(user || {});
-  }, [user]);
+  }, [isOpen, user]);
 
   if (!isOpen) {
     return null;
   }
 
   const handleSave = () => {
-    onSave(formData as User);
+    const userToSave: User = {
+      id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
+      name: formData.name || "",
+      email: formData.email || "",
+      role: formData.role || "User",
+      status: formData.status || "Pending",
+    };
+    onSave(userToSave);
+  };
+
+  const handleInputChange = (field: keyof User, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const title = user ? "Edit User Information" : "Add New User";
@@ -35,7 +46,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-2xl">
-        {/* Modal Header */}
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
@@ -45,26 +55,24 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
             <X className="h-6 w-6" />
           </button>
         </div>
-
-        {/* Form Body */}
         <div className="mt-8 space-y-6">
-          <FormInput label="Full Name" defaultValue={formData.name} />
+          <FormInput label="Full Name" value={formData.name || ""} onChange={e => handleInputChange('name', e.target.value)} />
           <FormSelect label="College">
             <option>College of Computer and Information Sciences</option>
             <option>College of Engineering</option>
             <option>College of Science</option>
           </FormSelect>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormInput label="Email Address" type="email" defaultValue={formData.email} />
-            <FormInput label="ID Number" defaultValue={formData.id} />
+            <FormInput label="Email Address" type="email" value={formData.email || ""} onChange={e => handleInputChange('email', e.target.value)} />
+            <FormInput label="ID Number" value={formData.id || ""} onChange={e => handleInputChange('id', e.target.value)} disabled={!!user} />
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormSelect label="Role" defaultValue={formData.role}>
+            <FormSelect label="Role" value={formData.role || "User"} onChange={e => handleInputChange('role', e.target.value)}>
               <option>User</option>
               <option>Admin</option>
               <option>Super Admin</option>
             </FormSelect>
-            <FormSelect label="Status" defaultValue={formData.status}>
+            <FormSelect label="Status" value={formData.status || "Pending"} onChange={e => handleInputChange('status', e.target.value)}>
               <option>Accepted</option>
               <option>Pending</option>
               <option>Delete</option>
@@ -76,18 +84,16 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
               <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-600">
                 Upload File
               </span>
-              <input type="text" readOnly value="passport.png" className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500" />
+              <input type="text" readOnly placeholder="No file chosen" className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500" />
             </div>
           </div>
         </div>
-
-        {/* Modal Footer */}
         <div className="mt-10 flex justify-end gap-4">
           <Button variant="outline" shape="rounded" onClick={onClose} className="border-gray-300">
             Cancel
           </Button>
           <Button variant="primary" shape="rounded" onClick={handleSave}>
-            Save Changes
+            {user ? 'Save Changes' : 'Add User'}
           </Button>
         </div>
       </div>
