@@ -1,13 +1,35 @@
 import type { ContentItem } from "@/types/content";
-import { Eye } from "lucide-react";
+import { Eye, Check, X, Trash2 } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import { ResourceTypeBadge } from "./resource-type-badge";
 
 type ContentTableProps = {
   items: ContentItem[];
+  onAction: (itemId: string) => void;
+  onView: (item: ContentItem) => void;
 };
 
-export function ContentTable({ items }: ContentTableProps) {
+export function ContentTable({ items, onAction, onView }: ContentTableProps) {
+  const handleApprove = (id: string) => {
+    alert(`Approving item ${id}... (This is a frontend simulation)`);
+    onAction(id);
+  };
+
+  const handleReject = (id: string) => {
+    alert(`Rejecting item ${id}... (This is a frontend simulation)`);
+    onAction(id);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this item? This is a frontend simulation.")) {
+      onAction(id);
+    }
+  };
+
+  const handleViewClick = (item: ContentItem) => {
+    onView(item);
+  };
+
   return (
     <div className="mt-4 flow-root">
       <div className="-mx-6 -my-2 overflow-x-auto">
@@ -20,8 +42,8 @@ export function ContentTable({ items }: ContentTableProps) {
               <div className="col-span-3">Publication Title</div>
               <div className="col-span-2">Author</div>
               <div className="col-span-1">Submitted</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-1">Actions</div>
+              <div className="col-span-1">Status</div>
+              <div className="col-span-2 text-center">Actions</div>
             </div>
           </div>
 
@@ -47,12 +69,22 @@ export function ContentTable({ items }: ContentTableProps) {
                 <div className="col-span-1 text-sm text-gray-600">
                   {item.submittedDate}
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-1">
                   <StatusBadge status={item.status} />
                 </div>
-                <div className="col-span-1">
-                  <button className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
+                {/* --- ACTION BUTTONS --- */}
+                <div className="col-span-2 flex justify-center space-x-1">
+                  <button title="View Details" onClick={() => handleViewClick(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
                     <Eye className="h-5 w-5" />
+                  </button>
+                  <button title="Approve" onClick={() => handleApprove(item.id)} className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors">
+                    <Check className="h-5 w-5" />
+                  </button>
+                   <button title="Reject" onClick={() => handleReject(item.id)} className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors">
+                    <X className="h-5 w-5" />
+                  </button>
+                  <button title="Delete" onClick={() => handleDelete(item.id)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
+                    <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
               </div>
