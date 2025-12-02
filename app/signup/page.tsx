@@ -7,9 +7,13 @@ import { useState } from "react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import { Button } from "@/components/button";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button, GoogleIcon } from "@/components/button";
+import { signInWithGooglePopup } from "@/lib/auth";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +23,7 @@ export default function SignUpPage() {
 
   // Email validation
   const isEmailValid = email.endsWith("@gmail.com") || email === "";
-  
+
   // Password validation rules
   const passwordValidation = {
     minLength: password.length >= 8,
@@ -41,7 +45,7 @@ export default function SignUpPage() {
     if (!passwordValidation.hasLowercase) errors.push("one lowercase letter");
     if (!passwordValidation.hasNumber) errors.push("one number");
     if (!passwordValidation.hasSpecial) errors.push("one special character");
-    
+
     if (errors.length === 0) return "";
     return `Password must contain ${errors.join(", ")}.`;
   };
@@ -104,11 +108,10 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="yourname@gmail.com"
-                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
-                  !isEmailValid
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
-                }`}
+                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${!isEmailValid
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                  : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                  }`}
               />
               {!isEmailValid && (
                 <p className="text-sm text-red-600">
@@ -162,13 +165,12 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
-                    doPasswordsMatch
-                      ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
-                      : confirmPassword
+                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${doPasswordsMatch
+                    ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
+                    : confirmPassword
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
                       : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
-                  }`}
+                    }`}
                 />
                 <button
                   type="button"
@@ -209,6 +211,29 @@ export default function SignUpPage() {
             >
               Sign Up
             </Button>
+
+            <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
+              <span className="h-px flex-1 bg-neutral-200" />
+              Or continue with
+              <span className="h-px flex-1 bg-neutral-200" />
+            </div>
+
+            <button
+              type="button"
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+              onClick={async () => {
+                try {
+                  await signInWithGooglePopup("signup");
+                  toast.success("Account created successfully");
+                  router.push("/");
+                  router.refresh();
+                } catch (error: any) {
+                  toast.error(error.message || "Sign up failed");
+                }
+              }}
+            >
+              <GoogleIcon />
+            </button>
           </form>
         </div>
 

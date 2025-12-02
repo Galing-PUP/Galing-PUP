@@ -7,8 +7,55 @@ import { ArrowLeft } from "lucide-react";
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
 import { Button, GoogleIcon } from "@/components/button";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { signInWithGooglePopup } from "@/lib/auth";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGooglePopup("signin");
+      toast.success("Signed in successfully");
+      router.push("/");
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error.message || "Authentication failed");
+    }
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Signed in successfully");
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -85,7 +132,7 @@ export default function SignInPage() {
               >
                 Sign In
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="lg"
@@ -106,7 +153,7 @@ export default function SignInPage() {
             <button
               type="button"
               className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
-              onClick={() => {}}
+              onClick={handleGoogleLogin}
             >
               <GoogleIcon />
             </button>
