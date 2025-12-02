@@ -27,22 +27,27 @@ export default function UserManagementPage() {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     user: User | null;
   }>({ isOpen: false, user: null });
 
-  // Filter users based on selected statuses and roles
+  // Filter users based on selected statuses, roles, and search query
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const statusMatch =
         selectedStatuses.length === 0 || selectedStatuses.includes(user.status);
       const roleMatch =
         selectedRoles.length === 0 || selectedRoles.includes(user.role);
-      return statusMatch && roleMatch;
+      const searchMatch =
+        searchQuery === "" ||
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      return statusMatch && roleMatch && searchMatch;
     });
-  }, [users, selectedStatuses, selectedRoles]);
+  }, [users, selectedStatuses, selectedRoles, searchQuery]);
 
   const handleSelectUser = (userId: string) => {
     setSelectedUserIds((prev) =>
@@ -90,6 +95,8 @@ export default function UserManagementPage() {
           selectedRoles={selectedRoles}
           onStatusChange={setSelectedStatuses}
           onRoleChange={setSelectedRoles}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
 
         {selectedUserIds.length > 0 && (
