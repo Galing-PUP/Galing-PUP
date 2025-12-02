@@ -18,7 +18,7 @@ type ButtonProps = {
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   type?: "button" | "submit" | "reset";
   href?: string;
   target?: string;
@@ -91,26 +91,26 @@ export function Button({
   const sizeConfig = sizeStyles[size];
   const shapeClass = shapeStyles[shape];
   const baseStyles = "inline-flex items-center justify-center gap-2 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
-  
+
   // Determine if this should be a link or button
   const isLink = as === "link" || (href && !onClick && as !== "button");
-  
+
   // Check if custom colors are provided
   const hasCustomColors = !!(backgroundColor || textColor || borderColor || hoverBackgroundColor || hoverTextColor);
-  
+
   // Build custom style object
   const customStyle: React.CSSProperties = {};
   if (backgroundColor) customStyle.backgroundColor = backgroundColor;
   if (textColor) customStyle.color = textColor;
   if (borderColor) customStyle.borderColor = borderColor;
-  
+
   // Apply variant styles unless custom colors are provided
   const variantClass = hasCustomColors ? "" : variantStyles[variant];
-  
+
   const borderClass = (variant === "outline" || borderColor) ? "border" : "";
-  
+
   const widthClass = fullWidth ? "w-full" : "";
-  
+
   // Build className with custom Tailwind classes if needed
   const customTailwindClasses = [];
   if (hoverBackgroundColor && !hasCustomColors) {
@@ -119,7 +119,7 @@ export function Button({
   if (hoverTextColor && !hasCustomColors) {
     customTailwindClasses.push(`hover:text-[${hoverTextColor}]`);
   }
-  
+
   const combinedClassName = [
     baseStyles,
     shapeClass,

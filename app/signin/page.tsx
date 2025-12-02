@@ -64,7 +64,7 @@ export default function SignInPage() {
       // Step 2: Verify credentials against the database hash
       const isValid = await verifyCredentials(email, password);
       if (!isValid) {
-        toast.error("Invalid email or password");
+        toast.error("Invalid password please try again");
         setLoading(false);
         return;
       }
@@ -136,6 +136,8 @@ export default function SignInPage() {
                 id="email"
                 name="email"
                 placeholder="Enter your email or username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
               />
             </div>
@@ -149,6 +151,8 @@ export default function SignInPage() {
                 id="password"
                 name="password"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
               />
             </div>
@@ -169,6 +173,7 @@ export default function SignInPage() {
                 size="lg"
                 fullWidth
                 shape="rounded"
+                onClick={(e: any) => handleSignIn(e)}
               >
                 Sign In
               </Button>

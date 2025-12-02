@@ -43,7 +43,7 @@ export async function signOut() {
  */
 export async function checkUserStatus(email: string) {
     const user = await prisma.user.findUnique({
-        where: { email },
+        where: { email: email.toLowerCase() },
         select: {
             id: true,
             currentRoleId: true,
@@ -93,7 +93,7 @@ export async function createUserInDb(email: string, username: string, supabaseAu
 
     await prisma.user.create({
         data: {
-            email,
+            email: email.toLowerCase(),
             username,
             supabaseAuthId,
             passwordHash,
@@ -110,7 +110,7 @@ export async function createUserInDb(email: string, username: string, supabaseAu
  */
 export async function verifyCredentials(email: string, password: string) {
     const user = await prisma.user.findUnique({
-        where: { email },
+        where: { email: email.toLowerCase() },
         select: { passwordHash: true },
     });
 
@@ -129,7 +129,7 @@ export async function verifyCredentials(email: string, password: string) {
 export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
     if (supabaseAuthId) {
         // Upsert using supabaseAuthId if provided
-        const baseUsername = email.split('@')[0].toLowerCase();
+        const baseUsername = email.toLowerCase().split('@')[0];
         const username = `${baseUsername}_${crypto.randomUUID().slice(0, 8)}`;
 
         await prisma.user.upsert({
@@ -140,7 +140,7 @@ export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
             },
             create: {
                 supabaseAuthId,
-                email,
+                email: email.toLowerCase(),
                 username,
                 registrationDate: new Date(),
                 isVerified: true,
@@ -151,7 +151,7 @@ export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
     } else {
         // Fallback to update by email if no auth ID (legacy behavior)
         await prisma.user.update({
-            where: { email },
+            where: { email: email.toLowerCase() },
             data: {
                 isVerified: true,
                 currentRoleId: 2,
