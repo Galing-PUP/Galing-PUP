@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import LogoYellow from "@/assets/Logo/logo-yellow.png";
 import StarLogo from "@/assets/Logo/star-logo-yellow.png";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, SVGProps, ComponentType } from "react";
+import { ComponentType, SVGProps, useMemo, useState } from "react";
 
-import { Upload, Archive, User, FileText, LogOut } from "lucide-react";
+import { Archive, FileText, LogOut, Upload, User } from "lucide-react";
 
 // Props for the navigation item
 type NavItem = {
@@ -27,7 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: "Published Works",
     href: "/admin/publication",
-    icon: Archive,  
+    icon: Archive,
   },
   {
     label: "User Role Manager",
@@ -72,7 +72,7 @@ export function Sidebar() {
       className={`
         flex h-screen flex-col bg-[#360000] p-6 text-yellow-100
         transition-all duration-300
-        ${isExpanded ? "w-70" : "w-24"} 
+        ${isExpanded ? "w-70" : "w-24"}
       `}
     >
       {/* Header/Logo Section */}
