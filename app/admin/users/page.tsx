@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { User } from "@/types/users";
+import { useState, useMemo } from "react";
+import type { User, UserStatus, UserRole } from "@/types/users";
 import { UserStats } from "@/components/admin/users/user-stats";
 import { UserManagementHeader } from "@/components/admin/users/user-management-header";
 import { UserToolbar } from "@/components/admin/users/user-toolbar";
@@ -25,11 +25,24 @@ export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
+  const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     user: User | null;
   }>({ isOpen: false, user: null });
+
+  // Filter users based on selected statuses and roles
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const statusMatch =
+        selectedStatuses.length === 0 || selectedStatuses.includes(user.status);
+      const roleMatch =
+        selectedRoles.length === 0 || selectedRoles.includes(user.role);
+      return statusMatch && roleMatch;
+    });
+  }, [users, selectedStatuses, selectedRoles]);
 
   const handleSelectUser = (userId: string) => {
     setSelectedUserIds((prev) =>
@@ -38,7 +51,7 @@ export default function UserManagementPage() {
   };
 
   const handleSelectAll = () => {
-    setSelectedUserIds(selectedUserIds.length === users.length ? [] : users.map((u) => u.id));
+    setSelectedUserIds(selectedUserIds.length === filteredUsers.length ? [] : filteredUsers.map((u) => u.id));
   };
 
   const handleDeleteSelected = () => {
@@ -72,7 +85,12 @@ export default function UserManagementPage() {
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <UserManagementHeader onAddNewUser={() => setModalState({ isOpen: true, user: null })} />
-        <UserToolbar />
+        <UserToolbar
+          selectedStatuses={selectedStatuses}
+          selectedRoles={selectedRoles}
+          onStatusChange={setSelectedStatuses}
+          onRoleChange={setSelectedRoles}
+        />
 
         {selectedUserIds.length > 0 && (
           <UserTableToolbar
@@ -82,7 +100,7 @@ export default function UserManagementPage() {
         )}
 
         <UsersTable
-          users={users}
+          users={filteredUsers}
           selectedUserIds={selectedUserIds}
           onSelectAll={handleSelectAll}
           onSelectUser={handleSelectUser}
@@ -91,7 +109,7 @@ export default function UserManagementPage() {
         />
 
         <div className="mt-6 text-sm text-gray-500">
-          Showing {users.length} of 1,247 users
+          Showing {filteredUsers.length} of {users.length} users
         </div>
       </div>
 
