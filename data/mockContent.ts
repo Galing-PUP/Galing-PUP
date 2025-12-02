@@ -23,7 +23,7 @@ export const mockContent: ContentItem[] = [
     title: "A Study on Sustainable Urban Farming",
     author: "John Smith",
     submittedDate: "2025-09-30",
-    status: "Approved",
+    status: "Accepted",
   },
   {
     id: "#4",
@@ -39,7 +39,7 @@ export const mockContent: ContentItem[] = [
     title: "Advanced Materials for Next-Generation Solar Panels",
     author: "Carlos Rivera et al.",
     submittedDate: "2025-09-15",
-    status: "Approved",
+    status: "Accepted",
   },
   {
     id: "#6",

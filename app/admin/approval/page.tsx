@@ -27,7 +27,7 @@ export default function ContentApprovalPage() {
   const counts = useMemo(() => ({
     pending: allContentItems.filter(item => item.status === 'Pending').length,
     rejected: allContentItems.filter(item => item.status === 'Rejected').length,
-    approved: allContentItems.filter(item => item.status === 'Approved').length,
+    accepted: allContentItems.filter(item => item.status === 'Accepted').length,
   }), [allContentItems]);
 
   return (
