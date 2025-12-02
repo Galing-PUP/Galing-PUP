@@ -18,6 +18,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   const [formData, setFormData] = useState<Partial<User>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [initialData, setInitialData] = useState<Partial<User>>({});
+  const [college, setCollege] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,6 +27,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     setFormData(userData);
     setInitialData(userData);
     setSelectedFile(null);
+    setCollege("");
+    setEmailError("");
   }, [isOpen, user]);
 
   if (!isOpen) {
@@ -44,6 +48,15 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
   const handleInputChange = (field: keyof User, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Validate email
+    if (field === 'email') {
+      if (value && !value.endsWith('@gmail.com')) {
+        setEmailError('Email must end with @gmail.com');
+      } else {
+        setEmailError('');
+      }
+    }
   };
 
   const handleFileUpload = () => {
@@ -60,11 +73,14 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   // Check if there are any changes
   const hasChanges = () => {
     if (!user) {
-      // For new users, check if ALL required fields are filled
+      // For new users, check if ALL required fields are filled and email is valid
       return !!(
         formData.name?.trim() && 
         formData.email?.trim() && 
+        formData.email?.endsWith('@gmail.com') &&
+        !emailError &&
         formData.id?.trim() &&
+        college?.trim() &&
         formData.role &&
         formData.status
       );
@@ -95,15 +111,67 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           </button>
         </div>
         <div className="mt-8 space-y-6">
-          <FormInput label="Full Name" value={formData.name || ""} onChange={e => handleInputChange('name', e.target.value)} />
-          <FormSelect label="College">
-            <option>College of Computer and Information Sciences</option>
-            <option>College of Engineering</option>
-            <option>College of Science</option>
-          </FormSelect>
+          <FormInput 
+            label="Full Name" 
+            value={formData.name || ""} 
+            onChange={e => handleInputChange('name', e.target.value)}
+            placeholder="First Name, Middle Name, Last Name"
+          />
+          
+          {/* College with dropdown icon */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">College</label>
+            <div className="relative">
+              <select
+                value={college}
+                onChange={e => setCollege(e.target.value)}
+                className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+                style={{
+                  color: college ? '#1f2937' : '#9ca3af'
+                }}
+              >
+                <option value="" disabled style={{ color: '#9ca3af' }}>Choose College</option>
+                <option value="College of Computer and Information Sciences" style={{ color: '#1f2937' }}>College of Computer and Information Sciences</option>
+                <option value="College of Engineering" style={{ color: '#1f2937' }}>College of Engineering</option>
+                <option value="College of Science" style={{ color: '#1f2937' }}>College of Science</option>
+              </select>
+              <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormInput label="Email Address" type="email" value={formData.email || ""} onChange={e => handleInputChange('email', e.target.value)} />
-            <FormInput label="ID Number" value={formData.id || ""} onChange={e => handleInputChange('id', e.target.value)} disabled={!!user} />
+            <div>
+              <FormInput 
+                label="Email Address" 
+                type="email" 
+                value={formData.email || ""} 
+                onChange={e => handleInputChange('email', e.target.value)}
+                placeholder="example@gmail.com"
+              />
+              {emailError && (
+                <p className="mt-1 text-xs text-red-600">{emailError}</p>
+              )}
+            </div>
+            <FormInput 
+              label="ID Number" 
+              value={formData.id || ""} 
+              onChange={e => handleInputChange('id', e.target.value)} 
+              disabled={!!user}
+            />
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormSelect label="Role" value={formData.role || "User"} onChange={e => handleInputChange('role', e.target.value)}>
@@ -111,11 +179,41 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
               <option>Admin</option>
               <option>Super Admin</option>
             </FormSelect>
-            <FormSelect label="Status" value={formData.status || "Pending"} onChange={e => handleInputChange('status', e.target.value)}>
-              <option>Accepted</option>
-              <option>Pending</option>
-              <option>Delete</option>
-            </FormSelect>
+            
+            {/* Status with dropdown icon */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Status</label>
+              <div className="relative">
+                <select
+                  value={formData.status || ""}
+                  onChange={e => handleInputChange('status', e.target.value)}
+                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+                  style={{
+                    color: formData.status ? '#1f2937' : '#9ca3af'
+                  }}
+                >
+                  <option value="" disabled style={{ color: '#9ca3af' }}>User Status</option>
+                  <option value="Accepted" style={{ color: '#1f2937' }}>Accepted</option>
+                  <option value="Pending" style={{ color: '#1f2937' }}>Pending</option>
+                  <option value="Delete" style={{ color: '#1f2937' }}>Delete</option>
+                </select>
+                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">ID Image</label>
