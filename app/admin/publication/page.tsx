@@ -47,6 +47,7 @@ export default function PublicationPage() {
   // Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [publicationToDelete, setPublicationToDelete] = useState<AdminPublication | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
 
@@ -175,18 +176,35 @@ export default function PublicationPage() {
   };
 
   // 2. Confirm Delete (Performs Action)
-  const confirmDelete = () => {
-    if (publicationToDelete) {
-      setPublications((prev) => prev.filter((p) => p.id !== publicationToDelete.id));
-      
-      // Reset logic if page becomes empty
+  const confirmDelete = async () => {
+    if (!publicationToDelete || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/documents/${publicationToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to delete publication.");
+      }
+
+      setPublications((prev) =>
+        prev.filter((p) => p.id !== publicationToDelete.id),
+      );
+
       if (currentData.length === 1 && currentPage > 1) {
         setCurrentPage((prev) => prev - 1);
       }
-      
-      // Close Modal
+
       setIsDeleteModalOpen(false);
       setPublicationToDelete(null);
+    } catch (error) {
+      console.error(error);
+      alert("There was an error deleting this publication. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -408,7 +426,9 @@ export default function PublicationPage() {
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-6 mt-4">
               <button 
-                onClick={() => setIsDeleteModalOpen(false)}
+                onClick={() => {
+                  if (!isDeleting) setIsDeleteModalOpen(false);
+                }}
                 className="font-bold text-lg hover:underline transition-all"
                 style={{ color: COLORS.maroon }}
               >
@@ -417,10 +437,11 @@ export default function PublicationPage() {
               
               <button 
                 onClick={confirmDelete}
-                className="text-white px-8 py-3 rounded-full font-bold text-lg shadow-md hover:opacity-90 transition-opacity"
+                disabled={isDeleting}
+                className="text-white px-8 py-3 rounded-full font-bold text-lg shadow-md hover:opacity-90 transition-opacity disabled:opacity-60"
                 style={{ backgroundColor: COLORS.maroon }}
               >
-                Delete Research
+                {isDeleting ? "Deleting..." : "Delete Research"}
               </button>
             </div>
           </div>
