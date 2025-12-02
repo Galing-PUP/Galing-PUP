@@ -39,11 +39,6 @@ const NAV_ITEMS: NavItem[] = [
     href: "/admin/approval",
     icon: FileText,
   },
-   {
-    label: "Sign Out",
-    href: "/signout",
-    icon: LogOut,
-  },
 ];
 
 export function Sidebar() {
@@ -114,13 +109,15 @@ export function Sidebar() {
                 }
                 ${
                   isActive
-                    ? "bg-yellow-400 font-bold text-yellow-600" 
+                    ? "bg-yellow-400 font-bold" 
                     : "hover:bg-black/20 hover:text-yellow-500" 
                 }
               `}
             >
               {isExpanded && (
-                <span className="flex-1 text-right mr-4 whitespace-nowrap text-yellow-500">
+                <span className={`flex-1 text-right mr-4 whitespace-nowrap ${
+                  isActive ? "text-black" : "text-yellow-500"
+                }`}>
                   {item.label}
                 </span>
               )}
@@ -132,6 +129,30 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Logout Button at Bottom */}
+      <Link
+        href="/signout"
+        className={`
+          flex items-center font-bold mt-auto
+          transition-all duration-200 text-yellow-100 
+          ${
+            isExpanded
+              ? "justify-between rounded-lg p-3 px-4" 
+              : "justify-center rounded-full p-1"  
+          }
+          hover:bg-black/20 hover:text-yellow-500
+        `}
+      >
+        {isExpanded && (
+          <span className="flex-1 text-right mr-4 whitespace-nowrap text-yellow-500">
+            Sign Out
+          </span>
+        )}
+        <div className="h-[40px] w-[40px] rounded-full bg-[#993333] flex items-center justify-center">
+          <LogOut className="text-[#360000]" />
+        </div>
+      </Link>
     </aside>
   );
 }
