@@ -9,6 +9,7 @@ type UsersTableProps = {
   selectedUserIds: string[];
   onSelectAll: () => void;
   onSelectUser: (userId: string) => void;
+  onEditUser: (user: User) => void;
 };
 
 export function UsersTable({
@@ -16,6 +17,7 @@ export function UsersTable({
   selectedUserIds,
   onSelectAll,
   onSelectUser,
+  onEditUser,
 }: UsersTableProps) {
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +61,7 @@ export function UsersTable({
                 user={user}
                 isSelected={selectedUserIds.includes(user.id)}
                 onSelect={() => onSelectUser(user.id)}
+                onEdit={() => onEditUser(user)}
               />
             ))}
           </div>

@@ -7,9 +7,10 @@ type UserTableRowProps = {
   user: User;
   isSelected: boolean;
   onSelect: () => void;
+  onEdit: () => void;
 };
 
-export function UserTableRow({ user, isSelected, onSelect }: UserTableRowProps) {
+export function UserTableRow({ user, isSelected, onSelect, onEdit }: UserTableRowProps) {
   return (
     <div
       className={`grid grid-cols-12 items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
@@ -25,9 +26,7 @@ export function UserTableRow({ user, isSelected, onSelect }: UserTableRowProps) 
         />
       </div>
       <div className="col-span-1 text-sm text-gray-700">{user.id}</div>
-      <div className="col-span-2 text-sm font-medium text-gray-800">
-        {user.name}
-      </div>
+      <div className="col-span-2 text-sm font-medium text-gray-800">{user.name}</div>
       <div className="col-span-3 text-sm text-gray-600">{user.email}</div>
       <div className="col-span-2">
         <RoleBadge role={user.role} />
@@ -36,7 +35,7 @@ export function UserTableRow({ user, isSelected, onSelect }: UserTableRowProps) 
         <StatusBadge status={user.status} />
       </div>
       <div className="col-span-2 flex items-center space-x-2">
-        <button className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
+        <button onClick={onEdit} className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
           <Pencil className="h-5 w-5" />
         </button>
         <button className="rounded-full p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-800">
