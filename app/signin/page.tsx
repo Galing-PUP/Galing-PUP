@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { signInWithGooglePopup } from "@/lib/auth";
+import { checkUserStatus, verifyCredentials } from "@/lib/actions";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -35,6 +36,40 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
+      // Step 1: Perform pre-login checks against the database
+      // This ensures we give specific feedback before attempting Supabase auth
+      const status = await checkUserStatus(email);
+
+      if (!status.exists) {
+        toast.error("User is not found please signup");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is an admin (Role ID 3 or 4)
+      if (status.isAdmin) {
+        toast.error("Please login using the admin portal");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is verified
+      if (!status.isVerified) {
+        toast.error("User is not verified, please check your email for the code");
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Verify credentials against the database hash
+      const isValid = await verifyCredentials(email, password);
+      if (!isValid) {
+        toast.error("Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Attempt to sign in with Supabase
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({
         email,

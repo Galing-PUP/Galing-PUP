@@ -8,12 +8,17 @@ export async function GET(request: NextRequest) {
     const intent = requestUrl.searchParams.get('intent')
     const isPopup = requestUrl.searchParams.get('popup') === 'true'
 
+    const supabase = await createClient()
+
+    // Step 1: Exchange the auth code for a user session
     if (code) {
-        const supabase = await createClient()
-        await supabase.auth.exchangeCodeForSession(code)
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+            console.error('Auth Code Exchange Error:', error)
+            return NextResponse.redirect(`${requestUrl.origin}/signin?error=VerificationFailed`)
+        }
     }
 
-    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -60,6 +65,7 @@ export async function GET(request: NextRequest) {
         return new Response('User already exists', { status: 409 })
     }
 
+    // Step 2: Handle user data in our database
     // If user exists, update supabaseAuthId if missing
     if (existing) {
         if (!existing.supabaseAuthId) {
@@ -69,24 +75,26 @@ export async function GET(request: NextRequest) {
             })
         }
     } else {
-        // Only create user if NOT signin intent (e.g. signup)
-        // But for now, we assume this route handles both or just generic callback
-        // If we want to restrict signup to a specific flow, we can check intent here too
-        // For this specific request, we just proceed with upsert if it's NOT signin-fail
+        // Step 3: Create new user if they don't exist (e.g., first-time OAuth login)
 
         // Check username uniqueness for new user
         const existingUsername = await prisma.user.findUnique({ where: { username } })
         if (existingUsername) username = `${baseUsername}_${crypto.randomUUID().slice(0, 8)}`
 
+        // Create or update user record
         await prisma.user.upsert({
             where: { supabaseAuthId: user.id },
-            update: {},
+            update: {
+                email,
+                isVerified: true,
+                currentRoleId: 2,
+            },
             create: {
                 supabaseAuthId: user.id,
                 email,
                 username,
                 registrationDate: new Date(),
-                isVerified: true,
+                isVerified: true, // Auto-verify OAuth users
                 currentRoleId: 1,
                 tierId: 1,
             },
