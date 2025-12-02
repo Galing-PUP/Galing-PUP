@@ -26,25 +26,43 @@ const InfoItem = ({
   </div>
 );
 
-export function DocumentInfo() {
+type DocumentInfoProps = {
+  yearPublished: string;
+  campus: string;
+  department: string;
+  advisor?: string | null;
+  pages?: number | null;
+};
+
+export function DocumentInfo({
+  yearPublished,
+  campus,
+  department,
+  advisor,
+  pages,
+}: DocumentInfoProps) {
   return (
     <section className="rounded-lg border border-gray-200 p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-900">
         Document Information
       </h2>
       <div className="mt-4 space-y-4">
-        <InfoItem icon={Calendar} label="Year Published" value="2024" />
-        <InfoItem icon={MapPin} label="Campus" value="Main Campus - Sta. Mesa" />
+        <InfoItem icon={Calendar} label="Year Published" value={yearPublished} />
+        <InfoItem icon={MapPin} label="Campus" value={campus} />
         <InfoItem
           icon={Building2}
           label="Department"
-          value="Department of Computer Science"
+          value={department}
         />
-        <InfoItem icon={User} label="Advisor" value="Dr. Roberto Hernandez" />
-        
+        {advisor && (
+          <InfoItem icon={User} label="Advisor" value={advisor} />
+        )}
+
         <hr className="border-gray-200" />
 
-        <InfoItem icon={FileText} label="Pages" value="156" />
+        {pages != null && (
+          <InfoItem icon={FileText} label="Pages" value={pages.toString()} />
+        )}
       </div>
     </section>
   );

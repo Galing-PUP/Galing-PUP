@@ -1,11 +1,11 @@
-export function Keywords() {
-  const keywords = [
-    "Machine Learning",
-    "Healthcare",
-    "Disease Prediction",
-    "Medical AI",
-    "Patient Care",
-  ];
+type KeywordsProps = {
+  keywords: string[];
+};
+
+export function Keywords({ keywords }: KeywordsProps) {
+  if (!keywords || keywords.length === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-3">
