@@ -5,16 +5,29 @@ import { Pencil, Trash2 } from "lucide-react";
 
 type UserTableRowProps = {
   user: User;
+  isSelected: boolean;
+  onSelect: () => void;
 };
 
-export function UserTableRow({ user }: UserTableRowProps) {
+export function UserTableRow({ user, isSelected, onSelect }: UserTableRowProps) {
   return (
-    <div className="grid grid-cols-12 items-center gap-3 rounded-lg bg-white px-4 py-3 hover:bg-gray-50">
+    <div
+      className={`grid grid-cols-12 items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
+        isSelected ? "bg-red-50" : "bg-white hover:bg-gray-50"
+      }`}
+    >
       <div className="col-span-1 flex items-center">
-        <input type="checkbox" className="h-4 w-4 rounded border-gray-400 text-red-800 focus:ring-red-800" />
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onSelect}
+          className="h-4 w-4 rounded border-gray-400 text-red-800 focus:ring-red-800"
+        />
       </div>
       <div className="col-span-1 text-sm text-gray-700">{user.id}</div>
-      <div className="col-span-2 text-sm font-medium text-gray-800">{user.name}</div>
+      <div className="col-span-2 text-sm font-medium text-gray-800">
+        {user.name}
+      </div>
       <div className="col-span-3 text-sm text-gray-600">{user.email}</div>
       <div className="col-span-2">
         <RoleBadge role={user.role} />
