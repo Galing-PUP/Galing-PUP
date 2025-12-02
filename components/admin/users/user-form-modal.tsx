@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { User } from "@/types/users";
 import { Button } from "@/components/button";
 import { FormInput } from "./form-input";
@@ -16,9 +16,12 @@ type UserFormModalProps = {
 
 export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalProps) {
   const [formData, setFormData] = useState<Partial<User>>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFormData(user || {});
+    setSelectedFile(null);
   }, [isOpen, user]);
 
   if (!isOpen) {
@@ -38,6 +41,17 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
   const handleInputChange = (field: keyof User, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
   };
 
   const title = user ? "Edit User Information" : "Add New User";
@@ -81,10 +95,27 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">ID Image</label>
             <div className="flex">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-600">
+              <button
+                type="button"
+                onClick={handleFileUpload}
+                className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
                 Upload File
-              </span>
-              <input type="text" readOnly placeholder="No file chosen" className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500" />
+              </button>
+              <input
+                type="text"
+                readOnly
+                value={selectedFile ? selectedFile.name : "No file chosen"}
+                placeholder="No file chosen"
+                className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
             </div>
           </div>
         </div>
