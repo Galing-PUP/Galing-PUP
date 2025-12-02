@@ -64,7 +64,7 @@ export function ContentTable({ items, onAction, onView }: ContentTableProps) {
                   {item.title}
                 </div>
                 <div className="col-span-2 text-sm text-gray-600">
-                  {item.author}
+                  {item.authors}
                 </div>
                 <div className="col-span-1 text-sm text-gray-600">
                   {item.submittedDate}
@@ -74,7 +74,7 @@ export function ContentTable({ items, onAction, onView }: ContentTableProps) {
                 </div>
                 {/* --- ACTION BUTTONS --- */}
                 <div className="col-span-2 flex justify-center space-x-1">
-                  <button title="View Details" onClick={() => handleViewClick(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
+                  <button title="View Details" onClick={() => onView(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
                     <Eye className="h-5 w-5" />
                   </button>
                   <button title="Approve" onClick={() => handleApprove(item.id)} className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors">
