@@ -56,6 +56,11 @@ export default function SignInPage() {
     }
   };
 
+  const handleGuestLogin = () => {
+    router.push("/");
+    router.refresh();
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -139,6 +144,7 @@ export default function SignInPage() {
                 fullWidth
                 shape="rounded"
                 className="border-neutral-300"
+                onClick={handleGuestLogin}
               >
                 Continue as Guest
               </Button>
