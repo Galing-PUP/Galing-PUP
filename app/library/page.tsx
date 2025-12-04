@@ -1,6 +1,6 @@
 "use client";
 
-import { Header } from "@/components/header";
+
 import { BookmarkCard } from "@/components/library/bookmark-card";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
@@ -70,7 +70,7 @@ export default function LibraryPage() {
 
   return (
     <>
-      <Header />
+
       <div className="min-h-screen bg-white">
         {/* Header Section with Maroon Background */}
         <div className="bg-[#6b0504] px-4 py-12 md:px-8">

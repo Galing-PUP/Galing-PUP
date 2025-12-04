@@ -7,9 +7,15 @@ import { useState } from "react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import { Button } from "@/components/button";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button, GoogleIcon } from "@/components/button";
+import { signInWithGooglePopup } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/client";
+import { checkUsernameAvailability, checkUserStatus, createUserInDb } from "@/lib/actions";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,9 +23,29 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [usernameError, setUsernameError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   // Email validation
-  const isEmailValid = email.endsWith("@gmail.com") || email === "";
-  
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const isEmailValid = emailRegex.test(email) || email === "";
+
+  // Function to validate username format
+  // Rules: No spaces, no special characters except dots
+  const validateUsername = (value: string) => {
+    if (!value) return "";
+    if (/\s/.test(value)) return "Spaces are not allowed";
+    if (!/^[a-zA-Z0-9.]+$/.test(value)) return "Special characters are not allowed";
+    return "";
+  };
+
+  // Handle username input changes and update error state
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+    setUsernameError(validateUsername(value));
+  };
+
   // Password validation rules
   const passwordValidation = {
     minLength: password.length >= 8,
@@ -41,7 +67,7 @@ export default function SignUpPage() {
     if (!passwordValidation.hasLowercase) errors.push("one lowercase letter");
     if (!passwordValidation.hasNumber) errors.push("one number");
     if (!passwordValidation.hasSpecial) errors.push("one special character");
-    
+
     if (errors.length === 0) return "";
     return `Password must contain ${errors.join(", ")}.`;
   };
@@ -87,10 +113,16 @@ export default function SignUpPage() {
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={handleUsernameChange}
                 placeholder="Enter your username"
-                className="rounded-lg border border-neutral-300 px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
+                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${usernameError
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                  : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                  }`}
               />
+              {usernameError && (
+                <p className="text-sm text-red-600">{usernameError}</p>
+              )}
             </div>
 
             {/* Email Field */}
@@ -104,15 +136,14 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="yourname@gmail.com"
-                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
-                  !isEmailValid
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
-                }`}
+                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${!isEmailValid
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                  : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                  }`}
               />
-              {!isEmailValid && (
+              {!isEmailValid && email !== "" && (
                 <p className="text-sm text-red-600">
-                  Email must end with @gmail.com
+                  Please enter a valid email address
                 </p>
               )}
             </div>
@@ -162,13 +193,12 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
-                    doPasswordsMatch
-                      ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
-                      : confirmPassword
+                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${doPasswordsMatch
+                    ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
+                    : confirmPassword
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
                       : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
-                  }`}
+                    }`}
                 />
                 <button
                   type="button"
@@ -201,14 +231,88 @@ export default function SignUpPage() {
               size="lg"
               fullWidth
               shape="rounded"
-              disabled={!username || !isEmailValid || !isPasswordValid || !doPasswordsMatch}
-              onClick={() => {
-                // TODO: Implement signup logic when database is ready
-                console.log("Sign up clicked - functionality to be implemented");
+              disabled={!username || !email || !password || !confirmPassword || !isEmailValid || !isPasswordValid || !doPasswordsMatch || !!usernameError || loading}
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  // Step 1: Check if username is already taken in the database
+                  const { exists: usernameExists } = await checkUsernameAvailability(username);
+                  if (usernameExists) {
+                    toast.error("Username already exists, please login");
+                    setLoading(false);
+                    return;
+                  }
+
+                  // Step 2: Create the user account in Supabase
+                  const supabase = createClient();
+                  const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                      data: {
+                        username,
+                      },
+                    },
+                  });
+
+                  // Step 3: Handle potential errors during signup
+                  if (error) {
+                    if (error.message.includes("already registered")) {
+                      // If user exists, check if they are verified
+                      const status = await checkUserStatus(email);
+                      if (status.exists && !status.isVerified) {
+                        // If unverified, redirect to OTP page to finish setup
+                        toast.error("User already registered but not verified. Redirecting to verification...");
+                        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+                      } else {
+                        // If verified, ask them to login
+                        toast.error("User already registered, please login");
+                      }
+                    } else {
+                      toast.error(error.message);
+                    }
+                    return;
+                  }
+
+                  // Step 4: Signup successful, create user in DB and redirect
+                  if (data.user) {
+                    await createUserInDb(email, username, data.user.id, password);
+                  }
+
+                  toast.success("Account created! Please verify your email.");
+                  router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+                } catch (error: any) {
+                  toast.error("An unexpected error occurred");
+                } finally {
+                  setLoading(false);
+                }
               }}
             >
-              Sign Up
+              {loading ? "Creating Account..." : "Sign Up"}
             </Button>
+
+            <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
+              <span className="h-px flex-1 bg-neutral-200" />
+              Or continue with
+              <span className="h-px flex-1 bg-neutral-200" />
+            </div>
+
+            <button
+              type="button"
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+              onClick={async () => {
+                try {
+                  await signInWithGooglePopup("signup");
+                  toast.success("Account created successfully");
+                  router.push("/");
+                  router.refresh();
+                } catch (error: any) {
+                  toast.error(error.message || "Sign up failed");
+                }
+              }}
+            >
+              <GoogleIcon />
+            </button>
           </form>
         </div>
 
