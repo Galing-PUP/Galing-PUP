@@ -1,5 +1,5 @@
-export type UserStatus = "Active" | "Inactive";
-export type UserRole = "Admin" | "Member";
+export type UserStatus = "Accepted" | "Pending" | "Delete";
+export type UserRole = "User" | "Admin" | "Super Admin";
 
 export type User = {
   id: string;

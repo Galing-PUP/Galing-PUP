@@ -5,9 +5,10 @@ type RoleBadgeProps = {
 };
 
 export function RoleBadge({ role }: RoleBadgeProps) {
-  const styles = {
+  const styles: Record<UserRole, string> = {
+    "Super Admin": "bg-yellow-400 text-yellow-900 font-bold",
     Admin: "bg-red-800 text-white",
-    Member: "bg-gray-200 text-gray-800",
+    User: "bg-gray-200 text-gray-800",
   };
 
   return (
