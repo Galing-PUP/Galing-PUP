@@ -75,7 +75,7 @@ export default async function PaperPage(props: PaperPageProps) {
 
   return (
     <div className="min-h-screen">
-      <Header />
+
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Left Column */}

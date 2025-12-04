@@ -7,8 +7,95 @@ import { ArrowLeft } from "lucide-react";
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
 import { Button, GoogleIcon } from "@/components/button";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { signInWithGooglePopup } from "@/lib/auth";
+import { checkUserStatus, verifyCredentials } from "@/lib/actions";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGooglePopup("signin");
+      toast.success("Signed in successfully");
+      router.push("/");
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error.message || "Authentication failed");
+    }
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Step 1: Perform pre-login checks against the database
+      // This ensures we give specific feedback before attempting Supabase auth
+      const status = await checkUserStatus(email);
+
+      if (!status.exists) {
+        toast.error("User is not found please signup");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is an admin (Role ID 3 or 4)
+      if (status.isAdmin) {
+        toast.error("Please login using the admin portal");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is verified
+      if (!status.isVerified) {
+        toast.error("User is not verified, please check your email for the code");
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Verify credentials against the database hash
+      const isValid = await verifyCredentials(email, password);
+      if (!isValid) {
+        toast.error("Invalid password please try again");
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Attempt to sign in with Supabase
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Signed in successfully");
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = () => {
+    router.push("/");
+    router.refresh();
+  };
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col overflow-y-auto px-6 py-8 lg:w-1/2 lg:px-16 lg:py-12">
@@ -49,6 +136,8 @@ export default function SignInPage() {
                 id="email"
                 name="email"
                 placeholder="Enter your email or username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
               />
             </div>
@@ -62,6 +151,8 @@ export default function SignInPage() {
                 id="password"
                 name="password"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
               />
             </div>
@@ -82,16 +173,18 @@ export default function SignInPage() {
                 size="lg"
                 fullWidth
                 shape="rounded"
+                onClick={(e: any) => handleSignIn(e)}
               >
                 Sign In
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="lg"
                 fullWidth
                 shape="rounded"
                 className="border-neutral-300"
+                onClick={handleGuestLogin}
               >
                 Continue as Guest
               </Button>
@@ -106,7 +199,7 @@ export default function SignInPage() {
             <button
               type="button"
               className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
-              onClick={() => {}}
+              onClick={handleGoogleLogin}
             >
               <GoogleIcon />
             </button>

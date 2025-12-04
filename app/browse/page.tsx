@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-import { Header } from "@/components/header";
+
 import { SearchBar } from "@/components/search-bar";
 import { FilterBox, FilterValues } from "@/components/filter-box";
 import { SearchResultCard } from "@/components/search-result-card";
@@ -123,7 +123,7 @@ export default function BrowsePage() {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxPagesToShow = 3;
-    
+
     if (totalPages <= maxPagesToShow + 2) {
       // Show all pages if total pages is small
       for (let i = 1; i <= totalPages; i++) {
@@ -132,7 +132,7 @@ export default function BrowsePage() {
     } else {
       // Always show first page
       pages.push(1);
-      
+
       if (currentPage <= maxPagesToShow) {
         // Near the beginning
         for (let i = 2; i <= maxPagesToShow + 1; i++) {
@@ -156,13 +156,13 @@ export default function BrowsePage() {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
   return (
     <>
-      <Header />
+
       <div className="min-h-screen bg-white">
         {/* Search Bar Section */}
         <div className="mx-auto max-w-6xl px-4 pt-8 pb-6 md:px-8">
@@ -243,11 +243,10 @@ export default function BrowsePage() {
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                          currentPage === pageNum
-                            ? "bg-yellow-400 text-gray-900"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                        className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${currentPage === pageNum
+                          ? "bg-yellow-400 text-gray-900"
+                          : "text-gray-700 hover:bg-gray-100"
+                          }`}
                       >
                         {pageNum}
                       </button>

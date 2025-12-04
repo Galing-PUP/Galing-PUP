@@ -13,9 +13,11 @@ datasource db {
 
 model User {
   id               Int      @id @default(autoincrement()) @map("user_id")
+  // supabase OAuth link
+  supabaseAuthId   String?  @unique @map("supabase_uid") @db.Uuid
   username         String   @unique @db.VarChar(255)
   email            String   @unique @db.VarChar(255)
-  passwordHash     String   @map("password_hash") @db.VarChar(255)
+  passwordHash     String?  @map("password_hash") @db.VarChar(255)
   registrationDate DateTime @map("registration_date") @db.Date
   isVerified       Boolean  @map("is_verified")
 
@@ -63,16 +65,16 @@ model SubscriptionTier {
 // ---------------------------------------------------------
 
 model Document {
-  id            Int      @id @default(autoincrement()) @map("document_id")
-  title         String   @db.VarChar(255)
-  abstract      String   @db.Text
-  filePath      String   @map("file_path") @db.VarChar(255)
-  datePublished DateTime @map("date_published") @db.Date
-  visibility    String   @db.VarChar(50) // 'Public' or 'Restricted'
-  downloadsCount Int     @default(0) @map("downloads_count")
-  citationCount  Int     @default(0) @map("citation_count")
-  aiSummary     String?  @map("ai_summary") @db.Text
-  aiInsights    String?  @map("ai_insights") @db.Text
+  id             Int      @id @default(autoincrement()) @map("document_id")
+  title          String   @db.VarChar(255)
+  abstract       String   @db.Text
+  filePath       String   @map("file_path") @db.VarChar(255)
+  datePublished  DateTime @map("date_published") @db.Date
+  visibility     String   @db.VarChar(50) // 'Public' or 'Restricted'
+  downloadsCount Int      @default(0) @map("downloads_count")
+  citationCount  Int      @default(0) @map("citation_count")
+  aiSummary      String?  @map("ai_summary") @db.Text
+  aiInsights     String?  @map("ai_insights") @db.Text
 
   // Foreign Keys
   uploaderId     Int @map("uploader_id")
@@ -95,8 +97,8 @@ model Document {
 }
 
 model UserBookmark {
-  userId     Int      @map("user_id")
-  documentId Int      @map("document_id")
+  userId         Int      @map("user_id")
+  documentId     Int      @map("document_id")
   dateBookmarked DateTime @map("date_bookmarked") @db.Date
 
   user     User     @relation(fields: [userId], references: [id])
@@ -153,10 +155,10 @@ model Keyword {
 // ---------------------------------------------------------
 
 model Course {
-  id          Int    @id @default(autoincrement()) @map("course_id")
-  courseName  String @map("course_name") @db.VarChar(255)
-  courseAbbr  String @map("course_abbr") @db.VarChar(50)
-  collegeId   Int    @map("college_id")
+  id         Int    @id @default(autoincrement()) @map("course_id")
+  courseName String @map("course_name") @db.VarChar(255)
+  courseAbbr String @map("course_abbr") @db.VarChar(50)
+  collegeId  Int    @map("college_id")
 
   college   College    @relation(fields: [collegeId], references: [id])
   documents Document[]

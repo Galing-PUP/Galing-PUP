@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import LogoYellow from "@/assets/Logo/logo-yellow.png";
 import StarLogo from "@/assets/Logo/star-logo-yellow.png";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, SVGProps, ComponentType } from "react";
+import { ComponentType, SVGProps, useMemo, useState } from "react";
 
-import { Upload, Archive, User, FileText, LogOut } from "lucide-react";
+import { Archive, FileText, LogOut, Upload, User } from "lucide-react";
 
 // Props for the navigation item
 type NavItem = {
@@ -27,7 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: "Published Works",
     href: "/admin/publication",
-    icon: Archive,  
+    icon: Archive,
   },
   {
     label: "User Role Manager",
@@ -39,13 +39,14 @@ const NAV_ITEMS: NavItem[] = [
     href: "/admin/approval",
     icon: FileText,
   },
-  {
-    label: "Sign Out",
-    href: "/",
-    icon: LogOut,
-    exact: true,
-  },
 ];
+
+const SIGN_OUT_ITEM: NavItem = {
+  label: "Sign Out",
+  href: "/",
+  icon: LogOut,
+  exact: true,
+};
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -72,7 +73,7 @@ export function Sidebar() {
       className={`
         flex h-screen flex-col bg-[#360000] p-6 text-yellow-100
         transition-all duration-300
-        ${isExpanded ? "w-70" : "w-24"} 
+        ${isExpanded ? "w-70" : "w-24"}
       `}
     >
       {/* Header/Logo Section */}
@@ -105,7 +106,6 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              title={item.label}
               className={`
                 group relative flex items-center font-bold transition-all duration-200
                 ${
@@ -143,7 +143,7 @@ export function Sidebar() {
               {!isExpanded && (
                 <span
                   className="
-                    pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2
+                    pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2
                     rounded-md border border-yellow-300/70 bg-yellow-100 px-3 py-1
                     text-xs font-semibold uppercase tracking-wide text-[#360000] shadow-lg
                     opacity-0 transition-opacity duration-200 group-hover:opacity-100
@@ -156,6 +156,41 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Sign Out Button - Separated at bottom */}
+      <Link
+        href={SIGN_OUT_ITEM.href}
+        className={`
+          group relative flex items-center font-bold transition-all duration-200
+          ${
+            isExpanded
+              ? "justify-between rounded-lg p-3 px-4"
+              : "justify-center rounded-full p-2"
+          }
+          text-yellow-100 hover:bg-black/20 hover:text-yellow-500
+        `}
+      >
+        {isExpanded && (
+          <span className="mr-4 flex-1 whitespace-nowrap text-right text-yellow-500">
+            {SIGN_OUT_ITEM.label}
+          </span>
+        )}
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#993333] transition-colors">
+          <LogOut className="h-5 w-5 text-[#360000]" />
+        </div>
+        {!isExpanded && (
+          <span
+            className="
+              pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2
+              rounded-md border border-yellow-300/70 bg-yellow-100 px-3 py-1
+              text-xs font-semibold uppercase tracking-wide text-[#360000] shadow-lg
+              opacity-0 transition-opacity duration-200 group-hover:opacity-100
+            "
+          >
+            {SIGN_OUT_ITEM.label}
+          </span>
+        )}
+      </Link>
     </aside>
   );
 }

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/header";
 import BackgroundGraphic from "@/assets/Graphics/background-homepage.png";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SearchBar } from "@/components/search-bar";
@@ -79,7 +78,6 @@ export default function Home() {
 
   return (
     <>
-      <Header />
       <div className="relative min-h-screen bg-white">
         <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-20 pb-10 md:pt-24 md:pb-12">
           <Image
