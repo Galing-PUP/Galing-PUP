@@ -45,10 +45,20 @@ export function ContentTable({ items, onView, onAccept, onReject, onDeleteReques
                   <button title="View Details" onClick={() => onView(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
                     <Eye className="h-5 w-5" />
                   </button>
-                  <button title="Accept" onClick={() => onAccept(item.id)} className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors">
+                  <button
+                    title="Accept"
+                    onClick={() => onAccept(item.id)}
+                    disabled={item.status === 'Accepted'}
+                    className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
+                  >
                     <Check className="h-5 w-5" />
                   </button>
-                  <button title="Reject" onClick={() => onReject(item.id)} className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors">
+                  <button
+                    title="Reject"
+                    onClick={() => onReject(item.id)}
+                    disabled={item.status === 'Rejected'}
+                    className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
+                  >
                     <X className="h-5 w-5" />
                   </button>
                   <button title="Delete" onClick={() => onDeleteRequest(item)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
