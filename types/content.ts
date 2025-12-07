@@ -1,11 +1,20 @@
-export type ContentStatus = "Pending" | "Flagged" | "Approved" | "Rejected";
+export type ContentStatus = "Pending" | "Accepted" | "Rejected";
 export type ResourceType = "Dissertation" | "Thesis" | "Research Paper";
 
 export type ContentItem = {
   id: string;
-  resourceType: ResourceType;
   title: string;
-  author: string;
+  abstract: string;
+  keywords: string;
+  authors: string;
+  adviser: string;
   submittedDate: string;
+  resourceType: ResourceType;
   status: ContentStatus;
+  visibility: "public" | "restricted";
+  campus: string;
+  college: string;
+  department: string;
+  library: string;
+  fileName: string;
 };
