@@ -130,8 +130,8 @@ export function Header({
       .slice(0, 2);
   };
 
-  // hides the header for admin pages
-  if (pathname.startsWith("/admin")) {
+  // hides the header for admin pages, sign in, and sign up pages
+  if (pathname.startsWith("/admin") || pathname === "/signin" || pathname === "/signup") {
     return null;
   }
 
