@@ -7,9 +7,11 @@
 
 **Core Functional Requirements:**
 - **Search Engine:** Filter by Keyword, Topic, Author, Year, and Research Type.
-- **Access Level:**
-  - *Public/Student:* Read-only (PDF/Text).
-  - *Admin/Faculty:* Write (Upload, Edit, Delete).
+- **Access Control (RBAC):**
+  - **Viewer (Unregistered):** Search and view abstracts only. No downloads.
+  - **Registered User:** Verified account. Can download PDFs, bookmark studies, and generate citations.
+  - **Staff (College Admin):** Can upload, edit, and delete documents for their specific college only.
+  - **Super Admin:** Full system control. Manages users, roles, global content, analytics, and settings.
 - **Data Structure:** Categorized by Subject and Publication Year.
 - **Security:** Role-Based Access Control (RBAC) via Supabase Auth.
 - **AI Integration:** Use Google Gemini to generate summaries of research materials automatically.
@@ -18,12 +20,14 @@
 - **Framework:** Next.js 16 (App Router)
 - **Runtime:** Bun (v1.x+)
 - **Language:** TypeScript
+- **Authentication:** Supabase Auth
 - **Database:** Supabase (PostgreSQL)
 - **ORM:** Prisma
 - **AI Model:** Google Gemini (via `google-generative-ai` SDK)
 - **Styling:** Tailwind CSS v4, shadcn/ui
 - **Icons:** Lucide React
-- **Testing:** Buntest
+- **Testing:** Buntest (Unit), Cypress (E2E)
+- **Deployment:** Vercel
 
 ## Key Commands
 - **Install:** `bun install`
@@ -54,6 +58,10 @@
 - **Naming:**
   - `camelCase` for variables/functions.
   - `PascalCase` for Components/Interfaces.
+  - `SCREAMING_SNAKE_CASE` for environment variables.
+  - `UPPER_SNAKE_CASE` for constants.
+  - `camelCase` for prisma schema.
+  - `snake_case` for mapping database columns.
 
 ## Negative Constraints (DO NOT DO)
 - **NO NPM/YARN:** Always use `bun` for package management.
