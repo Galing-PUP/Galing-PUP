@@ -48,6 +48,7 @@
 ## Coding Standards (Strict)
 - **Routing:** Use kebab-case for folders (`app/request-access`).
 - **Data Fetching:** Prefer **Server Components** over `useEffect` for initial data load.
+- **Comments:** Add JSDoc to every function. Explain inputs, outputs, and what it does.
 - **Imports:** Use absolute imports (`@/components/...`).
 - **Type Safety:** No `any`. Define interfaces in `types/` or co-located if specific.
 - **Naming:**
@@ -59,6 +60,10 @@
 - **NO RAW SQL:** Always use Prisma Client for database operations.
 - **NO SECRETS:** Never hardcode API keys; use `process.env`.
 - **NO CLASS COMPONENTS:** Use React Functional Components only.
+- **NO REDUNDANT CODE:** Refactor and remove redundant code.
+- **NO REDUNDANT COMMENTS:** Remove redundant comments.
+- **NO MAGIC NUMBERS:** Use constants for magic numbers.
+- **NO MAGIC STRINGS:** Use constants for magic strings.
 
 ## Git & Version Control
 **Commit Message Convention:**
