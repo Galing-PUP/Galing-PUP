@@ -149,8 +149,22 @@ export async function verifyCredentials(identifier: string, password: string) {
  * If user doesn't exist, creates one (fallback).
  */
 export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
-    if (supabaseAuthId) {
-        // Upsert using supabaseAuthId if provided
+    const existingUser = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+    });
+
+    if (existingUser) {
+        // User exists, just update verification status and link Auth ID if needed
+        await prisma.user.update({
+            where: { email: email.toLowerCase() },
+            data: {
+                isVerified: true,
+                currentRoleId: 2,
+                ...(supabaseAuthId ? { supabaseAuthId } : {}),
+            },
+        });
+    } else if (supabaseAuthId) {
+        // User doesn't exist, create via upsert (safe create)
         const baseUsername = email.toLowerCase().split('@')[0];
         const username = `${baseUsername}_${crypto.randomUUID().slice(0, 8)}`;
 
