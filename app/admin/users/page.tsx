@@ -75,10 +75,34 @@ export default function UserManagementPage() {
     setSelectedUserIds(selectedUserIds.length === filteredUsers.length ? [] : filteredUsers.map((u) => u.id));
   };
 
-  const handleDeleteSelected = () => {
-    alert(`Deleting users: ${selectedUserIds.join(", ")}`);
-    setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
-    setSelectedUserIds([]);
+  const handleDeleteSelected = async () => {
+    if (selectedUserIds.length === 0) return;
+
+    if (!confirm(`Are you sure you want to delete ${selectedUserIds.length} users?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids: selectedUserIds }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || "Failed to delete users");
+      }
+
+      setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
+      setSelectedUserIds([]);
+      alert("Selected users have been deleted successfully.");
+    } catch (error: any) {
+      console.error("Error deleting users:", error);
+      alert(`Error: ${error.message}`);
+    }
   };
 
   const handleSaveUser = async (userToSave: User) => {
