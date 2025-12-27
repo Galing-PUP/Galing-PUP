@@ -40,10 +40,23 @@ export async function signOut() {
 /**
  * Checks the status of a user by email.
  * Used for login validation.
+ * @param email The email of the user to check.
+ * @returns An object containing the user's status.
  */
-export async function checkUserStatus(email: string) {
-    const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
+/**
+ * Checks the status of a user by email or username.
+ * Used for login validation.
+ * @param identifier The email or username of the user to check.
+ * @returns An object containing the user's status.
+ */
+export async function checkUserStatus(identifier: string) {
+    const user = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email: identifier.toLowerCase() },
+                { username: identifier },
+            ],
+        },
         select: {
             id: true,
             currentRoleId: true,
@@ -108,9 +121,18 @@ export async function createUserInDb(email: string, username: string, supabaseAu
 /**
  * Verifies user credentials by comparing password hash.
  */
-export async function verifyCredentials(email: string, password: string) {
-    const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
+/**
+ * Verifies user credentials by comparing password hash.
+ * Accepts either email or username.
+ */
+export async function verifyCredentials(identifier: string, password: string) {
+    const user = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email: identifier.toLowerCase() },
+                { username: identifier },
+            ],
+        },
         select: { passwordHash: true },
     });
 
