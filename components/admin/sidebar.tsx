@@ -71,9 +71,9 @@ export function Sidebar() {
   return (
     <aside
       className={`
-        flex h-screen flex-col bg-[#360000] p-6 text-yellow-100
+        flex h-screen flex-col bg-[#360000] text-yellow-100
         transition-all duration-300
-        ${isExpanded ? "w-70" : "w-24"}
+        ${isExpanded ? "w-70 p-6" : "w-24 p-4"}
       `}
     >
       {/* Header/Logo Section */}
@@ -108,36 +108,31 @@ export function Sidebar() {
               href={item.href}
               className={`
                 group relative flex items-center font-bold transition-all duration-200
-                ${
-                  isExpanded
-                    ? "justify-between rounded-lg p-3 px-4"
-                    : "justify-center rounded-full p-2"
+                ${isExpanded
+                  ? "justify-between rounded-lg p-3 px-4"
+                  : "justify-center rounded-full p-2 w-fit mx-auto"
                 }
-                ${
-                  isActive
-                    ? "bg-yellow-100 text-[#360000]"
-                    : "text-yellow-100 hover:bg-black/20 hover:text-yellow-500"
+                ${isActive
+                  ? "bg-yellow-100 text-[#360000]"
+                  : "text-yellow-100 hover:bg-black/20 hover:text-yellow-500"
                 }
               `}
             >
               {isExpanded && (
                 <span
-                  className={`mr-4 flex-1 whitespace-nowrap text-right ${
-                    isActive ? "text-[#360000]" : "text-yellow-500"
-                  }`}
+                  className={`mr-4 flex-1 whitespace-nowrap text-right ${isActive ? "text-[#360000]" : "text-yellow-500"
+                    }`}
                 >
                   {item.label}
                 </span>
               )}
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-                  isActive ? "bg-[#360000]" : "bg-[#993333]"
-                }`}
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${isActive ? "bg-[#360000]" : "bg-[#993333]"
+                  }`}
               >
                 <Icon
-                  className={`h-5 w-5 ${
-                    isActive ? "text-yellow-200" : "text-[#360000]"
-                  }`}
+                  className={`h-5 w-5 ${isActive ? "text-yellow-200" : "text-[#360000]"
+                    }`}
                 />
               </div>
               {!isExpanded && (
@@ -162,10 +157,9 @@ export function Sidebar() {
         href={SIGN_OUT_ITEM.href}
         className={`
           group relative flex items-center font-bold transition-all duration-200
-          ${
-            isExpanded
-              ? "justify-between rounded-lg p-3 px-4"
-              : "justify-center rounded-full p-2"
+          ${isExpanded
+            ? "justify-between rounded-lg p-3 px-4"
+            : "justify-center rounded-full p-2 w-fit mx-auto"
           }
           text-yellow-100 hover:bg-black/20 hover:text-yellow-500
         `}
