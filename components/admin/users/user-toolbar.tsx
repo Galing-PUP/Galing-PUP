@@ -34,12 +34,12 @@ export function UserToolbar({
   return (
     <div className="mt-6 flex flex-col items-stretch gap-4 md:flex-row">
       <div className="flex-1">
-        <SearchBar 
-          placeholder="Search users by name or email..." 
-          size="sm" 
+        <SearchBar
+          placeholder="Search users by username or email..."
+          size="sm"
           value={searchQuery}
           onChange={onSearchChange}
-          onSubmit={() => {}}
+          onSubmit={() => { }}
         />
       </div>
       <FilterDropdown

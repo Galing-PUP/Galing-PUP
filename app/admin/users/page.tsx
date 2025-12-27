@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { User, UserStatus, UserRole } from "@/types/users";
 import { UserStats } from "@/components/admin/users/user-stats";
 import { UserManagementHeader } from "@/components/admin/users/user-management-header";
@@ -8,7 +8,7 @@ import { UserToolbar } from "@/components/admin/users/user-toolbar";
 import { UsersTable } from "@/components/admin/users/users-table";
 import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
 import { UserFormModal } from "@/components/admin/users/user-form-modal";
-import { mockUsers } from "@/data/mockUsers";
+// import { mockUsers } from "@/data/mockUsers";
 
 import {
   AlertDialog,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
@@ -33,6 +33,22 @@ export default function UserManagementPage() {
     isOpen: boolean;
     user: User | null;
   }>({ isOpen: false, user: null });
+
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/admin/users");
+        if (!response.ok) throw new Error("Failed to fetch users");
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error loading users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // Filter users based on selected statuses, roles, and search query
   const filteredUsers = useMemo(() => {
@@ -65,23 +81,58 @@ export default function UserManagementPage() {
     setSelectedUserIds([]);
   };
 
-  const handleSaveUser = (userToSave: User) => {
-    if (modalState.user) {
-      setUsers((prev) => prev.map((u) => (u.id === userToSave.id ? userToSave : u)));
-      alert(`Updated user: ${userToSave.name}`);
-    } else {
-      setUsers((prev) => [userToSave, ...prev]);
-      alert(`Added new user: ${userToSave.name}`);
+  const handleSaveUser = async (userToSave: User) => {
+    try {
+      if (modalState.user) {
+        // Edit existing user
+        const response = await fetch(`/api/admin/users/${userToSave.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userToSave),
+        });
+
+        if (!response.ok) throw new Error("Failed to update user");
+
+        const updatedUser = await response.json();
+        setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+        alert(`Updated user: ${updatedUser.name}`);
+      } else {
+        // Add new user (Not fully implemented on backend yet as per constraints, but keeping scaffolding)
+        // For now, let's just alert or implement POST if needed later.
+        // Assuming current task focus is Edit/Delete.
+        setUsers((prev) => [userToSave, ...prev]);
+        alert(`Added new user: ${userToSave.name}`);
+      }
+      setModalState({ isOpen: false, user: null });
+    } catch (error) {
+      console.error("Error saving user:", error);
+      alert("Failed to save user changes.");
     }
-    setModalState({ isOpen: false, user: null });
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (!deletingUser) return;
-    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
-    setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
-    alert(`User "${deletingUser.name}" has been deleted.`);
-    setDeletingUser(null);
+
+    try {
+      const response = await fetch(`/api/admin/users/${deletingUser.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || "Failed to delete user");
+      }
+
+      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+      setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
+      alert(`User "${deletingUser.name}" has been deleted.`);
+      setDeletingUser(null);
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      alert(`Error: ${error.message}`);
+    }
   };
 
   return (
@@ -141,7 +192,7 @@ export default function UserManagementPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDeleteUser}
               className="bg-[#6b0504] hover:bg-[#4a0403]"
             >
