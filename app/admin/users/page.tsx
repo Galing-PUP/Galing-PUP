@@ -8,7 +8,6 @@ import { UserToolbar } from "@/components/admin/users/user-toolbar";
 import { UsersTable } from "@/components/admin/users/users-table";
 import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
 import { UserFormModal } from "@/components/admin/users/user-form-modal";
-// import { mockUsers } from "@/data/mockUsers";
 
 import {
   AlertDialog,
@@ -168,7 +167,7 @@ export default function UserManagementPage() {
 
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
       setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
-      fetchStats(); // Update stats
+      fetchStats();
       alert(`User "${deletingUser.name}" has been deleted.`);
       setDeletingUser(null);
     } catch (error: any) {
