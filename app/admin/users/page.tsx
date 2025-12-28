@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import type { User, UserStatus, UserRole } from "@/types/users";
-import { UserStats } from "@/components/admin/users/user-stats";
+import { UserStats, type Stats } from "@/components/admin/users/user-stats";
 import { UserManagementHeader } from "@/components/admin/users/user-management-header";
 import { UserToolbar } from "@/components/admin/users/user-toolbar";
 import { UsersTable } from "@/components/admin/users/users-table";
@@ -23,6 +23,7 @@ import {
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
@@ -34,7 +35,19 @@ export default function UserManagementPage() {
     user: User | null;
   }>({ isOpen: false, user: null });
 
-  // Fetch users from API
+  // Fetch users and stats from API
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/admin/users/stats");
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -48,6 +61,7 @@ export default function UserManagementPage() {
     };
 
     fetchUsers();
+    fetchStats();
   }, []);
 
   // Filter users based on selected statuses, roles, and search query
@@ -98,6 +112,7 @@ export default function UserManagementPage() {
 
       setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
       setSelectedUserIds([]);
+      fetchStats(); // Update stats
       alert("Selected users have been deleted successfully.");
     } catch (error: any) {
       console.error("Error deleting users:", error);
@@ -121,12 +136,14 @@ export default function UserManagementPage() {
 
         const updatedUser = await response.json();
         setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+        fetchStats(); // Update stats in case status changed
         alert(`Updated user: ${updatedUser.name}`);
       } else {
         // Add new user (Not fully implemented on backend yet as per constraints, but keeping scaffolding)
         // For now, let's just alert or implement POST if needed later.
         // Assuming current task focus is Edit/Delete.
         setUsers((prev) => [userToSave, ...prev]);
+        fetchStats(); // Update stats
         alert(`Added new user: ${userToSave.name}`);
       }
       setModalState({ isOpen: false, user: null });
@@ -151,6 +168,7 @@ export default function UserManagementPage() {
 
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
       setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
+      fetchStats(); // Update stats
       alert(`User "${deletingUser.name}" has been deleted.`);
       setDeletingUser(null);
     } catch (error: any) {
@@ -161,7 +179,7 @@ export default function UserManagementPage() {
 
   return (
     <div className="space-y-8">
-      <UserStats />
+      <UserStats stats={stats} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <UserManagementHeader onAddNewUser={() => setModalState({ isOpen: true, user: null })} />

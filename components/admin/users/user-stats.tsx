@@ -30,12 +30,26 @@ const StatCard = ({ icon: Icon, title, value, chart, iconBgColor }: StatCardProp
   </div>
 );
 
-export function UserStats() {
+
+export type Stats = {
+  totalUsers: number;
+  pendingApproval: number;
+  totalTiers: number;
+};
+
+export function UserStats({ stats }: { stats: Stats | null }) {
+  const { totalUsers, pendingApproval, totalTiers } = stats || {
+    totalUsers: 0,
+    pendingApproval: 0,
+    totalTiers: 0,
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <StatCard icon={Users} title="User Tiers" value="152" iconBgColor="bg-red-100" chart={<ChartPlaceholder className="text-red-500" />} />
-      <StatCard icon={Users} title="Total Users" value="1,247" iconBgColor="bg-blue-100" chart={<ChartPlaceholder className="text-blue-500" />} />
-      <StatCard icon={FileClock} title="Pending Approval" value="84" iconBgColor="bg-green-100" chart={<ChartPlaceholder className="text-green-500" />} />
+      <StatCard icon={Users} title="User Tiers" value={totalTiers.toString()} iconBgColor="bg-red-100" chart={<ChartPlaceholder className="text-red-500" />} />
+      <StatCard icon={Users} title="Total Users" value={totalUsers.toLocaleString()} iconBgColor="bg-blue-100" chart={<ChartPlaceholder className="text-blue-500" />} />
+      <StatCard icon={FileClock} title="Pending Approval" value={pendingApproval.toString()} iconBgColor="bg-green-100" chart={<ChartPlaceholder className="text-green-500" />} />
     </div>
   );
 }
+
