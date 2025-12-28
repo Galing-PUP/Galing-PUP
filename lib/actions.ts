@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
@@ -194,4 +195,30 @@ export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
             },
         });
     }
+}
+/**
+ * Deletes a user from Supabase Auth and the database.
+ * @param userId The Supabase Auth ID of the user to delete.
+ */
+export async function deleteUser(userId: string) {
+    // 1. Delete from Supabase Auth (this is critical)
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (authError) {
+        throw new Error(`Failed to delete user from Auth: ${authError.message}`);
+    }
+
+    // 2. Delete from Prisma (Database)
+    // Note: Usually deleting from Auth cascades if configured, but explicit delete is safer
+    // to ensure both are in sync if no cascade is set up.
+    try {
+        await prisma.user.delete({
+            where: { supabaseAuthId: userId },
+        });
+    } catch (error) {
+        // Ignored if already deleted or not found (e.g. cascade worked)
+        console.warn("User might have already been deleted from DB or cascade is active:", error);
+    }
+
+    return { success: true };
 }
