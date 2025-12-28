@@ -40,7 +40,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
       id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
       name: formData.name || "",
       email: formData.email || "",
-      role: formData.role || "User",
+      role: formData.role || "Registered",
       status: formData.status || "Pending",
     };
     onSave(userToSave);
@@ -48,7 +48,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
   const handleInputChange = (field: keyof User, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Validate email
     if (field === 'email') {
       if (value && !value.endsWith('@gmail.com')) {
@@ -75,8 +75,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     if (!user) {
       // For new users, check if ALL required fields are filled and email is valid
       return !!(
-        formData.name?.trim() && 
-        formData.email?.trim() && 
+        formData.name?.trim() &&
+        formData.email?.trim() &&
         formData.email?.endsWith('@gmail.com') &&
         !emailError &&
         formData.id?.trim() &&
@@ -111,13 +111,13 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           </button>
         </div>
         <div className="mt-8 space-y-6">
-          <FormInput 
-            label="Full Name" 
-            value={formData.name || ""} 
+          <FormInput
+            label="Full Name"
+            value={formData.name || ""}
             onChange={e => handleInputChange('name', e.target.value)}
             placeholder="First Name, Middle Name, Last Name"
           />
-          
+
           {/* College with dropdown icon */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">College</label>
@@ -155,10 +155,10 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <FormInput 
-                label="Email Address" 
-                type="email" 
-                value={formData.email || ""} 
+              <FormInput
+                label="Email Address"
+                type="email"
+                value={formData.email || ""}
                 onChange={e => handleInputChange('email', e.target.value)}
                 placeholder="example@gmail.com"
               />
@@ -166,20 +166,21 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                 <p className="mt-1 text-xs text-red-600">{emailError}</p>
               )}
             </div>
-            <FormInput 
-              label="ID Number" 
-              value={formData.id || ""} 
-              onChange={e => handleInputChange('id', e.target.value)} 
+            <FormInput
+              label="ID Number"
+              value={formData.id || ""}
+              onChange={e => handleInputChange('id', e.target.value)}
               disabled={!!user}
             />
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormSelect label="Role" value={formData.role || "User"} onChange={e => handleInputChange('role', e.target.value)}>
-              <option>User</option>
+              <option>Viewer</option>
+              <option>Registered</option>
               <option>Admin</option>
-              <option>Super Admin</option>
+              <option>Superadmin</option>
             </FormSelect>
-            
+
             {/* Status with dropdown icon */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">Status</label>
@@ -246,9 +247,9 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           <Button variant="outline" shape="rounded" onClick={onClose} className="border-gray-300">
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
-            shape="rounded" 
+          <Button
+            variant="primary"
+            shape="rounded"
             onClick={handleSave}
             disabled={!hasChanges()}
             className={!hasChanges() ? "opacity-50 cursor-not-allowed" : ""}
