@@ -39,7 +39,7 @@ export function AiInsights() {
         <button
           type="button"
           onClick={handleUpgrade}
-          className="mt-4 rounded-lg bg-red-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="mt-4 rounded-lg bg-pup-maroon px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-pup-maroon/80 focus:outline-none focus:ring-2 focus:ring-pup-maroon focus:ring-offset-2"
         >
           Upgrade to Premium
         </button>
