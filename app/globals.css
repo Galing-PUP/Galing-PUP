@@ -41,6 +41,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-pup-maroon: var(--pup-maroon);
+  --color-pup-gold-light: var(--pup-gold-light);
+  --color-pup-gold-dark: var(--pup-gold-dark);
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -58,13 +61,13 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: var(--pup-maroon);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  --accent: var(--pup-gold-light);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
@@ -83,6 +86,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Official PUP Colors */
+  --pup-maroon: oklch(0.3767 0.154577 29.2339);
+  --pup-gold-light: oklch(0.9027 0.1869 98.67);
+  --pup-gold-dark: oklch(0.7516 0.1469 83.99);
 }
 
 .dark {
