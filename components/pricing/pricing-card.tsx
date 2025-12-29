@@ -50,7 +50,7 @@ export function PricingCard({
     >
       {/* Recommended Badge */}
       {isRecommended && (
-        <div className="absolute -top-4 right-8 bg-yellow-400 text-gray-900 font-bold px-4 py-2 rounded-lg text-sm">
+        <div className="absolute -top-4 right-8 bg-pup-gold-light text-gray-900 font-bold px-4 py-2 rounded-lg text-sm">
           RECOMMENDED
         </div>
       )}

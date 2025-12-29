@@ -33,7 +33,7 @@ export function FeatureComparisonTable({
     // Handle "Unlimited" badge
     if (value.toLowerCase() === "unlimited") {
       return (
-        <span className="inline-block bg-red-900 text-white text-sm font-semibold px-4 py-1 rounded-full">
+        <span className="inline-block bg-pup-maroon text-white text-sm font-semibold px-4 py-1 rounded-full">
           Unlimited
         </span>
       );
@@ -59,8 +59,8 @@ export function FeatureComparisonTable({
         <div className="p-6 font-bold text-gray-900 text-lg text-center border-l border-gray-200">
           Free
         </div>
-        <div className="p-6 font-bold text-gray-900 text-lg text-center bg-yellow-50 border-l border-gray-200 flex items-center justify-center gap-2">
-          <Crown className="w-5 h-5 text-yellow-600" />
+        <div className="p-6 font-bold text-gray-900 text-lg text-center bg-pup-gold-light/30 border-l border-gray-200 flex items-center justify-center gap-2">
+          <Crown className="w-5 h-5 text-pup-gold-dark" />
           Premium
         </div>
       </div>
@@ -77,7 +77,7 @@ export function FeatureComparisonTable({
           <div className="p-6 text-center border-l border-gray-200 flex items-center justify-center">
             {renderCell(feature.free)}
           </div>
-          <div className="p-6 text-center bg-yellow-50 border-l border-gray-200 flex items-center justify-center">
+          <div className="p-6 text-center bg-pup-gold-light/10 border-l border-gray-200 flex items-center justify-center">
             {renderCell(feature.premium, true)}
           </div>
         </div>
