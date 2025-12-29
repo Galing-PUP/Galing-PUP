@@ -14,15 +14,15 @@ export function PremiumBanner({ usedBookmarks, maxBookmarks }: PremiumBannerProp
   }
 
   return (
-    <div className="rounded-lg bg-yellow-400 p-4">
+    <div className="rounded-lg bg-pup-gold-light p-4">
       <div className="flex items-center gap-3">
         <AlertCircle className="h-5 w-5 text-gray-900" />
         <p className="flex-1 text-sm font-medium text-gray-900">
-          You're using {usedBookmarks} of {maxBookmarks} bookmarks on the Free tier.
+          You&apos;re using {usedBookmarks} of {maxBookmarks} bookmarks on the Free tier.
         </p>
         <Link
           href="/pricing"
-          className="flex items-center gap-2 rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-yellow-600 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-pup-gold-light px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-pup-gold-light/80 transition-colors"
         >
           <Crown className="h-4 w-4" />
           <span>Upgrade to Premium</span>
