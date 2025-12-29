@@ -143,7 +143,7 @@ export default function UserManagementPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDeleteUser}
-              className="bg-[#6b0504] hover:bg-[#4a0403]"
+              className="bg-pup-maroon hover:bg-pup-maroon/80 focus:ring-pup-maroon"
             >
               Delete User
             </AlertDialogAction>
