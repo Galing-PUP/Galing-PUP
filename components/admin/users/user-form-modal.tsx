@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import type { User } from "@/types/users";
 import { Button } from "@/components/button";
 import { FormInput } from "./form-input";
-import { FormSelect } from "./form-select";
 import { X } from "lucide-react";
 
 type UserFormModalProps = {
@@ -126,7 +125,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           />
 
           {/* Row 2: Email (Full Width) */}
-          <div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormInput
               label="Email Address"
               type="email"
@@ -161,7 +160,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                 />
 
                 <div>
-                  {/* TODO : to be discussed whether retain or remove */}
                   <FormInput
                     label="ID Number"
                     value={formData.id || ""}
@@ -266,32 +264,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
               </div>
             </div>
           </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">ID Image</label>
-            <div className="flex">
-              <button
-                type="button"
-                onClick={handleFileUpload}
-                className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-              >
-                Upload File
-              </button>
-              <input
-                type="text"
-                readOnly
-                value={selectedFile ? selectedFile.name : "No file chosen"}
-                placeholder="No file chosen"
-                className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
-              />
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
-          </div>
+
         </div>
         <div className="mt-10 flex justify-end gap-4">
           <Button variant="outline" shape="rounded" onClick={onClose} className="border-gray-300">
