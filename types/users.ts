@@ -7,4 +7,7 @@ export type User = {
   email: string;
   role: UserRole;
   status: UserStatus;
+  subscriptionTier?: number;
+  registrationDate?: string;
+  password?: string;
 };

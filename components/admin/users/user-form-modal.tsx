@@ -18,7 +18,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   const [formData, setFormData] = useState<Partial<User>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [initialData, setInitialData] = useState<Partial<User>>({});
-  const [college, setCollege] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,7 +26,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     setFormData(userData);
     setInitialData(userData);
     setSelectedFile(null);
-    setCollege("");
+    setSelectedFile(null);
     setEmailError("");
   }, [isOpen, user]);
 
@@ -42,16 +41,22 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
       email: formData.email || "",
       role: formData.role || "Registered",
       status: formData.status || "Pending",
+      subscriptionTier: formData.subscriptionTier || 1, // Default to Free
     };
+
+    if (formData.password) {
+      userToSave.password = formData.password;
+    }
+
     onSave(userToSave);
   };
 
-  const handleInputChange = (field: keyof User, value: string) => {
+  const handleInputChange = (field: keyof User, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
 
     // Validate email
     if (field === 'email') {
-      if (value && !value.endsWith('@gmail.com')) {
+      if (typeof value === 'string' && value && !value.endsWith('@gmail.com')) {
         setEmailError('Email must end with @gmail.com');
       } else {
         setEmailError('');
@@ -80,7 +85,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
         formData.email?.endsWith('@gmail.com') &&
         !emailError &&
         formData.id?.trim() &&
-        college?.trim() &&
         formData.role &&
         formData.status
       );
@@ -91,7 +95,9 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
       formData.name !== initialData.name ||
       formData.email !== initialData.email ||
       formData.role !== initialData.role ||
-      formData.status !== initialData.status
+      formData.status !== initialData.status ||
+      formData.subscriptionTier !== initialData.subscriptionTier ||
+      (!!formData.password && formData.password.trim() !== "")
     );
   };
 
@@ -111,75 +117,98 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           </button>
         </div>
         <div className="mt-8 space-y-6">
+          {/* Row 1: Username (Full Width) */}
           <FormInput
-            label="Full Name"
+            label="Username"
             value={formData.name || ""}
             onChange={e => handleInputChange('name', e.target.value)}
-            placeholder="First Name, Middle Name, Last Name"
+            placeholder="Username"
           />
 
-          {/* College with dropdown icon */}
+          {/* Row 2: Email (Full Width) */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">College</label>
-            <div className="relative">
-              <select
-                value={college}
-                onChange={e => setCollege(e.target.value)}
-                className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                style={{
-                  color: college ? '#1f2937' : '#9ca3af'
-                }}
-              >
-                <option value="" disabled style={{ color: '#9ca3af' }}>Choose College</option>
-                <option value="College of Computer and Information Sciences" style={{ color: '#1f2937' }}>College of Computer and Information Sciences</option>
-                <option value="College of Engineering" style={{ color: '#1f2937' }}>College of Engineering</option>
-                <option value="College of Science" style={{ color: '#1f2937' }}>College of Science</option>
-              </select>
-              <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+            <FormInput
+              label="Email Address"
+              type="email"
+              value={formData.email || ""}
+              onChange={e => handleInputChange('email', e.target.value)}
+              placeholder="example@gmail.com"
+            />
+            {emailError && (
+              <p className="mt-1 text-xs text-red-600">{emailError}</p>
+            )}
+            {/* Row 3: Change Password */}
+            <div>
+              <FormInput
+                label="New Password"
+                type="password"
+                value={formData.password || ""}
+                onChange={e => handleInputChange('password', e.target.value)}
+                placeholder="Leave blank to keep current password"
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <FormInput
-                label="Email Address"
-                type="email"
-                value={formData.email || ""}
-                onChange={e => handleInputChange('email', e.target.value)}
-                placeholder="example@gmail.com"
-              />
-              {emailError && (
-                <p className="mt-1 text-xs text-red-600">{emailError}</p>
-              )}
-            </div>
-            <FormInput
-              label="ID Number"
-              value={formData.id || ""}
-              onChange={e => handleInputChange('id', e.target.value)}
-              disabled={!!user}
-            />
+            {/* Row 4: Registration Date and ID Number */}
+            {user && (
+              <>
+                <FormInput
+                  label="Registration Date"
+                  value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString() : ""}
+                  disabled={true}
+                  onChange={() => { }} // Read only
+                />
+
+                <div>
+                  {/* TODO : to be discussed whether retain or remove */}
+                  <FormInput
+                    label="ID Number"
+                    value={formData.id || ""}
+                    onChange={e => handleInputChange('id', e.target.value)}
+                    disabled={true}
+                  />
+                </div>
+              </>
+            )}
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormSelect label="Role" value={formData.role || "User"} onChange={e => handleInputChange('role', e.target.value)}>
-              <option>Viewer</option>
-              <option>Registered</option>
-              <option>Admin</option>
-              <option>Superadmin</option>
-            </FormSelect>
+
+          {/* Row 5: Role, Status, Subscription Tier */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Role with dropdown icon */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Role</label>
+              <div className="relative">
+                <select
+                  value={formData.role || "User"}
+                  onChange={e => handleInputChange('role', e.target.value)}
+                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+                  style={{
+                    color: formData.role ? '#1f2937' : '#9ca3af'
+                  }}
+                >
+                  <option>Viewer</option>
+                  <option>Registered</option>
+                  <option>Admin</option>
+                  <option>Superadmin</option>
+                </select>
+                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
             {/* Status with dropdown icon */}
             <div>
@@ -211,6 +240,27 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                       strokeWidth={2}
                       d="M19 9l-7 7-7-7"
                     />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Subscription Tier */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Subscription Tier</label>
+              <div className="relative">
+                <select
+                  value={formData.subscriptionTier || 1}
+                  onChange={e => handleInputChange('subscriptionTier', parseInt(e.target.value))}
+                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+                  style={{ color: '#1f2937' }}
+                >
+                  <option value={1}>Free</option>
+                  <option value={2}>Paid</option>
+                </select>
+                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>

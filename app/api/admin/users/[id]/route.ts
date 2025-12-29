@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { hash } from "bcryptjs";
 
 
 /**
@@ -131,21 +132,52 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { name, email, role, status } = body;
+        const { name, email, role, status, subscriptionTier, password } = body;
 
         const roleId = await getRoleId(role);
         if (!roleId) {
             return NextResponse.json({ error: "Invalid role" }, { status: 400 });
         }
 
+        const updateData: any = {
+            username: name,
+            email: email,
+            currentRoleId: roleId,
+            tierId: subscriptionTier ? parseInt(subscriptionTier) : undefined,
+            isVerified: status === "Accepted",
+        };
+
+        if (password && password.trim() !== "") {
+            // 1. Fetch user to get Supabase Auth ID
+            const user = await prisma.user.findUnique({
+                where: { id },
+                select: { supabaseAuthId: true },
+            });
+
+            if (user?.supabaseAuthId) {
+                // 2. Update Supabase Auth Password
+                const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+                    user.supabaseAuthId,
+                    { password: password }
+                );
+
+                if (authError) {
+                    console.error(`Failed to update password for user ${user.supabaseAuthId} in Supabase:`, authError);
+                    // Decide whether to throw or continue. 
+                    // Usually we might want to stop here, but since local hash is also used, 
+                    // we could technically proceed, but inconsistent passwords are bad.
+                    // Let's throw to prevent inconsistency.
+                    throw new Error("Failed to update password in authentication system");
+                }
+            }
+
+            const passwordHash = await hash(password, 10);
+            updateData.passwordHash = passwordHash;
+        }
+
         const updatedUser = await prisma.user.update({
             where: { id },
-            data: {
-                username: name,
-                email: email,
-                currentRoleId: roleId,
-                isVerified: status === "Accepted",
-            },
+            data: updateData,
             include: {
                 role: true,
             },
@@ -157,6 +189,8 @@ export async function PATCH(
             email: updatedUser.email,
             role: updatedUser.role.roleName,
             status: updatedUser.isVerified ? "Accepted" : "Pending",
+            subscriptionTier: updatedUser.tierId,
+            registrationDate: updatedUser.registrationDate.toISOString().split('T')[0],
         });
     } catch (error) {
         console.error("Error updating user:", error);

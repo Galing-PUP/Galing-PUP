@@ -24,6 +24,8 @@ export async function GET() {
             // fallbacks to user if the user has no role
             role: user.role?.roleName || "User",
             status: user.isVerified ? "Accepted" : "Pending",
+            subscriptionTier: user.tierId,
+            registrationDate: user.registrationDate.toISOString().split('T')[0], // format as YYYY-MM-DD
         }));
 
         return NextResponse.json(formattedUsers);
