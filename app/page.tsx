@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import BackgroundGraphic from "@/assets/Graphics/background-homepage.png";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SearchBar } from "@/components/search-bar";
+import { ChevronRight } from "lucide-react";
 
 type HomeSearchResult = {
   id: number;
@@ -131,20 +132,9 @@ export default function Home() {
               router.push("/browse");
             }}
           >
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-2 pl-2">
               Explore All Studies
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
+              <ChevronRight />
             </span>
           </button>
         </section>
