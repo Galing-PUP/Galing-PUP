@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -33,6 +34,11 @@ export default function UserManagementPage() {
     isOpen: boolean;
     user: User | null;
   }>({ isOpen: false, user: null });
+
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    isOpen: boolean;
+    message: string;
+  }>({ isOpen: false, message: "" });
 
   // Fetch users and stats from API
   const fetchStats = async () => {
@@ -112,10 +118,10 @@ export default function UserManagementPage() {
       setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
       setSelectedUserIds([]);
       fetchStats(); // Update stats
-      alert("Selected users have been deleted successfully.");
+      toast.success("Selected users have been deleted successfully.");
     } catch (error: any) {
       console.error("Error deleting users:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
 
@@ -131,24 +137,55 @@ export default function UserManagementPage() {
           body: JSON.stringify(userToSave),
         });
 
-        if (!response.ok) throw new Error("Failed to update user");
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 409) {
+            setDuplicateWarning({
+              isOpen: true,
+              message: errorData.error || "User already exists",
+            });
+            // Keep modal open
+            return;
+          }
+          throw new Error(errorData.error || "Failed to update user");
+        }
 
         const updatedUser = await response.json();
         setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
         fetchStats(); // Update stats in case status changed
-        alert(`Updated user: ${updatedUser.name}`);
+        toast.success(`Updated user: ${updatedUser.name}`);
       } else {
-        // Add new user (Not fully implemented on backend yet as per constraints, but keeping scaffolding)
-        // For now, let's just alert or implement POST if needed later.
-        // Assuming current task focus is Edit/Delete.
-        setUsers((prev) => [userToSave, ...prev]);
+        // Add new user
+        const response = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userToSave),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 409) {
+            setDuplicateWarning({
+              isOpen: true,
+              message: errorData.error || "User already exists",
+            });
+            // Keep modal open
+            return;
+          }
+          throw new Error(errorData.error || "Failed to create user");
+        }
+
+        const newUser = await response.json();
+        setUsers((prev) => [newUser, ...prev]);
         fetchStats(); // Update stats
-        alert(`Added new user: ${userToSave.name}`);
+        toast.success(`Added new user: ${newUser.name}`);
       }
       setModalState({ isOpen: false, user: null });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving user:", error);
-      alert("Failed to save user changes.");
+      toast.error(error.message || "Failed to save user changes.");
     }
   };
 
@@ -168,11 +205,11 @@ export default function UserManagementPage() {
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
       setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
       fetchStats();
-      alert(`User "${deletingUser.name}" has been deleted.`);
+      toast.success(`User "${deletingUser.name}" has been deleted.`);
       setDeletingUser(null);
     } catch (error: any) {
       console.error("Error deleting user:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
 
@@ -238,6 +275,28 @@ export default function UserManagementPage() {
               className="bg-[#6b0504] hover:bg-[#4a0403]"
             >
               Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={duplicateWarning.isOpen}
+        onOpenChange={(isOpen) => !isOpen && setDuplicateWarning(prev => ({ ...prev, isOpen: false }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              {duplicateWarning.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setDuplicateWarning(prev => ({ ...prev, isOpen: false }))}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

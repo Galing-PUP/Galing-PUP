@@ -55,8 +55,9 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
 
     // Validate email
     if (field === 'email') {
-      if (typeof value === 'string' && value && !value.endsWith('@gmail.com')) {
-        setEmailError('Email must end with @gmail.com');
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (typeof value === 'string' && value && !emailRegex.test(value)) {
+        setEmailError('Please enter a valid email address');
       } else {
         setEmailError('');
       }
@@ -81,9 +82,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
       return !!(
         formData.name?.trim() &&
         formData.email?.trim() &&
-        formData.email?.endsWith('@gmail.com') &&
         !emailError &&
-        formData.id?.trim() &&
         formData.role &&
         formData.status
       );
@@ -124,19 +123,22 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
             placeholder="Username"
           />
 
-          {/* Row 2: Email (Full Width) */}
+          {/* Row 2: Email and Password */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormInput
-              label="Email Address"
-              type="email"
-              value={formData.email || ""}
-              onChange={e => handleInputChange('email', e.target.value)}
-              placeholder="example@gmail.com"
-            />
-            {emailError && (
-              <p className="mt-1 text-xs text-red-600">{emailError}</p>
-            )}
-            {/* Row 3: Change Password */}
+            <div>
+              <FormInput
+                label="Email Address"
+                type="email"
+                value={formData.email || ""}
+                onChange={e => handleInputChange('email', e.target.value)}
+                placeholder="example@gmail.com"
+              />
+              {emailError && (
+                <p className="mt-1 text-xs text-red-600">{emailError}</p>
+              )}
+            </div>
+
+            {/* Change Password */}
             <div>
               <FormInput
                 label="New Password"

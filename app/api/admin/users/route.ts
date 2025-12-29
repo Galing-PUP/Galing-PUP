@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { hash } from "bcryptjs";
 
 /**
  * fetch all users
@@ -33,6 +34,110 @@ export async function GET() {
         console.error("Error fetching users:", error);
         return NextResponse.json(
             { error: "Failed to fetch users" },
+            { status: 500 }
+        );
+    }
+}
+
+/**
+ * Creates a new user
+ * @param request 
+ * @returns 
+ */
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { name, email, role, status, subscriptionTier, password } = body;
+
+        // 1. Basic Validation
+        if (!name || !email || !password) {
+            return NextResponse.json(
+                { error: "Missing required fields" },
+                { status: 400 }
+            );
+        }
+
+        // 2. Check for duplicates in Prisma
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { username: name },
+                    { email: email },
+                ],
+            },
+        });
+
+        if (existingUser) {
+            return NextResponse.json(
+                { error: "Username or Email already exists", type: "DUPLICATE_ENTRY" },
+                { status: 409 }
+            );
+        }
+
+        // 3. Resolve Role ID
+        const roleRecord = await prisma.role.findFirst({
+            where: { roleName: role },
+        });
+        const roleId = roleRecord?.id || 1; // Default to Viewer/Registered if not found
+
+        // 4. Create in Supabase Auth
+        // We use admin API to create user without sending confirmation email immediately if verified
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+            email: email,
+            password: password,
+            email_confirm: status === "Accepted", // Auto-confirm if status is Accepted
+            user_metadata: { username: name }
+        });
+
+        if (authError) {
+            console.error("Supabase Auth create error:", authError);
+            return NextResponse.json(
+                { error: authError.message || "Failed to create user in authentication system" },
+                { status: 500 } // Or 400 depending on error
+            );
+        }
+
+        if (!authData.user) {
+            return NextResponse.json(
+                { error: "Failed to create user in authentication system (No user returned)" },
+                { status: 500 }
+            );
+        }
+
+        // 5. Create in Prisma DB
+        const passwordHash = await hash(password, 10);
+
+        const newUser = await prisma.user.create({
+            data: {
+                username: name,
+                email: email,
+                passwordHash: passwordHash,
+                supabaseAuthId: authData.user.id,
+                currentRoleId: roleId,
+                tierId: subscriptionTier ? parseInt(subscriptionTier) : 1,
+                registrationDate: new Date(),
+                isVerified: status === "Accepted",
+            },
+            include: {
+                role: true,
+            },
+        });
+
+        // 6. Return formatted response
+        return NextResponse.json({
+            id: newUser.id.toString(),
+            name: newUser.username,
+            email: newUser.email,
+            role: newUser.role.roleName,
+            status: newUser.isVerified ? "Accepted" : "Pending",
+            subscriptionTier: newUser.tierId,
+            registrationDate: newUser.registrationDate.toISOString().split('T')[0],
+        }, { status: 201 });
+
+    } catch (error: any) {
+        console.error("Error creating user:", error);
+        return NextResponse.json(
+            { error: "Failed to create user", details: error.message },
             { status: 500 }
         );
     }
