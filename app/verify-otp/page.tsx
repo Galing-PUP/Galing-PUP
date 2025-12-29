@@ -147,14 +147,14 @@ export default function VerifyOtpPage() {
                                 onChange={(value) => setOtp(value)}
                             >
                                 <InputOTPGroup>
-                                    <InputOTPSlot index={0} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={1} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={2} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={3} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={4} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={5} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={6} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
-                                    <InputOTPSlot index={7} className="border-neutral-300 focus:border-[#800000] focus:ring-[#800000]/20" />
+                                    <InputOTPSlot index={0} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={1} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={2} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={3} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={4} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={5} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={6} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
+                                    <InputOTPSlot index={7} className="border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/20" />
                                 </InputOTPGroup>
                             </InputOTP>
                         </div>
@@ -180,7 +180,7 @@ export default function VerifyOtpPage() {
                                 <button
                                     onClick={handleResend}
                                     disabled={loading}
-                                    className="text-sm font-medium text-[#800000] hover:underline disabled:opacity-50"
+                                    className="text-sm font-medium text-pup-maroon hover:underline disabled:opacity-50"
                                 >
                                     Resend the code
                                 </button>
