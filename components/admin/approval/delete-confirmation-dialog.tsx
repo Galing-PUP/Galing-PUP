@@ -48,7 +48,7 @@ export function DeleteConfirmationDialog({ item, isOpen, onClose, onConfirm }: D
           <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+            className="bg-pup-maroon text-white hover:bg-pup-maroon/80 focus:ring-pup-maroon"
           >
             Delete Publication
           </AlertDialogAction>
