@@ -125,7 +125,7 @@ export default function Home() {
 
           <button
             type="button"
-            className="mt-8 rounded-full bg-[#6b0504] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#4a0403]"
+            className="mt-8 rounded-full bg-pup-maroon px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-pup-maroon/80"
             onClick={() => {
               // Go to the main search results page showing all studies
               router.push("/browse");
