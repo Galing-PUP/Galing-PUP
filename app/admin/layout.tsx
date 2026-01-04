@@ -9,9 +9,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isSignInPage = pathname === "/admin/signin";
 
-  if (isSignInPage) {
+  {/*bypass sidebar for sign in page*/ }
+  const isAuthPage = pathname === "/admin/signin" || pathname === "/admin/request-access";
+  if (isAuthPage) {
     return <>{children}</>;
   }
 

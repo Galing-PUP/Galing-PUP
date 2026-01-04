@@ -20,7 +20,7 @@ export default function RequestAccessPage() {
 
   const [fileName, setFileName] = useState("No file chosen");
   const [hasFile, setHasFile] = useState(false);
-  
+
   // State for password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,7 +50,7 @@ export default function RequestAccessPage() {
   // Logic to determine if the button should be enabled
   const doPasswordsMatch =
     formData.password && formData.password === formData.confirmPassword;
-  
+
   const areAllFieldsFilled =
     formData.fullName.trim() !== "" &&
     formData.college !== "" &&
@@ -138,7 +138,7 @@ export default function RequestAccessPage() {
                     onChange={handleInputChange}
                     required
                     className="w-full appearance-none rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  > 
+                  >
                     <option value="">Select your college or department</option>
                     <option value="CAF">College of Accountancy and Finance (CAF)</option>
                     <option value="CE">College of Engineering (CEA)</option>
@@ -149,11 +149,13 @@ export default function RequestAccessPage() {
                     <option value="CCIS">College of Computer and Information Sciences (CCIS)</option>
                     <option value="COED">College of Education (COED)</option>
                     <option value="CHK">College of Human Kinetics (CHK)</option>
-                    <option value="COL">College of Law (COL)</option>
+                    <option value="CL">College of Law (CL)</option>
                     <option value="CPSPA">College of Political Science and Public Administration (CPSPA)</option>
                     <option value="CSSD">College of Social Sciences and Development (CSSD)</option>
                     <option value="CS">College of Science (CS)</option>
                     <option value="CTHTM">College of Tourism, Hospitality and Transportation Management (CTHTM)</option>
+                    <option value="ITECH">Institute of Technology (ITECH)</option>
+                    <option value="GS">Graduate School (GS)</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <svg
@@ -266,10 +268,9 @@ export default function RequestAccessPage() {
                       required
                       placeholder="Confirm your password"
                       className={`w-full rounded-md border px-3.5 py-2.5 pr-10 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 
-                        ${
-                          formData.confirmPassword && !doPasswordsMatch
-                            ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                            : "border-neutral-300 focus:border-neutral-400 focus:ring-neutral-400"
+                        ${formData.confirmPassword && !doPasswordsMatch
+                          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 focus:border-neutral-400 focus:ring-neutral-400"
                         }
                       `}
                     />
@@ -335,10 +336,9 @@ export default function RequestAccessPage() {
                   type="submit"
                   disabled={!isFormValid}
                   className={`rounded-md px-6 py-2.5 text-sm font-semibold text-white transition 
-                    ${
-                      isFormValid
-                        ? "bg-[#7C1D1D] hover:bg-[#5a1515] cursor-pointer"
-                        : "bg-neutral-400 cursor-not-allowed opacity-70"
+                    ${isFormValid
+                      ? "bg-[#7C1D1D] hover:bg-[#5a1515] cursor-pointer"
+                      : "bg-neutral-400 cursor-not-allowed opacity-70"
                     }
                   `}
                 >

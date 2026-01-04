@@ -127,7 +127,7 @@ export default function AdminSignInPage() {
               <p className="text-sm text-neutral-500">
                 Don&apos;t have an account?{" "}
                 <Link
-                  href="/request-access"
+                  href="/admin/request-access"
                   className="font-semibold text-[#7C1D1D] transition hover:underline"
                 >
                   Request access.
