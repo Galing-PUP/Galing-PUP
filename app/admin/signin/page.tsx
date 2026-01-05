@@ -4,12 +4,86 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { checkUserStatus, verifyCredentials } from "@/lib/actions";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-staff-signin.png";
 
 export default function AdminSignInPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Step 1: Check user status
+      const status = await checkUserStatus(email);
+
+      if (!status.exists) {
+        toast.error("User is not found, if you are college admin please click the request-access link below");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is allowed to login here (Role 3 or 4)
+      if (status.roleId !== 3 && status.roleId !== 4) {
+        toast.error("User is not set to login here");
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is verified
+      if (!status.isVerified) {
+        if (status.updatedDate) {
+          // Case: Not verified AND has updatedDate -> On Hold
+          toast.error("Your account has been put ON HOLD, please contact the support team");
+        } else {
+          // Case: Not verified AND updatedDate is NULL -> Pending
+          toast.message("Your request is kindly processing, please wait for admin approval");
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Verify credentials
+      const isValid = await verifyCredentials(email, password);
+      if (!isValid) {
+        toast.error("Invalid password please try again");
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Sign in with Supabase
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Signed in successfully");
+      router.push("/admin/dashboard");
+      router.refresh();
+
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.message || "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col bg-white">
@@ -49,7 +123,7 @@ export default function AdminSignInPage() {
             </div>
 
             {/* Form */}
-            <form className="space-y-6">
+            <form onSubmit={handleSignIn} className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
                 <label
@@ -61,8 +135,11 @@ export default function AdminSignInPage() {
                 <input
                   type="email"
                   id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="staff.login@galingpup.edu.ph"
                   className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-1 focus:ring-[#7C1D1D]"
+                  required
                 />
               </div>
 
@@ -78,8 +155,11 @@ export default function AdminSignInPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
                     className="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-10 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-1 focus:ring-[#7C1D1D]"
+                    required
                   />
                   <button
                     type="button"
@@ -116,9 +196,10 @@ export default function AdminSignInPage() {
               {/* Sign In Button */}
               <button
                 type="submit"
-                className="w-full rounded-lg bg-[#7C1D1D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5a1515]"
+                disabled={loading}
+                className="w-full rounded-lg bg-[#7C1D1D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5a1515] disabled:opacity-50"
               >
-                Sign In
+                {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
 

@@ -62,11 +62,12 @@ export async function checkUserStatus(identifier: string) {
             id: true,
             currentRoleId: true,
             isVerified: true,
+            updatedDate: true,
         },
     });
 
     if (!user) {
-        return { exists: false, isAdmin: false, isVerified: false };
+        return { exists: false, isAdmin: false, isVerified: false, roleId: 0, updatedDate: null };
     }
 
     // Admin roles are 3 and 4
@@ -76,6 +77,8 @@ export async function checkUserStatus(identifier: string) {
         exists: true,
         isAdmin,
         isVerified: user.isVerified,
+        roleId: user.currentRoleId,
+        updatedDate: user.updatedDate
     };
 }
 
