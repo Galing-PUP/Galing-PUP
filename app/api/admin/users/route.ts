@@ -49,8 +49,16 @@ export async function GET() {
  */
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const { name, email, role, status, subscriptionTier, password } = body;
+        const formData = await request.formData();
+        const name = formData.get("name") as string;
+        const email = formData.get("email") as string;
+        const role = formData.get("role") as string;
+        const status = formData.get("status") as string;
+        const subscriptionTier = formData.get("subscriptionTier");
+        const password = formData.get("password") as string;
+        const fullname = formData.get("fullname") as string;
+        const collegeId = formData.get("collegeId") ? parseInt(formData.get("collegeId") as string) : undefined;
+        const file = formData.get("idImage") as File | null;
 
         // 1. Basic Validation
         if (!name || !email || !password) {
@@ -107,17 +115,42 @@ export async function POST(request: Request) {
             );
         }
 
-        // 5. Create in Prisma DB
+        // 5. Handle File Upload if present
+        let uploadId = undefined;
+        if (file && file.size > 0) {
+            const ID_UPLOAD_BUCKET = 'ID_UPLOAD';
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${name.replace(/\s+/g, '_')}.${fileExt}`;
+
+            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                .from(ID_UPLOAD_BUCKET)
+                .upload(fileName, file, {
+                    contentType: file.type,
+                    upsert: false
+                });
+
+            if (uploadError) {
+                console.error("Supabase Upload Error:", uploadError);
+                // We proceed without the image if upload fails, but log it.
+            } else {
+                uploadId = uploadData.path;
+            }
+        }
+
+        // 6. Create in Prisma DB
         const passwordHash = await hash(password, 10);
 
         const newUser = await prisma.user.create({
             data: {
                 username: name,
+                fullname: fullname || "",
                 email: email,
                 passwordHash: passwordHash,
                 supabaseAuthId: authData.user.id,
                 currentRoleId: roleId,
-                tierId: subscriptionTier ? parseInt(subscriptionTier) : 1,
+                tierId: subscriptionTier ? parseInt(subscriptionTier as string) : 1,
+                collegeId: collegeId,
+                uploadId: uploadId,
                 registrationDate: new Date(),
                 isVerified: status === "Accepted",
             },
@@ -126,7 +159,7 @@ export async function POST(request: Request) {
             },
         });
 
-        // 6. Return formatted response
+        // 7. Return formatted response
         return NextResponse.json({
             id: newUser.id.toString(),
             name: newUser.username,

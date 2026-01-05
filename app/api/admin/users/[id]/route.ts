@@ -164,6 +164,12 @@ export async function PATCH(
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}_${name.replace(/\s+/g, '_')}.${fileExt}`;
 
+            // Check if user has an existing uploaded image
+            const currentUser = await prisma.user.findUnique({
+                where: { id },
+                select: { uploadId: true }
+            });
+
             const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
                 .from(ID_UPLOAD_BUCKET)
                 .upload(fileName, file, {
@@ -176,6 +182,18 @@ export async function PATCH(
                 // We can choose to fail the request or just skip the image update
                 // Failing ensures data integrity
                 return NextResponse.json({ error: "Failed to upload new ID image" }, { status: 500 });
+            }
+
+            // If upload successful and there was an old image, delete the old one
+            if (currentUser?.uploadId) {
+                const { error: deleteError } = await supabaseAdmin.storage
+                    .from(ID_UPLOAD_BUCKET)
+                    .remove([currentUser.uploadId]);
+
+                if (deleteError) {
+                    // Log error but don't fail the request, as the new image is already uploaded
+                    console.error("Failed to delete old ID image:", deleteError);
+                }
             }
 
             updateData.uploadId = uploadData.path;

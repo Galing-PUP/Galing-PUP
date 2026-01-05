@@ -29,9 +29,24 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const userData = user || {};
-    setFormData(userData);
-    setInitialData(userData);
+    if (user) {
+      setFormData(user);
+      setInitialData(user);
+    } else {
+      // Initialize defaults for new user
+      const defaults: Partial<User> = {
+        role: "Registered",
+        status: "Pending",
+        subscriptionTier: 1,
+        fullname: "",
+        name: "",
+        email: "",
+        collegeId: undefined, // Optional
+        uploadId: undefined   // Optional
+      };
+      setFormData(defaults);
+      setInitialData(defaults);
+    }
     setSelectedFile(null);
     setEmailError("");
   }, [isOpen, user]);
@@ -90,11 +105,12 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
   // Check if there are any changes
   const hasChanges = () => {
     if (!user) {
-      // For new users, check if ALL required fields are filled and email is valid
+      // For new users, check if REQUIRED fields are filled and valid
+      // College and ID Upload are OPTIONAL
       return !!(
+        formData.fullname?.trim() &&
         formData.name?.trim() &&
         formData.email?.trim() &&
-        formData.email?.endsWith('@gmail.com') &&
         !emailError &&
         formData.role &&
         formData.status

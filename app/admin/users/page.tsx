@@ -143,22 +143,23 @@ export default function UserManagementPage() {
 
   const handleSaveUser = async (userToSave: User, file?: File | null) => {
     try {
-      if (modalState.user) {
-        // Edit existing user - Use FormData for File Upload
-        const formData = new FormData();
-        formData.append("name", userToSave.name);
-        formData.append("email", userToSave.email);
-        formData.append("role", userToSave.role);
-        formData.append("status", userToSave.status);
-        formData.append("fullname", userToSave.fullname || "");
-        if (userToSave.subscriptionTier) formData.append("subscriptionTier", userToSave.subscriptionTier.toString());
-        if (userToSave.collegeId) formData.append("collegeId", userToSave.collegeId.toString());
-        if (userToSave.password) formData.append("password", userToSave.password);
-        if (file) formData.append("idImage", file);
+      // Prepare FormData (used for both Create and Edit to support file upload)
+      const formData = new FormData();
+      formData.append("name", userToSave.name);
+      formData.append("email", userToSave.email);
+      formData.append("role", userToSave.role);
+      formData.append("status", userToSave.status);
+      formData.append("fullname", userToSave.fullname || "");
+      if (userToSave.subscriptionTier) formData.append("subscriptionTier", userToSave.subscriptionTier.toString());
+      if (userToSave.collegeId) formData.append("collegeId", userToSave.collegeId.toString());
+      if (userToSave.password) formData.append("password", userToSave.password);
+      if (file) formData.append("idImage", file);
 
+      if (modalState.user) {
+        // Edit existing user
         const response = await fetch(`/api/admin/users/${userToSave.id}`, {
           method: "PATCH",
-          body: formData, // No Content-Type header needed, browser sets it for FormData
+          body: formData,
         });
 
         if (!response.ok) {
@@ -168,7 +169,6 @@ export default function UserManagementPage() {
               isOpen: true,
               message: errorData.error || "User already exists",
             });
-            // Keep modal open
             return;
           }
           throw new Error(errorData.error || "Failed to update user");
@@ -179,14 +179,10 @@ export default function UserManagementPage() {
         fetchStats(); // Update stats in case status changed
         toast.success(`Updated user: ${updatedUser.name}`);
       } else {
-        // Add new user - Keep using JSON for now unless we want to support file upload on create too
-        // For consistency, let's keep it simple for create as per original implementation unless requested
+        // Add new user
         const response = await fetch("/api/admin/users", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userToSave),
+          body: formData,
         });
 
         if (!response.ok) {
@@ -196,7 +192,6 @@ export default function UserManagementPage() {
               isOpen: true,
               message: errorData.error || "User already exists",
             });
-            // Keep modal open
             return;
           }
           throw new Error(errorData.error || "Failed to create user");
