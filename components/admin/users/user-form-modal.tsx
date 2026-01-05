@@ -7,14 +7,21 @@ import { FormInput } from "./form-input";
 import { FormSelect } from "./form-select";
 import { X } from "lucide-react";
 
+type College = {
+  id: number;
+  collegeName: string;
+  collegeAbbr: string;
+};
+
 type UserFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (user: User) => void;
+  onSave: (user: User, file?: File | null) => void;
   user: User | null;
+  colleges: College[];
 };
 
-export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalProps) {
+export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserFormModalProps) {
   const [formData, setFormData] = useState<Partial<User>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [initialData, setInitialData] = useState<Partial<User>>({});
@@ -25,7 +32,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     const userData = user || {};
     setFormData(userData);
     setInitialData(userData);
-    setSelectedFile(null);
     setSelectedFile(null);
     setEmailError("");
   }, [isOpen, user]);
@@ -38,17 +44,20 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
     const userToSave: User = {
       id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
       name: formData.name || "",
+      fullname: formData.fullname || "",
       email: formData.email || "",
       role: formData.role || "Registered",
       status: formData.status || "Pending",
       subscriptionTier: formData.subscriptionTier || 1, // Default to Free
+      collegeId: formData.collegeId,
+      uploadId: formData.uploadId,
     };
 
     if (formData.password) {
       userToSave.password = formData.password;
     }
 
-    onSave(userToSave);
+    onSave(userToSave, selectedFile);
   };
 
   const handleInputChange = (field: keyof User, value: string | number) => {
@@ -84,19 +93,20 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
         formData.email?.trim() &&
         formData.email?.endsWith('@gmail.com') &&
         !emailError &&
-        formData.id?.trim() &&
         formData.role &&
         formData.status
       );
     }
     // For existing users, check if any field has changed
     return (
-      selectedFile ||
+      !!selectedFile ||
       formData.name !== initialData.name ||
+      formData.fullname !== initialData.fullname ||
       formData.email !== initialData.email ||
       formData.role !== initialData.role ||
       formData.status !== initialData.status ||
       formData.subscriptionTier !== initialData.subscriptionTier ||
+      formData.collegeId !== initialData.collegeId ||
       (!!formData.password && formData.password.trim() !== "")
     );
   };
@@ -104,9 +114,15 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
   const title = user ? "Edit User Information" : "Add New User";
   const description = user ? "Update the user's details and save the changes." : "Fill in the details to add a new user.";
 
+  // Construct image URL if uploadId is a path
+  const imageUrl = user?.uploadId && !user.uploadId.startsWith('http')
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ID_UPLOAD/${user.uploadId}`
+    : user?.uploadId;
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">
-      <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-2xl">
+      <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
@@ -117,13 +133,21 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
           </button>
         </div>
         <div className="mt-8 space-y-6">
-          {/* Row 1: Username (Full Width) */}
-          <FormInput
-            label="Username"
-            value={formData.name || ""}
-            onChange={e => handleInputChange('name', e.target.value)}
-            placeholder="Username"
-          />
+          {/* Row 1: Full Name and Username */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormInput
+              label="Full Name"
+              value={formData.fullname || ""}
+              onChange={e => handleInputChange('fullname', e.target.value)}
+              placeholder="Juan D. Dela Cruz"
+            />
+            <FormInput
+              label="Username"
+              value={formData.name || ""}
+              onChange={e => handleInputChange('name', e.target.value)}
+              placeholder="Username"
+            />
+          </div>
 
           {/* Row 2: Email (Full Width) */}
           <div>
@@ -138,7 +162,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
               <p className="mt-1 text-xs text-red-600">{emailError}</p>
             )}
             {/* Row 3: Change Password */}
-            <div>
+            <div className="mt-4">
               <FormInput
                 label="New Password"
                 type="password"
@@ -149,33 +173,10 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
             </div>
           </div>
 
+
+          {/* Row 4: 2x2 Layout for Role, Status, Subscription Tier, College */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Row 4: Registration Date and ID Number */}
-            {user && (
-              <>
-                <FormInput
-                  label="Registration Date"
-                  value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString() : ""}
-                  disabled={true}
-                  onChange={() => { }} // Read only
-                />
-
-                <div>
-                  {/* TODO : to be discussed whether retain or remove */}
-                  <FormInput
-                    label="ID Number"
-                    value={formData.id || ""}
-                    onChange={e => handleInputChange('id', e.target.value)}
-                    disabled={true}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Row 5: Role, Status, Subscription Tier */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Role with dropdown icon */}
+            {/* Role */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">Role</label>
               <div className="relative">
@@ -183,9 +184,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                   value={formData.role || "User"}
                   onChange={e => handleInputChange('role', e.target.value)}
                   className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                  style={{
-                    color: formData.role ? '#1f2937' : '#9ca3af'
-                  }}
                 >
                   <option>Viewer</option>
                   <option>Registered</option>
@@ -193,24 +191,14 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                   <option>Superadmin</option>
                 </select>
                 <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-gray-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            {/* Status with dropdown icon */}
+            {/* Status */}
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">Status</label>
               <div className="relative">
@@ -218,28 +206,15 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                   value={formData.status || ""}
                   onChange={e => handleInputChange('status', e.target.value)}
                   className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                  style={{
-                    color: formData.status ? '#1f2937' : '#9ca3af'
-                  }}
                 >
-                  <option value="" disabled style={{ color: '#9ca3af' }}>User Status</option>
-                  <option value="Accepted" style={{ color: '#1f2937' }}>Accepted</option>
-                  <option value="Pending" style={{ color: '#1f2937' }}>Pending</option>
-                  <option value="Delete" style={{ color: '#1f2937' }}>Delete</option>
+                  <option value="" disabled>User Status</option>
+                  <option value="Accepted">Accepted</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Delete">Delete</option>
                 </select>
                 <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-gray-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
@@ -253,7 +228,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                   value={formData.subscriptionTier || 1}
                   onChange={e => handleInputChange('subscriptionTier', parseInt(e.target.value))}
                   className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                  style={{ color: '#1f2937' }}
                 >
                   <option value={1}>Free</option>
                   <option value={2}>Paid</option>
@@ -265,21 +239,87 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
                 </div>
               </div>
             </div>
+
+            {/* College Dropdown */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">College</label>
+              <div className="relative">
+                <select
+                  value={formData.collegeId || ""}
+                  onChange={e => handleInputChange('collegeId', parseInt(e.target.value))}
+                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+                >
+                  <option value="" disabled>Select College</option>
+                  {colleges.map((college) => (
+                    <option key={college.id} value={college.id}>
+                      {college.collegeAbbr}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
+
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Registration Date and ID Number */}
+            {user && (
+              <>
+                <FormInput
+                  label="Registration Date"
+                  value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString() : ""}
+                  disabled={true}
+                  onChange={() => { }} // Read only
+                />
+
+                <div>
+                  <FormInput
+                    label="ID Number"
+                    value={formData.id || ""}
+                    onChange={e => handleInputChange('id', e.target.value)}
+                    disabled={true}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ID Image Display & Upload */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">ID Image</label>
+            {imageUrl ? (
+              <div className="mb-2">
+                <img
+                  src={imageUrl}
+                  alt="User ID"
+                  className="h-32 w-auto object-cover border border-gray-300 rounded-md"
+                  onError={(e) => {
+                    // Hide broken image or show placeholder
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mb-2 italic">No ID image uploaded.</p>
+            )}
+
             <div className="flex">
               <button
                 type="button"
                 onClick={handleFileUpload}
                 className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
               >
-                Upload File
+                Change File
               </button>
               <input
                 type="text"
                 readOnly
-                value={selectedFile ? selectedFile.name : "No file chosen"}
+                value={selectedFile ? selectedFile.name : (formData.uploadId ? "Existing file" : "No file chosen")}
                 placeholder="No file chosen"
                 className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
               />

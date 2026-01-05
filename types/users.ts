@@ -10,4 +10,7 @@ export type User = {
   subscriptionTier?: number;
   registrationDate?: string;
   password?: string;
+  fullname?: string;
+  collegeId?: number;
+  uploadId?: string;
 };

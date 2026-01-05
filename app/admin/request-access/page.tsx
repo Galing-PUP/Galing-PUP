@@ -4,10 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import sideIllustration from "@/assets/Graphics/side-img-staff-registration.png";
 
 export default function RequestAccessPage() {
+  const router = useRouter();
   // State to track form values
   const [formData, setFormData] = useState({
     fullName: "",
@@ -18,8 +21,9 @@ export default function RequestAccessPage() {
     confirmPassword: "",
   });
 
+  const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("No file chosen");
-  const [hasFile, setHasFile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
@@ -39,11 +43,75 @@ export default function RequestAccessPage() {
   // Handle file input changes
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-      setHasFile(true);
+      const selectedFile = e.target.files[0];
+      // Basic Frontend Validation for file size (5MB)
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
     } else {
+      setFile(null);
       setFileName("No file chosen");
-      setHasFile(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const toastId = toast.loading("Submitting your request...");
+
+    try {
+      const submissionData = new FormData();
+      submissionData.append("fullName", formData.fullName);
+      submissionData.append("college", formData.college);
+      submissionData.append("email", formData.email);
+      submissionData.append("idNumber", formData.idNumber);
+      submissionData.append("password", formData.password);
+      if (file) {
+        submissionData.append("idImage", file);
+      }
+
+      const response = await fetch("/api/admin/request-access", {
+        method: "POST",
+        body: submissionData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to submit request");
+      }
+
+      toast.success(
+        "Your request is kindly processing, Please wait for the admin approval",
+        { id: toastId, duration: 5000 }
+      );
+
+      // Reset form
+      setFormData({
+        fullName: "",
+        college: "",
+        email: "",
+        idNumber: "",
+        password: "",
+        confirmPassword: "",
+      });
+      setFile(null);
+      setFileName("No file chosen");
+
+      // Optional: Redirect after a delay
+      setTimeout(() => {
+        router.push("/admin/signin");
+      }, 3000);
+
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong", { id: toastId });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -59,7 +127,7 @@ export default function RequestAccessPage() {
     formData.password.trim() !== "" &&
     formData.confirmPassword.trim() !== "";
 
-  const isFormValid = doPasswordsMatch && areAllFieldsFilled && hasFile;
+  const isFormValid = doPasswordsMatch && areAllFieldsFilled && file !== null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -102,7 +170,7 @@ export default function RequestAccessPage() {
             </div>
 
             {/* Form */}
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Full Name Field */}
               <div className="space-y-1.5">
                 <label
@@ -141,7 +209,7 @@ export default function RequestAccessPage() {
                   >
                     <option value="">Select your college or department</option>
                     <option value="CAF">College of Accountancy and Finance (CAF)</option>
-                    <option value="CE">College of Engineering (CEA)</option>
+                    <option value="CEA">College of Engineering (CEA)</option>
                     <option value="CADBE">College of Architecture, Design and the Built Environment (CADBE)</option>
                     <option value="CAL">College of Arts and Letters (CAL)</option>
                     <option value="CBA">College of Business Administration (CBA)</option>
@@ -301,7 +369,7 @@ export default function RequestAccessPage() {
                   htmlFor="idImage"
                   className="block text-sm font-medium text-neutral-900"
                 >
-                  ID Image
+                  ID Image (Max 5MB)
                 </label>
                 <div className="flex items-stretch gap-0">
                   <label
@@ -314,11 +382,11 @@ export default function RequestAccessPage() {
                     type="file"
                     id="idImage"
                     name="idImage"
-                    accept="image/*"
+                    accept="image/png, image/jpeg, image/webp"
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <div className="flex flex-1 items-center rounded-r-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-400">
+                  <div className="flex flex-1 items-center rounded-r-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-400 truncate">
                     {fileName}
                   </div>
                 </div>
@@ -334,15 +402,15 @@ export default function RequestAccessPage() {
                 </Link>
                 <button
                   type="submit"
-                  disabled={!isFormValid}
+                  disabled={!isFormValid || isSubmitting}
                   className={`rounded-md px-6 py-2.5 text-sm font-semibold text-white transition 
-                    ${isFormValid
+                    ${isFormValid && !isSubmitting
                       ? "bg-[#7C1D1D] hover:bg-[#5a1515] cursor-pointer"
                       : "bg-neutral-400 cursor-not-allowed opacity-70"
                     }
                   `}
                 >
-                  Create Account Request
+                  {isSubmitting ? "Processing..." : "Create Account Request"}
                 </button>
               </div>
             </form>

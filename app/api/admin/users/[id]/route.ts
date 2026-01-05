@@ -131,8 +131,16 @@ export async function PATCH(
             return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
         }
 
-        const body = await request.json();
-        const { name, email, role, status, subscriptionTier, password } = body;
+        const formData = await request.formData();
+        const name = formData.get("name") as string;
+        const fullname = formData.get("fullname") as string;
+        const collegeId = formData.get("collegeId") ? parseInt(formData.get("collegeId") as string) : undefined;
+        const email = formData.get("email") as string;
+        const role = formData.get("role") as string;
+        const status = formData.get("status") as string;
+        const subscriptionTier = formData.get("subscriptionTier");
+        const password = formData.get("password") as string;
+        const file = formData.get("idImage") as File | null;
 
         const roleId = await getRoleId(role);
         if (!roleId) {
@@ -141,11 +149,38 @@ export async function PATCH(
 
         const updateData: any = {
             username: name,
+            fullname: fullname,
             email: email,
+            collegeId: collegeId, // Can be null/undefined logic depending on requirement, here allowing undefined/null
             currentRoleId: roleId,
-            tierId: subscriptionTier ? parseInt(subscriptionTier) : undefined,
+            tierId: subscriptionTier ? parseInt(subscriptionTier as string) : undefined,
             isVerified: status === "Accepted",
+            updatedDate: new Date(),
         };
+
+        // Handle File Upload if present
+        if (file && file.size > 0) {
+            const ID_UPLOAD_BUCKET = 'ID_UPLOAD';
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${name.replace(/\s+/g, '_')}.${fileExt}`;
+
+            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                .from(ID_UPLOAD_BUCKET)
+                .upload(fileName, file, {
+                    contentType: file.type,
+                    upsert: false
+                });
+
+            if (uploadError) {
+                console.error("Supabase Upload Error:", uploadError);
+                // We can choose to fail the request or just skip the image update
+                // Failing ensures data integrity
+                return NextResponse.json({ error: "Failed to upload new ID image" }, { status: 500 });
+            }
+
+            updateData.uploadId = uploadData.path;
+        }
+
 
         if (password && password.trim() !== "") {
             // 1. Fetch user to get Supabase Auth ID
@@ -163,10 +198,6 @@ export async function PATCH(
 
                 if (authError) {
                     console.error(`Failed to update password for user ${user.supabaseAuthId} in Supabase:`, authError);
-                    // Decide whether to throw or continue. 
-                    // Usually we might want to stop here, but since local hash is also used, 
-                    // we could technically proceed, but inconsistent passwords are bad.
-                    // Let's throw to prevent inconsistency.
                     throw new Error("Failed to update password in authentication system");
                 }
             }
@@ -186,10 +217,13 @@ export async function PATCH(
         return NextResponse.json({
             id: updatedUser.id.toString(),
             name: updatedUser.username,
+            fullname: updatedUser.fullname,
             email: updatedUser.email,
             role: updatedUser.role.roleName,
             status: updatedUser.isVerified ? "Accepted" : "Pending",
             subscriptionTier: updatedUser.tierId,
+            collegeId: updatedUser.collegeId,
+            uploadId: updatedUser.uploadId,
             registrationDate: updatedUser.registrationDate.toISOString().split('T')[0],
         });
     } catch (error) {

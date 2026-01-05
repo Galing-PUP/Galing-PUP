@@ -21,11 +21,14 @@ export async function GET() {
         const formattedUsers = users.map((user) => ({
             id: user.id.toString(),
             name: user.username,
+            fullname: user.fullname || "",
             email: user.email,
             // fallbacks to user if the user has no role
             role: user.role?.roleName || "User",
             status: user.isVerified ? "Accepted" : "Pending",
             subscriptionTier: user.tierId,
+            collegeId: user.collegeId || undefined,
+            uploadId: user.uploadId || undefined,
             registrationDate: user.registrationDate.toISOString().split('T')[0], // format as YYYY-MM-DD
         }));
 
