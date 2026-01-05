@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +24,22 @@ export default function RequestAccessPage() {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("No file chosen");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [colleges, setColleges] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const response = await fetch("/api/public/college");
+        if (response.ok) {
+          const data = await response.json();
+          setColleges(data);
+        }
+      } catch (error) {
+        console.error("Error loading colleges:", error);
+      }
+    };
+    fetchColleges();
+  }, []);
 
   // State for password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
@@ -208,22 +224,11 @@ export default function RequestAccessPage() {
                     className="w-full appearance-none rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                   >
                     <option value="">Select your college or department</option>
-                    <option value="CAF">College of Accountancy and Finance (CAF)</option>
-                    <option value="CEA">College of Engineering (CEA)</option>
-                    <option value="CADBE">College of Architecture, Design and the Built Environment (CADBE)</option>
-                    <option value="CAL">College of Arts and Letters (CAL)</option>
-                    <option value="CBA">College of Business Administration (CBA)</option>
-                    <option value="COC">College of Communication (COC)</option>
-                    <option value="CCIS">College of Computer and Information Sciences (CCIS)</option>
-                    <option value="COED">College of Education (COED)</option>
-                    <option value="CHK">College of Human Kinetics (CHK)</option>
-                    <option value="CL">College of Law (CL)</option>
-                    <option value="CPSPA">College of Political Science and Public Administration (CPSPA)</option>
-                    <option value="CSSD">College of Social Sciences and Development (CSSD)</option>
-                    <option value="CS">College of Science (CS)</option>
-                    <option value="CTHTM">College of Tourism, Hospitality and Transportation Management (CTHTM)</option>
-                    <option value="ITECH">Institute of Technology (ITECH)</option>
-                    <option value="GS">Graduate School (GS)</option>
+                    {colleges.map((college) => (
+                      <option key={college.id} value={college.collegeAbbr}>
+                        {college.collegeName} ({college.collegeName})
+                      </option>
+                    ))}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <svg
