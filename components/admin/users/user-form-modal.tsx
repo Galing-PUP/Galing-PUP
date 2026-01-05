@@ -65,12 +65,15 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
 
     // Validate email
     if (field === 'email') {
-      if (typeof value === 'string' && value && !value.endsWith('@gmail.com')) {
-        setEmailError('Email must end with @gmail.com');
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (typeof value === 'string' && value && !emailRegex.test(value)) {
+        setEmailError('Invalid email format');
       } else {
         setEmailError('');
       }
     }
+
   };
 
   const handleFileUpload = () => {
@@ -121,9 +124,9 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">
-      <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30 p-4">
+      <div className="w-full max-w-5xl h-[90vh] flex flex-col rounded-xl border border-gray-200 bg-white shadow-2xl">
+        <div className="flex items-start justify-between p-8 border-b border-gray-100">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
             <p className="mt-1 text-gray-500">{description}</p>
@@ -132,7 +135,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
             <X className="h-6 w-6" />
           </button>
         </div>
-        <div className="mt-8 space-y-6">
+
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {/* Row 1: Full Name and Username */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormInput
@@ -252,7 +256,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                   <option value="" disabled>Select College</option>
                   {colleges.map((college) => (
                     <option key={college.id} value={college.id}>
-                      {college.collegeAbbr}
+                      {college.collegeName}
                     </option>
                   ))}
                 </select>
@@ -292,23 +296,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
           {/* ID Image Display & Upload */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">ID Image</label>
-            {imageUrl ? (
-              <div className="mb-2">
-                <img
-                  src={imageUrl}
-                  alt="User ID"
-                  className="h-32 w-auto object-cover border border-gray-300 rounded-md"
-                  onError={(e) => {
-                    // Hide broken image or show placeholder
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 mb-2 italic">No ID image uploaded.</p>
-            )}
 
-            <div className="flex">
+            <div className="flex mb-4">
               <button
                 type="button"
                 onClick={handleFileUpload}
@@ -331,9 +320,25 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                 className="hidden"
               />
             </div>
+
+            {imageUrl ? (
+              <div className="mb-2">
+                <img
+                  src={imageUrl}
+                  alt="User ID"
+                  className="w-full h-auto object-contain border border-gray-300 rounded-md"
+                  onError={(e) => {
+                    // Hide broken image or show placeholder
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mb-2 italic">No ID image uploaded.</p>
+            )}
           </div>
         </div>
-        <div className="mt-10 flex justify-end gap-4">
+        <div className="flex justify-end gap-4 p-8 border-t border-gray-100">
           <Button variant="outline" shape="rounded" onClick={onClose} className="border-gray-300">
             Cancel
           </Button>
