@@ -108,5 +108,10 @@ export async function GET(request: NextRequest) {
         )
     }
 
+    const next = requestUrl.searchParams.get('next')
+    if (next) {
+        return NextResponse.redirect(`${requestUrl.origin}${next}`)
+    }
+
     return NextResponse.redirect(`${requestUrl.origin}/`)
 }
