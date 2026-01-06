@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
-import { SignInModal } from "./SignInModal";
+import { SignInModal } from "@/components/SignInModal";
 import { getCurrentUser, signOut } from "@/lib/actions";
 import { User } from "lucide-react";
 
@@ -21,7 +21,7 @@ type ActionLink = {
 };
 
 type UserProfile = {
-  username: string;
+  username: string | null;
   tierName: string;
   email: string;
 };
@@ -122,7 +122,8 @@ export function Header({
   }, [navItems, pathname]);
 
   // Get initials for avatar placeholder
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | null) => {
+    if (!name) return "U";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -189,7 +190,7 @@ export function Header({
               <div className="flex items-center gap-3 relative" ref={dropdownRef}>
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-semibold text-neutral-900 leading-tight">
-                    {user.username}
+                    {user.username || user.email.split('@')[0]}
                   </span>
                   <span className="text-xs text-neutral-500 font-medium">
                     {user.tierName} user
