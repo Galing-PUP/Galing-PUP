@@ -87,7 +87,7 @@ export function ActionButtons({
       } else {
         if (result.message.includes("limit")) {
           toast.error(
-            `You've reached the limit of ${maxBookmarks} bookmarks. Upgrade to Premium for unlimited bookmarks!`,
+            `You've reached the limit of ${maxBookmarks} bookmarks. Upgrade to Premium for higher limits!`,
           );
         } else {
           toast.error(result.message);

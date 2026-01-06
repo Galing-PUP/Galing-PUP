@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getAuthenticatedUserId } from "@/lib/auth/server";
 
 /**
  * GET /api/bookmarks
  * Fetches all bookmarks for the current user
- *
- * TODO: Replace hardcoded userId with actual auth when implemented
  */
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Get userId from auth session once auth is implemented
-    // For now, using a temporary hardcoded userId
-    // You can pass userId as a query param for testing: /api/bookmarks?userId=1
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId") ? parseInt(searchParams.get("userId")!) : 1;
+    // Get authenticated user ID
+    const userId = await getAuthenticatedUserId();
+    
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized. Please sign in to view your bookmarks.",
+        },
+        { status: 401 }
+      );
+    }
 
     // Fetch all bookmarks for the user with document details
     const bookmarks = await prisma.userBookmark.findMany({
@@ -48,7 +54,7 @@ export async function GET(request: NextRequest) {
     // Transform the data to a simpler format
     const formattedBookmarks = bookmarks.map((bookmark) => ({
       documentId: bookmark.documentId,
-      dateBookmarked: bookmark.dateBookmarked,
+      dateBookmarked: bookmark.dateBookmarked.toISOString(),
       document: {
         id: bookmark.document.id,
         title: bookmark.document.title,
@@ -87,7 +93,6 @@ export async function GET(request: NextRequest) {
  * Adds a bookmark for the current user
  *
  * Body: { documentId: number }
- * TODO: Replace hardcoded userId with actual auth when implemented
  */
 export async function POST(request: NextRequest) {
   try {
@@ -104,10 +109,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Get userId from auth session once auth is implemented
-    // For now, using a temporary hardcoded userId
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId") ? parseInt(searchParams.get("userId")!) : 1;
+    // Get authenticated user ID
+    const userId = await getAuthenticatedUserId();
+    
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized. Please sign in to add bookmarks.",
+        },
+        { status: 401 }
+      );
+    }
 
     // Check if document exists
     const document = await prisma.document.findUnique({
@@ -183,7 +196,6 @@ export async function POST(request: NextRequest) {
       data: {
         userId: userId,
         documentId: documentId,
-        dateBookmarked: new Date(),
       },
     });
 

@@ -104,7 +104,7 @@ model Document {
 model UserBookmark {
   userId         Int      @map("user_id")
   documentId     Int      @map("document_id")
-  dateBookmarked DateTime @map("date_bookmarked") @db.Date
+  dateBookmarked DateTime @default(now()) @map("date_bookmarked")
 
   user     User     @relation(fields: [userId], references: [id])
   document Document @relation(fields: [documentId], references: [id])
