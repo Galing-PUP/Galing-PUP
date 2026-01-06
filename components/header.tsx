@@ -134,7 +134,7 @@ export function Header({
   // hides the header for admin pages, sign in, and sign up pages
   if (pathname.startsWith("/admin") || pathname === "/signin" ||
     pathname === "/signup" || pathname === "/verify-otp" ||
-    pathname === "/forgot-password" || pathname === "/reset-password") {
+    pathname === "/forgot-password" || pathname === "/update-password") {
     return null;
   }
 
