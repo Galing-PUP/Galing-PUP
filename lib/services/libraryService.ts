@@ -54,6 +54,10 @@ export async function getBookmarks(): Promise<number[]> {
     });
 
     if (!response.ok) {
+      // Silently return empty array for 401 (not authenticated)
+      if (response.status === 401) {
+        return [];
+      }
       console.error("Failed to fetch bookmarks:", response.statusText);
       return [];
     }
@@ -207,6 +211,10 @@ export async function getDetailedBookmarks(): Promise<BookmarkData[]> {
     });
 
     if (!response.ok) {
+      // Silently return empty array for 401 (not authenticated)
+      if (response.status === 401) {
+        return [];
+      }
       console.error("Failed to fetch detailed bookmarks:", response.statusText);
       return [];
     }
