@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
 type SortOption =
   | "Newest to Oldest"
   | "Oldest to Newest"
@@ -17,28 +26,28 @@ export function SortDropdown({
   onChange,
   className = "",
 }: SortDropdownProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleValueChange = (newValue: string) => {
     if (onChange) {
-      onChange(e.target.value as SortOption);
+      onChange(newValue as SortOption);
     }
   };
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <label className="text-sm font-medium text-gray-700">SORT BY:</label>
-      <select
-        value={value}
-        onChange={handleChange}
-        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#6b0504] focus:outline-none focus:ring-1 focus:ring-[#6b0504]"
-      >
-        <option>Newest to Oldest</option>
-        <option>Oldest to Newest</option>
-        <option>Title A-Z</option>
-        <option>Title Z-A</option>
-      </select>
+      <Label className="text-sm font-medium text-muted-foreground uppercase whitespace-nowrap">Sort by:</Label>
+      <Select value={value} onValueChange={handleValueChange}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="Newest to Oldest">Newest to Oldest</SelectItem>
+          <SelectItem value="Oldest to Newest">Oldest to Newest</SelectItem>
+          <SelectItem value="Title A-Z">Title A-Z</SelectItem>
+          <SelectItem value="Title Z-A">Title Z-A</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }
 
 export default SortDropdown;
-

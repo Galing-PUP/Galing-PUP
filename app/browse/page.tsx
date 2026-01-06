@@ -7,7 +7,17 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { SearchBar } from "@/components/search-bar";
 import { FilterBox, FilterValues } from "@/components/filter-box";
 import { SearchResultCard } from "@/components/search-result-card";
+import { SearchResultSkeletonList } from "@/components/search-result-skeleton";
 import { SortDropdown } from "@/components/sort-dropdown";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type SearchResult = {
   id: number;
@@ -214,52 +224,73 @@ export default function BrowsePage() {
 
               {/* Search Results List */}
               <div className="py-6">
-                {paginatedResults.map((result) => (
-                  <SearchResultCard key={result.id} result={result} />
-                ))}
+                {loading ? (
+                  <SearchResultSkeletonList count={resultsPerPage} />
+                ) : (
+                  paginatedResults.map((result) => (
+                    <SearchResultCard key={result.id} result={result} />
+                  ))
+                )}
               </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 pb-12 pt-6">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    &lt; Previous
-                  </button>
+                <div className="pb-12 pt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage > 1) setCurrentPage(currentPage - 1);
+                          }}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
 
-                  {getPageNumbers().map((page, index) => {
-                    if (page === "...") {
-                      return (
-                        <span key={`ellipsis-${index}`} className="px-2 text-sm text-gray-500">
-                          ...
-                        </span>
-                      );
-                    }
-                    const pageNum = page as number;
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${currentPage === pageNum
-                          ? "bg-yellow-400 text-gray-900"
-                          : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+                      {getPageNumbers().map((page, index) => {
+                        if (page === "...") {
+                          return (
+                            <PaginationItem key={`ellipsis-${index}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        const pageNum = page as number;
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              href="#"
+                              isActive={currentPage === pageNum}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(pageNum);
+                              }}
+                              className={
+                                currentPage === pageNum
+                                  ? "bg-pup-gold-light text-pup-maroon border-pup-gold-light hover:bg-pup-gold-light hover:text-pup-maroon"
+                                  : ""
+                              }
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
 
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage >= totalPages}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Next &gt;
-                  </button>
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                          }}
+                          className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </div>
@@ -269,4 +300,3 @@ export default function BrowsePage() {
     </>
   );
 }
-
