@@ -4,8 +4,9 @@
 import { BookmarkCard } from "@/components/library/bookmark-card";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
+import { LibrarySortDropdown, LibrarySortOption } from "@/components/library/sort-dropdown";
 import { useState, useMemo, useEffect } from "react";
-import { Filter, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import * as libraryService from "@/lib/services/libraryService";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ interface BookmarkedPaper {
 
 export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<LibrarySortOption>("bookmarked-newest");
   const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkedPaper[]>(
     [],
   );
@@ -63,21 +65,46 @@ export default function LibraryPage() {
     fetchData();
   }, []);
 
-  // Filter by search query
+  // Filter and sort papers
   const filteredPapers = useMemo(() => {
-    if (!searchQuery.trim()) return bookmarkedPapers;
+    // First, filter by search query
+    let papers = bookmarkedPapers;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      papers = bookmarkedPapers.filter(
+        (paper) =>
+          paper.document.title.toLowerCase().includes(query) ||
+          paper.document.authors.some((author: string) =>
+            author.toLowerCase().includes(query),
+          ) ||
+          paper.document.course.toLowerCase().includes(query) ||
+          paper.document.abstract.toLowerCase().includes(query),
+      );
+    }
 
-    const query = searchQuery.toLowerCase();
-    return bookmarkedPapers.filter(
-      (paper) =>
-        paper.document.title.toLowerCase().includes(query) ||
-        paper.document.authors.some((author: string) =>
-          author.toLowerCase().includes(query),
-        ) ||
-        paper.document.course.toLowerCase().includes(query) ||
-        paper.document.abstract.toLowerCase().includes(query),
-    );
-  }, [bookmarkedPapers, searchQuery]);
+    // Then, sort the filtered results
+    const sorted = [...papers].sort((a, b) => {
+      switch (sortOption) {
+        case "title-asc":
+          return a.document.title.localeCompare(b.document.title);
+        case "title-desc":
+          return b.document.title.localeCompare(a.document.title);
+        case "date-newest":
+          return new Date(b.document.datePublished).getTime() - new Date(a.document.datePublished).getTime();
+        case "date-oldest":
+          return new Date(a.document.datePublished).getTime() - new Date(b.document.datePublished).getTime();
+        case "bookmarked-newest":
+          return new Date(b.dateBookmarked).getTime() - new Date(a.dateBookmarked).getTime();
+        case "bookmarked-oldest":
+          return new Date(a.dateBookmarked).getTime() - new Date(b.dateBookmarked).getTime();
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [bookmarkedPapers, searchQuery, sortOption]);
 
   // Handle bookmark removal
   const handleRemoveBookmark = async (documentId: number) => {
@@ -121,7 +148,7 @@ export default function LibraryPage() {
             </div>
           )}
 
-          {/* Search and Filter Bar */}
+          {/* Search and Sort Bar */}
           <div className="mb-6 flex flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -133,13 +160,7 @@ export default function LibraryPage() {
                 className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-0"
               />
             </div>
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <Filter className="h-4 w-4" />
-              <span>Filter</span>
-            </button>
+            <LibrarySortDropdown value={sortOption} onChange={setSortOption} />
           </div>
 
           {/* Bookmarked Papers */}
