@@ -2,6 +2,7 @@
 
 
 import { BookmarkCard } from "@/components/library/bookmark-card";
+import { BookmarkCardSkeleton } from "@/components/library/bookmark-card-skeleton";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
 import { LibrarySortDropdown, LibrarySortOption } from "@/components/library/sort-dropdown";
@@ -174,10 +175,10 @@ export default function LibraryPage() {
 
           {/* Bookmarked Papers */}
           {isLoading ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-              <p className="text-lg font-medium text-gray-600">
-                Loading your bookmarks...
-              </p>
+            <div className="space-y-4">
+              <BookmarkCardSkeleton />
+              <BookmarkCardSkeleton />
+              <BookmarkCardSkeleton />
             </div>
           ) : filteredPapers.length > 0 ? (
             <div className="space-y-4">
