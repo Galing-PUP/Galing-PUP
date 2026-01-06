@@ -9,6 +9,11 @@ import { LibrarySearchInput } from "@/components/library/search-input";
 import { useState, useMemo, useEffect } from "react";
 import * as libraryService from "@/lib/services/libraryService";
 import { toast } from "sonner";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+
+import { Bookmark, FileText } from "lucide-react";
 
 interface BookmarkedPaper {
   documentId: number;
@@ -37,24 +42,35 @@ export default function LibraryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [maxBookmarks, setMaxBookmarks] = useState(10);
   const [tierName, setTierName] = useState("Free");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Fetch bookmarked papers and user tier from API on mount only
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
       try {
-        // Fetch both bookmarks and tier info in parallel
-        const [bookmarks, tierResponse] = await Promise.all([
-          libraryService.getDetailedBookmarks(),
-          fetch(`/api/user/tier`),
-        ]);
+        const supabase = createClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        setBookmarkedPapers(bookmarks);
+        if (session) {
+          setIsAuthenticated(true);
+          // Fetch both bookmarks and tier info in parallel
+          const [bookmarks, tierResponse] = await Promise.all([
+            libraryService.getDetailedBookmarks(),
+            fetch(`/api/user/tier`),
+          ]);
 
-        if (tierResponse.ok) {
-          const tierData = await tierResponse.json();
-          setMaxBookmarks(tierData.maxBookmarks);
-          setTierName(tierData.tierName);
+          setBookmarkedPapers(bookmarks);
+
+          if (tierResponse.ok) {
+            const tierData = await tierResponse.json();
+            setMaxBookmarks(tierData.maxBookmarks);
+            setTierName(tierData.tierName);
+          }
+        } else {
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error("Error fetching library data:", error);
@@ -69,7 +85,7 @@ export default function LibraryPage() {
   const filteredPapers = useMemo(() => {
     // First, filter by search query
     let papers = bookmarkedPapers;
-    
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       papers = bookmarkedPapers.filter(
@@ -209,21 +225,54 @@ export default function LibraryPage() {
                 />
               ))}
             </div>
-          ) : (
-            <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-              <p className="text-lg font-medium text-gray-600">
-                {searchQuery
-                  ? "No bookmarks match your search."
-                  : bookmarkedPapers.length === 0
-                    ? "Your library is empty. Start bookmarking papers to save them here!"
-                    : "No bookmarks found."}
-              </p>
-              {!searchQuery && bookmarkedPapers.length === 0 && (
-                <p className="mt-2 text-sm text-gray-500">
-                  Visit any paper page and click &quot;Add to Library&quot; to
-                  get started.
+          ) : isAuthenticated ? (
+            searchQuery ? (
+              <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
+                <p className="text-lg font-medium text-gray-600">
+                  No bookmarks match your search.
                 </p>
-              )}
+                <Button 
+                  variant="link" 
+                  onClick={() => setSearchQuery("")} 
+                  className="mt-2 text-pup-maroon hover:text-red-900"
+                >
+                  Clear search
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center shadow-sm">
+                <div className="mb-6 rounded-full bg-pup-maroon/10 p-4">
+                  <FileText className="h-8 w-8 text-pup-maroon" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Your library is empty
+                </h3>
+                <p className="mt-2 mb-8 max-w-md text-base text-gray-500">
+                  Start building your collection by browsing research papers and saving them for later.
+                </p>
+                <Link href="/browse">
+                  <Button className="bg-pup-maroon px-8 py-6 text-base font-semibold text-white transition-all shadow-md hover:bg-red-900 hover:shadow-lg">
+                    Browse Papers
+                  </Button>
+                </Link>
+              </div>
+            )
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center shadow-sm">
+              <div className="mb-6 rounded-full bg-pup-maroon/10 p-4">
+                <Bookmark className="h-8 w-8 text-pup-maroon" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">
+                Start building your library
+              </h3>
+              <p className="mt-2 mb-8 max-w-md text-base text-gray-500">
+                Found something useful? Create an account to keep your bookmarks in one place.
+              </p>
+              <Link href="/signin">
+                <Button className="bg-pup-maroon px-8 py-6 text-base font-semibold text-white transition-all shadow-md hover:bg-red-900 hover:shadow-lg">
+                  Sign in to Save
+                </Button>
+              </Link>
             </div>
           )}
 
