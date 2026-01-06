@@ -40,9 +40,9 @@ export default function PricingPage() {
     <div className="min-h-screen">
 
       <main>
-        <section className="flex flex-col items-center justify-center space-y-6 bg-red-900 py-8 text-white">
-          <span className="bg-white/10 rounded-full px-3 py-1 flex items-center gap-2">
-            <Crown className="text-yellow-400 w-4 h-4" /> Choose your plan
+        <section className="flex flex-col items-center justify-center space-y-6 bg-pup-maroon py-8 text-white">
+          <span className="bg-white/20 rounded-full px-3 py-1 flex items-center gap-2">
+            <Crown className="text-pup-gold-light w-4 h-4" /> Choose your plan
           </span>
           <h2 className="font-extrabold text-3xl text-white">
             Subscription Plans
@@ -81,9 +81,9 @@ export default function PricingPage() {
             buttonText="Upgrade to Premium"
             isRecommended={true}
             borderColor="border-yellow-400"
-            buttonColor="bg-red-900 hover:bg-red-800"
+            buttonColor="bg-pup-maroon hover:bg-pup-maroon/80"
             accentColor="text-red-700"
-            icon={<Crown className="text-yellow-400" />}
+            icon={<Crown className="text-pup-gold-light" />}
             onButtonClick={() => console.log("Premium tier clicked")}
           />
         </section>
@@ -140,8 +140,8 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="flex flex-col items-center justify-center bg-red-900 text-white py-10 gap-y-4">
-          <Crown className="text-yellow-400 w-10 h-10" />
+        <section className="flex flex-col items-center justify-center bg-pup-maroon text-white py-10 gap-y-4">
+          <Crown className="text-pup-gold-light w-10 h-10" />
           <h2 className="text-3xl">Ready to Upgrade?</h2>
           <p>
             Join hundreds of Premium members enjoying unlimited access to

@@ -67,8 +67,8 @@ export function SearchBar({
 
   return (
     <div className={`w-full ${className}`} role="search">
-      <div className="flex items-stretch rounded-full border border-[#8B0000] shadow-sm">
-        <div className="flex items-center pl-8 pr-3 text-[#6b7280]">
+      <div className="flex items-stretch rounded-full border border-pup-maroon shadow-sm">
+        <div className="flex items-center pl-8 pr-3">
           <svg
             width={cfg.icon.w}
             height={cfg.icon.h}
@@ -86,7 +86,7 @@ export function SearchBar({
         <input
           type="text"
           placeholder={placeholder}
-          className={`w-full rounded-l-full bg-white ${cfg.inputPadding} ${cfg.inputText} text-[#111827] placeholder:text-[#9ca3af] focus:outline-none`}
+          className={`w-full rounded-l-full bg-white ${cfg.inputPadding} ${cfg.inputText} text-black placeholder:text-gray focus:outline-none`}
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           onKeyDown={(e) => {
@@ -97,7 +97,7 @@ export function SearchBar({
         />
         <button
           type="button"
-          className={`m-2 rounded-full bg-[#6b0504] ${cfg.buttonPadding} ${cfg.buttonText} font-semibold text-white transition-colors hover:bg-[#4a0403]`}
+          className={`m-2 rounded-full bg-pup-maroon ${cfg.buttonPadding} ${cfg.buttonText} font-semibold text-white transition-colors hover:bg-pup-maroon/80`}
           onClick={onSubmit}
         >
           {buttonText}

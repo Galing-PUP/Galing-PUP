@@ -67,7 +67,7 @@ export function FilterDropdown<T extends string = string>({
         icon={<Filter className="h-4 w-4" />}
         iconPosition="left"
         className={`border-gray-300 ${
-          selectedValues.length > 0 ? "border-red-800 bg-red-50 text-red-800" : ""
+          selectedValues.length > 0 ? "border-pup-maroon bg-pup-maroon/30 text-pup-maroon" : ""
         }`}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -82,7 +82,7 @@ export function FilterDropdown<T extends string = string>({
               {selectedValues.length > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="text-xs text-red-800 hover:text-red-900 font-medium"
+                  className="text-xs text-pup-maroon hover:text-pup-maroon/80 font-medium"
                 >
                   Clear all
                 </button>
@@ -100,7 +100,7 @@ export function FilterDropdown<T extends string = string>({
                 >
                   <span>{option.label}</span>
                   {isSelected && (
-                    <Check className="h-4 w-4 text-red-800" />
+                    <Check className="h-4 w-4 text-pup-maroon" />
                   )}
                 </button>
               );

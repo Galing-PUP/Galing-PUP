@@ -94,7 +94,7 @@ export function BookmarkCard({ result, onRemove, onError }: BookmarkCardProps) {
                 handleConfirmRemove();
               }}
               disabled={isRemoving}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-pup-maroon hover:bg-pup-maroon/80 focus:ring-red-600"
             >
               {isRemoving ? "Removing..." : "Remove"}
             </AlertDialogAction>
@@ -102,23 +102,23 @@ export function BookmarkCard({ result, onRemove, onError }: BookmarkCardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="rounded-lg border-2 border-yellow-400 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border-2 border-pup-gold-light bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           {/* Left Content */}
           <div className="flex-1 space-y-3">
             {/* Tags */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-[#6b0504] px-3 py-1 text-xs font-medium text-white">
+              <span className="rounded-full bg-pup-maroon px-3 py-1 text-xs font-medium text-white">
                 {getDocumentType()}
               </span>
-              <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-gray-800">
+              <span className="rounded-full bg-pup-gold-light px-3 py-1 text-xs font-medium text-gray-800">
                 {result.year}
               </span>
             </div>
 
             {/* Title */}
             <Link href={`/paper/${result.id}`}>
-              <h3 className="text-lg font-bold text-[#6b0504] hover:text-[#4a0403] transition-colors">
+              <h3 className="text-lg font-bold text-pup-maroon hover:text-pup-maroon/80 transition-colors">
                 {result.title}
               </h3>
             </Link>
@@ -151,12 +151,12 @@ export function BookmarkCard({ result, onRemove, onError }: BookmarkCardProps) {
           </div>
 
           {/* Right Actions */}
-          <div className="flex flex-col gap-2 md:flex-shrink-0">
+          <div className="flex flex-col gap-2 md:shrink-0">
             <button
               onClick={handleRemoveClick}
               type="button"
               disabled={isRemoving}
-              className="flex items-center justify-center gap-2 rounded-lg border border-red-500 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 rounded-lg border border-pup-maroon bg-white px-4 py-2 text-sm font-medium text-pup-maroon hover:bg-pup-maroon/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="h-4 w-4" />
               <span>{isRemoving ? "Removing..." : "Remove"}</span>
@@ -170,7 +170,7 @@ export function BookmarkCard({ result, onRemove, onError }: BookmarkCardProps) {
             </Link>
             <button
               type="button"
-              className="flex items-center justify-center gap-2 rounded-lg border-transparent bg-[#6b0504] px-4 py-2 text-sm font-medium text-white hover:bg-[#4a0403] transition-colors"
+              className="flex items-center justify-center gap-2 rounded-lg border-transparent bg-pup-maroon px-4 py-2 text-sm font-medium text-white hover:bg-pup-maroon/80 transition-colors"
             >
               <Download className="h-4 w-4" />
               <span>Download</span>

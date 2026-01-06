@@ -225,7 +225,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                 <select
                   value={formData.status || ""}
                   onChange={e => handleInputChange('status', e.target.value)}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-pup-maroon focus:outline-none focus:ring-1 focus:ring-pup-maroon"
                 >
                   <option value="" disabled>User Status</option>
                   <option value="Accepted">Accepted</option>

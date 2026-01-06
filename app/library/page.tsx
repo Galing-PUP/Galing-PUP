@@ -73,7 +73,7 @@ export default function LibraryPage() {
 
       <div className="min-h-screen bg-white">
         {/* Header Section with Maroon Background */}
-        <div className="bg-[#6b0504] px-4 py-12 md:px-8">
+        <div className="bg-pup-maroon px-4 py-12 md:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
