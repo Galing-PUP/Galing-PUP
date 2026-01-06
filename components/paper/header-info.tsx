@@ -17,22 +17,22 @@ export function HeaderInfo({
     <div className="space-y-4">
       {/* Tags */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-pup-maroon px-3 py-1 text-xs font-medium text-white">
+        <span className="rounded-md bg-pup-maroon px-3 py-1 text-xs font-semibold text-white">
           {documentType}
         </span>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+        <span className="rounded-md bg-[#FFD700] px-3 py-1 text-xs font-semibold text-neutral-900">
           {yearPublished}
         </span>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+        <span className="rounded-md border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
           {courseName}
         </span>
       </div>
 
       {/* Title */}
-      <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+      <h1 className="text-3xl font-bold text-pup-maroon">{title}</h1>
 
       {/* Authors */}
-      <p className="text-md text-gray-600">{authors.join(", ")}</p>
+      <p className="text-lg text-gray-500">{authors.join(", ")}</p>
     </div>
   );
 }
