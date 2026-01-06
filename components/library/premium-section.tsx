@@ -10,10 +10,10 @@ export function PremiumSection() {
         <div className="flex-1 space-y-4">
           <div className="flex items-center gap-3">
             <Crown className="h-8 w-8 text-yellow-400" />
-            <h2 className="text-2xl font-bold">Unlock Unlimited Bookmarks</h2>
+            <h2 className="text-2xl font-bold">Unlock Higher Bookmark Limits</h2>
           </div>
           <p className="text-gray-200">
-            Upgrade to Premium and save unlimited documents, get unlimited downloads,
+            Upgrade to Premium and unlock higher bookmark limits, get unlimited downloads,
             generate unlimited citations, and access AI-powered insights.
           </p>
           <ul className="space-y-2">
@@ -21,7 +21,7 @@ export function PremiumSection() {
               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400">
                 <Check className="h-3 w-3 text-[#6b0504]" />
               </div>
-              <span>Unlimited bookmarks and downloads</span>
+              <span>Higher bookmarks and daily download limits</span>
             </li>
             <li className="flex items-center gap-2">
               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400">
