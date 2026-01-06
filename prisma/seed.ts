@@ -80,7 +80,7 @@ async function main() {
         email: user.email,
         passwordHash: "hashed_placeholder_123", // hash properly using bcrypt for non-mock data
         registrationDate: new Date(),
-        isVerified: user.status === "Active",
+        isVerified: user.status === "Accepted",
         currentRoleId: getRoleId(user.role),
         tierId: 1, // default to Free
       },
@@ -97,17 +97,22 @@ async function main() {
   console.log("Seeding Academic Structures...");
 
   const collegeMap: Record<string, string> = {
-    ccis: "College of Computer and Information Sciences",
-    ce: "College of Engineering",
-    cba: "College of Business Administration",
-    coed: "College of Education",
-    cs: "College of Science",
-    itech: "Institute of Technology",
-    cadbe: "College of Architecture, Design, and Built Environment",
-    caf: "College of Accountancy and Finance",
-    cpspa: "College of Political Science and Public Administration",
-    chk: "College of Human Kinetics",
-    cthtm: "College of Tourism and Hospitality Management",
+    CAF: "College of Accountancy and Finance",
+    CE: "College of Engineering",
+    CADBE: "College of Architecture, Design and the Built Environment",
+    CAL: "College of Arts and Letters",
+    CBA: "College of Business Administration",
+    COC: "College of Communication",
+    CCIS: "College of Computer and Information Sciences",
+    COED: "College of Education",
+    CHK: "College of Human Kinetics",
+    CL: "College of Law",
+    CPSPA: "College of Political Science and Public Administration",
+    CSSD: "College of Social Sciences and Development",
+    CS: "College of Science",
+    CTHTM: "College of Tourism, Hospitality and Transportation Management",
+    ITECH: "Institute of Technology",
+    GS: "Graduate School"
   };
 
   for (const [abbr, name] of Object.entries(collegeMap)) {
@@ -122,11 +127,11 @@ async function main() {
   }
 
   // Ensure a default college exists
-  const defaultCollege = await prisma.college.upsert({
-    where: { collegeName: "General Sciences" },
-    update: {},
-    create: { collegeName: "General Sciences", collegeAbbr: "GEN" },
+  // Fetch a fallback college (e.g. CS)
+  const fallbackCollege = await prisma.college.findFirst({
+    where: { collegeAbbr: "CS" },
   });
+  if (!fallbackCollege) throw new Error("Fallback college (CS) not found after seeding");
 
   // Resource Types
   const resourceTypes = [
@@ -223,7 +228,7 @@ async function main() {
         data: {
           courseName: `${pub.department.toUpperCase()} Course`,
           courseAbbr: pub.department.toUpperCase(),
-          collegeId: college ? college.id : defaultCollege.id,
+          collegeId: college ? college.id : fallbackCollege.id,
         },
       });
     }
@@ -272,7 +277,7 @@ async function main() {
         data: {
           courseName: res.field,
           courseAbbr: res.field.substring(0, 3).toUpperCase(),
-          collegeId: defaultCollege.id,
+          collegeId: fallbackCollege.id,
         },
       });
     }
