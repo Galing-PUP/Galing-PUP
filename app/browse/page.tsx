@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { SearchBar } from "@/components/search-bar";
 import { FilterBox, FilterValues } from "@/components/filter-box";
 import { SearchResultCard } from "@/components/search-result-card";
+import { SearchResultSkeletonList } from "@/components/search-result-skeleton";
 import { SortDropdown } from "@/components/sort-dropdown";
 import {
   Pagination,
@@ -223,9 +224,13 @@ export default function BrowsePage() {
 
               {/* Search Results List */}
               <div className="py-6">
-                {paginatedResults.map((result) => (
-                  <SearchResultCard key={result.id} result={result} />
-                ))}
+                {loading ? (
+                  <SearchResultSkeletonList count={resultsPerPage} />
+                ) : (
+                  paginatedResults.map((result) => (
+                    <SearchResultCard key={result.id} result={result} />
+                  ))
+                )}
               </div>
 
               {/* Pagination */}
