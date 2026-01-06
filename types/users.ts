@@ -1,5 +1,5 @@
 export type UserStatus = "Accepted" | "Pending" | "Delete";
-export type UserRole = "User" | "Admin" | "Super Admin";
+export type UserRole = "Viewer" | "Registered" | "Admin" | "Superadmin";
 
 export type User = {
   id: string;
@@ -7,4 +7,10 @@ export type User = {
   email: string;
   role: UserRole;
   status: UserStatus;
+  subscriptionTier?: number;
+  registrationDate?: string;
+  password?: string;
+  fullname?: string;
+  collegeId?: number;
+  uploadId?: string;
 };

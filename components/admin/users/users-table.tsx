@@ -48,7 +48,7 @@ export function UsersTable({
                 />
               </div>
               <div className="col-span-1">User ID</div>
-              <div className="col-span-2">Name</div>
+              <div className="col-span-2">Username</div>
               <div className="col-span-3">Email</div>
               <div className="col-span-2">Role</div>
               <div className="col-span-1">Status</div>

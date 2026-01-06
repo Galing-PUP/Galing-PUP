@@ -55,6 +55,12 @@ export default function SignInPage() {
 
       // Check if user is verified
       if (!status.isVerified) {
+        if (status.roleId === 1 && status.updatedDate) {
+          toast.error("Your account is currently ON HOLD, please contact the support team");
+          setLoading(false);
+          return;
+        }
+
         toast.error("User is not verified, please check your email for the code");
         router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
         setLoading(false);
@@ -160,8 +166,8 @@ export default function SignInPage() {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="text-sm font-medium text-pup-maroon hover:underline"
-                onClick={(e) => e.preventDefault()}
+                className="text-sm font-medium text-[#7C1D1D] hover:underline"
+                onClick={() => router.push('/forgot-password')}
               >
                 Forgot Password?
               </button>
