@@ -4,7 +4,6 @@
 import { BookmarkCard } from "@/components/library/bookmark-card";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
-import { useLibrary } from "@/lib/hooks/useLibrary";
 import { useState, useMemo, useEffect } from "react";
 import { Filter, Search } from "lucide-react";
 import * as libraryService from "@/lib/services/libraryService";
@@ -29,27 +28,39 @@ interface BookmarkedPaper {
 }
 
 export default function LibraryPage() {
-  const { bookmarkCount, maxBookmarks, isLoading: hookLoading } = useLibrary();
   const [searchQuery, setSearchQuery] = useState("");
   const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkedPaper[]>(
     [],
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [maxBookmarks, setMaxBookmarks] = useState(10);
+  const [tierName, setTierName] = useState("Free");
 
-  // Fetch bookmarked papers from API on mount only
+  // Fetch bookmarked papers and user tier from API on mount only
   useEffect(() => {
-    async function fetchBookmarks() {
+    async function fetchData() {
       setIsLoading(true);
       try {
-        const bookmarks = await libraryService.getDetailedBookmarks();
+        // Fetch both bookmarks and tier info in parallel
+        const [bookmarks, tierResponse] = await Promise.all([
+          libraryService.getDetailedBookmarks(),
+          fetch(`/api/user/tier`),
+        ]);
+
         setBookmarkedPapers(bookmarks);
+
+        if (tierResponse.ok) {
+          const tierData = await tierResponse.json();
+          setMaxBookmarks(tierData.maxBookmarks);
+          setTierName(tierData.tierName);
+        }
       } catch (error) {
-        console.error("Error fetching bookmarks:", error);
+        console.error("Error fetching library data:", error);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchBookmarks();
+    fetchData();
   }, []);
 
   // Filter by search query
@@ -68,6 +79,12 @@ export default function LibraryPage() {
     );
   }, [bookmarkedPapers, searchQuery]);
 
+  // Handle bookmark removal
+  const handleRemoveBookmark = async (documentId: number) => {
+    const result = await libraryService.removeBookmark(documentId);
+    return result;
+  };
+
   return (
     <>
 
@@ -84,7 +101,7 @@ export default function LibraryPage() {
               </div>
               <div className="text-right">
                 <div className="text-4xl font-bold text-white">
-                  {bookmarkCount} / {maxBookmarks}
+                  {bookmarkedPapers.length} / {maxBookmarks}
                 </div>
                 <p className="text-sm text-gray-200">Bookmarks Used</p>
               </div>
@@ -95,10 +112,10 @@ export default function LibraryPage() {
         {/* Main Content */}
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
           {/* Premium Banner */}
-          {bookmarkCount >= maxBookmarks && (
+          {bookmarkedPapers.length >= maxBookmarks && (
             <div className="mb-6">
               <PremiumBanner
-                usedBookmarks={bookmarkCount}
+                usedBookmarks={bookmarkedPapers.length}
                 maxBookmarks={maxBookmarks}
               />
             </div>
@@ -126,7 +143,7 @@ export default function LibraryPage() {
           </div>
 
           {/* Bookmarked Papers */}
-          {isLoading || hookLoading ? (
+          {isLoading ? (
             <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
               <p className="text-lg font-medium text-gray-600">
                 Loading your bookmarks...
@@ -152,6 +169,7 @@ export default function LibraryPage() {
                     type: bookmark.document.resourceType,
                     dateBookmarked: bookmark.dateBookmarked,
                   }}
+                  removeBookmark={handleRemoveBookmark}
                   onRemove={() => {
                     // Remove card from local state immediately
                     setBookmarkedPapers((prev) =>
@@ -168,11 +186,11 @@ export default function LibraryPage() {
               <p className="text-lg font-medium text-gray-600">
                 {searchQuery
                   ? "No bookmarks match your search."
-                  : bookmarkCount === 0
+                  : bookmarkedPapers.length === 0
                     ? "Your library is empty. Start bookmarking papers to save them here!"
                     : "No bookmarks found."}
               </p>
-              {!searchQuery && bookmarkCount === 0 && (
+              {!searchQuery && bookmarkedPapers.length === 0 && (
                 <p className="mt-2 text-sm text-gray-500">
                   Visit any paper page and click &quot;Add to Library&quot; to
                   get started.
@@ -182,7 +200,7 @@ export default function LibraryPage() {
           )}
 
           {/* Premium Section */}
-          {bookmarkCount > 0 && (
+          {bookmarkedPapers.length > 0 && (
             <div className="mt-12">
               <PremiumSection />
             </div>

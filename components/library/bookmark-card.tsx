@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Trash2, Eye, Download } from "lucide-react";
-import { useLibrary } from "@/lib/hooks/useLibrary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +32,10 @@ type BookmarkCardProps = {
   result: SearchResult;
   onRemove?: () => void;
   onError?: (message: string) => void;
+  removeBookmark?: (id: number) => Promise<{ success: boolean; message: string }>;
 };
 
-export function BookmarkCard({ result, onRemove, onError }: BookmarkCardProps) {
-  const { removeFromLibrary } = useLibrary();
+export function BookmarkCard({ result, onRemove, onError, removeBookmark }: BookmarkCardProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -45,8 +44,15 @@ export function BookmarkCard({ result, onRemove, onError }: BookmarkCardProps) {
   };
 
   const handleConfirmRemove = async () => {
+    if (!removeBookmark) {
+      if (onError) {
+        onError("Remove function not provided");
+      }
+      return;
+    }
+
     setIsRemoving(true);
-    const response = await removeFromLibrary(result.id);
+    const response = await removeBookmark(result.id);
     setIsRemoving(false);
 
     if (response.success) {

@@ -3,9 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import * as libraryService from "@/lib/services/libraryService";
 
-// TODO: Remove this hardcoded value once auth is implemented
-const TEMP_USER_ID = 1;
-
 interface UserTier {
   maxBookmarks: number;
   tierName: string;
@@ -28,10 +25,7 @@ export function useLibrary() {
         setBookmarkedIds(bookmarks);
 
         // Fetch user tier info
-        // TODO: Remove userId param once auth is implemented
-        const tierResponse = await fetch(
-          `/api/user/tier?userId=${TEMP_USER_ID}`,
-        );
+        const tierResponse = await fetch(`/api/user/tier`);
         if (tierResponse.ok) {
           const tierData: UserTier = await tierResponse.json();
           setMaxBookmarks(tierData.maxBookmarks);

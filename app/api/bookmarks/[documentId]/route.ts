@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getAuthenticatedUserId } from "@/lib/auth/server";
 
 /**
  * DELETE /api/bookmarks/[documentId]
  * Removes a bookmark for the current user
- *
- * TODO: Replace hardcoded userId with actual auth when implemented
  */
 export async function DELETE(
   request: NextRequest,
@@ -25,12 +24,18 @@ export async function DELETE(
       );
     }
 
-    // TODO: Get userId from auth session once auth is implemented
-    // For now, using a temporary hardcoded userId
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId")
-      ? parseInt(searchParams.get("userId")!)
-      : 1;
+    // Get authenticated user ID
+    const userId = await getAuthenticatedUserId();
+    
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized. Please sign in to remove bookmarks.",
+        },
+        { status: 401 },
+      );
+    }
 
     // Check if bookmark exists
     const existingBookmark = await prisma.userBookmark.findUnique({
@@ -83,8 +88,6 @@ export async function DELETE(
 /**
  * GET /api/bookmarks/[documentId]
  * Checks if a document is bookmarked by the current user
- *
- * TODO: Replace hardcoded userId with actual auth when implemented
  */
 export async function GET(
   request: NextRequest,
@@ -104,11 +107,18 @@ export async function GET(
       );
     }
 
-    // TODO: Get userId from auth session once auth is implemented
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId")
-      ? parseInt(searchParams.get("userId")!)
-      : 1;
+    // Get authenticated user ID
+    const userId = await getAuthenticatedUserId();
+    
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized. Please sign in to check bookmark status.",
+        },
+        { status: 401 },
+      );
+    }
 
     const bookmark = await prisma.userBookmark.findUnique({
       where: {

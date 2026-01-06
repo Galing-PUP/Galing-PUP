@@ -2,12 +2,8 @@
  * Library Service - API-based bookmark management
  *
  * Connects to the backend API for bookmark operations.
- * TODO: Update to use auth session userId once auth system is implemented
+ * Authentication is now handled server-side via Supabase.
  */
-
-// Temporary user ID - will be replaced with auth session
-// TODO: Remove this once auth is implemented
-const TEMP_USER_ID = 1;
 
 interface BookmarkDocument {
   id: number;
@@ -49,8 +45,7 @@ interface BookmarkStatusResponse {
  */
 export async function getBookmarks(): Promise<number[]> {
   try {
-    // TODO: Remove userId param once auth is implemented
-    const response = await fetch(`/api/bookmarks?userId=${TEMP_USER_ID}`, {
+    const response = await fetch(`/api/bookmarks`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -83,8 +78,7 @@ export async function addBookmark(
   documentId: number,
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // TODO: Remove userId param once auth is implemented
-    const response = await fetch(`/api/bookmarks?userId=${TEMP_USER_ID}`, {
+    const response = await fetch(`/api/bookmarks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -134,9 +128,8 @@ export async function removeBookmark(
   documentId: number,
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // TODO: Remove userId param once auth is implemented
     const response = await fetch(
-      `/api/bookmarks/${documentId}?userId=${TEMP_USER_ID}`,
+      `/api/bookmarks/${documentId}`,
       {
         method: "DELETE",
         headers: {
@@ -177,9 +170,8 @@ export async function checkBookmarkStatus(
   documentId: number,
 ): Promise<boolean> {
   try {
-    // TODO: Remove userId param once auth is implemented
     const response = await fetch(
-      `/api/bookmarks/${documentId}?userId=${TEMP_USER_ID}`,
+      `/api/bookmarks/${documentId}`,
       {
         method: "GET",
         headers: {
@@ -206,8 +198,7 @@ export async function checkBookmarkStatus(
  */
 export async function getDetailedBookmarks(): Promise<BookmarkData[]> {
   try {
-    // TODO: Remove userId param once auth is implemented
-    const response = await fetch(`/api/bookmarks?userId=${TEMP_USER_ID}`, {
+    const response = await fetch(`/api/bookmarks`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
