@@ -94,10 +94,16 @@ export default function LibraryPage() {
           return new Date(b.document.datePublished).getTime() - new Date(a.document.datePublished).getTime();
         case "date-oldest":
           return new Date(a.document.datePublished).getTime() - new Date(b.document.datePublished).getTime();
-        case "bookmarked-newest":
-          return new Date(b.dateBookmarked).getTime() - new Date(a.dateBookmarked).getTime();
-        case "bookmarked-oldest":
-          return new Date(a.dateBookmarked).getTime() - new Date(b.dateBookmarked).getTime();
+        case "bookmarked-newest": {
+          const dateA = new Date(a.dateBookmarked).getTime();
+          const dateB = new Date(b.dateBookmarked).getTime();
+          return dateB - dateA;
+        }
+        case "bookmarked-oldest": {
+          const dateA = new Date(a.dateBookmarked).getTime();
+          const dateB = new Date(b.dateBookmarked).getTime();
+          return dateA - dateB;
+        }
         default:
           return 0;
       }

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     // Transform the data to a simpler format
     const formattedBookmarks = bookmarks.map((bookmark) => ({
       documentId: bookmark.documentId,
-      dateBookmarked: bookmark.dateBookmarked,
+      dateBookmarked: bookmark.dateBookmarked.toISOString(),
       document: {
         id: bookmark.document.id,
         title: bookmark.document.title,
@@ -196,7 +196,6 @@ export async function POST(request: NextRequest) {
       data: {
         userId: userId,
         documentId: documentId,
-        dateBookmarked: new Date(),
       },
     });
 
