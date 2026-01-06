@@ -5,8 +5,8 @@ import { BookmarkCard } from "@/components/library/bookmark-card";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
 import { LibrarySortDropdown, LibrarySortOption } from "@/components/library/sort-dropdown";
+import { LibrarySearchInput } from "@/components/library/search-input";
 import { useState, useMemo, useEffect } from "react";
-import { Search } from "lucide-react";
 import * as libraryService from "@/lib/services/libraryService";
 import { toast } from "sonner";
 
@@ -150,16 +150,11 @@ export default function LibraryPage() {
 
           {/* Search and Sort Bar */}
           <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search your bookmarks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2.5 text-sm focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-0"
-              />
-            </div>
+            <LibrarySearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              className="flex-1"
+            />
             <LibrarySortDropdown value={sortOption} onChange={setSortOption} />
           </div>
 
