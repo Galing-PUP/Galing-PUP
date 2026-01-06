@@ -44,11 +44,11 @@ export function UsersTable({
                   type="checkbox"
                   ref={headerCheckboxRef}
                   onChange={onSelectAll}
-                  className="h-4 w-4 rounded border-gray-400 text-red-800 focus:ring-red-800"
+                  className="h-4 w-4 rounded border-gray-400 text-pup-maroon focus:ring-pup-maroon"
                 />
               </div>
               <div className="col-span-1">User ID</div>
-              <div className="col-span-2">Name</div>
+              <div className="col-span-2">Username</div>
               <div className="col-span-3">Email</div>
               <div className="col-span-2">Role</div>
               <div className="col-span-1">Status</div>

@@ -18,7 +18,7 @@ const InfoItem = ({
   value: string;
 }) => (
   <div className="flex items-start gap-3">
-    <Icon className="h-5 w-5 flex-shrink-0 text-gray-500" aria-hidden="true" />
+    <Icon className="h-5 w-5 shrink-0 text-gray-500" aria-hidden="true" />
     <div>
       <div className="text-sm text-gray-500">{label}</div>
       <div className="font-medium text-gray-900">{value}</div>

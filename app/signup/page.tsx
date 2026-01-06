@@ -117,7 +117,7 @@ export default function SignUpPage() {
                 placeholder="Enter your username"
                 className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${usernameError
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                  : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
                   }`}
               />
               {usernameError && (
@@ -138,7 +138,7 @@ export default function SignUpPage() {
                 placeholder="yourname@gmail.com"
                 className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${!isEmailValid
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                  : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
                   }`}
               />
               {!isEmailValid && email !== "" && (
@@ -165,7 +165,7 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/10"
+                  className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-pup-maroon focus:outline-none focus:ring-2 focus:ring-pup-maroon/10"
                 />
                 <button
                   type="button"
@@ -197,7 +197,7 @@ export default function SignUpPage() {
                     ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
                     : confirmPassword
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                      : "border-neutral-300 focus:border-[#7C1D1D] focus:ring-[#7C1D1D]/10"
+                      : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
                     }`}
                 />
                 <button
@@ -321,7 +321,7 @@ export default function SignUpPage() {
             Already have an account?{" "}
             <Link
               href="/signin"
-              className="font-semibold text-[#7C1D1D] transition hover:underline"
+              className="font-semibold text-pup-maroon transition hover:underline"
             >
               Sign In
             </Link>

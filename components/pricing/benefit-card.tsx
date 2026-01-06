@@ -14,7 +14,7 @@ export function BenefitCard({
   icon,
   title,
   description,
-  iconBgColor = "bg-red-900",
+  iconBgColor = "bg-pup-maroon",
   iconColor = "text-white",
 }: BenefitCardProps) {
   return (

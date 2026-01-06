@@ -55,6 +55,12 @@ export default function SignInPage() {
 
       // Check if user is verified
       if (!status.isVerified) {
+        if (status.roleId === 1 && status.updatedDate) {
+          toast.error("Your account is currently ON HOLD, please contact the support team");
+          setLoading(false);
+          return;
+        }
+
         toast.error("User is not verified, please check your email for the code");
         router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
         setLoading(false);
@@ -138,7 +144,7 @@ export default function SignInPage() {
                 placeholder="Enter your email or username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
+                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-pup-maroon focus:outline-none focus:ring-2 focus:ring-pup-maroon/20"
               />
             </div>
 
@@ -153,7 +159,7 @@ export default function SignInPage() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-[#7C1D1D] focus:outline-none focus:ring-2 focus:ring-[#7C1D1D]/20"
+                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-pup-maroon focus:outline-none focus:ring-2 focus:ring-pup-maroon/20"
               />
             </div>
 
@@ -161,7 +167,7 @@ export default function SignInPage() {
               <button
                 type="button"
                 className="text-sm font-medium text-[#7C1D1D] hover:underline"
-                onClick={(e) => e.preventDefault()}
+                onClick={() => router.push('/forgot-password')}
               >
                 Forgot Password?
               </button>
@@ -211,7 +217,7 @@ export default function SignInPage() {
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="font-semibold text-[#7C1D1D] transition hover:underline"
+              className="font-semibold text-pup-maroon transition hover:underline"
             >
               Create One
             </Link>

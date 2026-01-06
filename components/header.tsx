@@ -7,6 +7,7 @@ import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SignInModal } from "./SignInModal";
 import { getCurrentUser, signOut } from "@/lib/actions";
+import { User } from "lucide-react";
 
 type NavItem = {
   label: string;
@@ -131,7 +132,9 @@ export function Header({
   };
 
   // hides the header for admin pages, sign in, and sign up pages
-  if (pathname.startsWith("/admin") || pathname === "/signin" || pathname === "/signup") {
+  if (pathname.startsWith("/admin") || pathname === "/signin" ||
+    pathname === "/signup" || pathname === "/verify-otp" ||
+    pathname === "/forgot-password" || pathname === "/reset-password") {
     return null;
   }
 
@@ -169,7 +172,7 @@ export function Header({
                   href={item.href}
                   className={`pb-1 transition-colors duration-200
                   ${isActive
-                      ? "font-medium border-b-2 border-yellow-400 text-[#6b0504]"
+                      ? "font-medium border-b-2 border-pup-gold-light text-pup-maroon"
                       : "text-gray-500 hover:text-gray-900"
                     }
                 `}
@@ -196,7 +199,7 @@ export function Header({
                 {/* User Avatar / Dropdown Trigger */}
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="h-10 w-10 rounded-full bg-[#6b0504] text-white flex items-center justify-center text-sm font-bold hover:bg-[#4a0403] transition-colors focus:outline-none focus:ring-2 focus:ring-[#6b0504] focus:ring-offset-2"
+                  className="h-10 w-10 rounded-full bg-pup-maroon text-white flex items-center justify-center text-sm font-bold hover:bg-pup-maroon transition-colors focus:outline-none focus:ring-2 focus:ring-pup-maroon focus:ring-offset-2"
                   aria-label="User menu"
                 >
                   {/* TODO: Replace with actual user avatar image when available */}
@@ -216,7 +219,7 @@ export function Header({
                       User preferences
                     </button>
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-[#800000] hover:bg-gray-100 font-medium"
+                      className="block w-full text-left px-4 py-2 text-sm text-pup-maroon hover:bg-gray-100 font-medium"
                       onClick={handleSignOut}
                     >
                       Logout
@@ -228,28 +231,15 @@ export function Header({
               <>
                 <button
                   onClick={() => setIsSignInModalOpen(true)}
-                  className="flex items-center gap-2 text-sm font-bold text-red-700 transition-colors duration-200 hover:text-gray-900"
+                  className="flex items-center gap-2 text-sm font-bold text-pup-maroon transition-colors duration-200 hover:bg-pup-maroon/10 px-3 py-2 rounded-full"
                 >
-                  <svg
-                    aria-hidden
-                    width={18}
-                    height={18}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z" />
-                    <path d="M20.59 21a8 8 0 0 0-17.18 0" />
-                  </svg>
+                  <User />
                   <span>{signIn.label}</span>
                 </button>
 
                 <Link
                   href={primaryAction.href}
-                  className="rounded-full bg-[#6b0504] px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#4a0403]"
+                  className="rounded-full bg-pup-maroon px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-pup-maroon/80"
                 >
                   {primaryAction.label}
                 </Link>
@@ -261,7 +251,7 @@ export function Header({
           <div className="flex items-center justify-self-end md:hidden">
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-[#1F2937]"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-gray-700"
               aria-label="Toggle navigation menu"
             >
               <svg

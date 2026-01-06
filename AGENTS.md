@@ -62,6 +62,11 @@
   - `UPPER_SNAKE_CASE` for constants.
   - `camelCase` for prisma schema.
   - `snake_case` for mapping database columns.
+- **Color Scheme:** Use official PUP colors from `globals.css` instead of custom hex codes:
+  - **Maroon:** `pup-maroon` - Primary brand color
+  - **Gold Light:** `pup-gold-light` - Light accent color
+  - **Gold Dark:** `pup-gold-dark` - Dark accent color
+  - Apply via Tailwind: `bg-pup-maroon`, `text-pup-gold-light`, `border-pup-gold-dark`, etc.
 
 ## Negative Constraints (DO NOT DO)
 - **NO NPM/YARN:** Always use `bun` for package management.

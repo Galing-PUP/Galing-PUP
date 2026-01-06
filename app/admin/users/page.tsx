@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { User, UserStatus, UserRole } from "@/types/users";
-import { UserStats } from "@/components/admin/users/user-stats";
+import { UserStats, type Stats } from "@/components/admin/users/user-stats";
 import { UserManagementHeader } from "@/components/admin/users/user-management-header";
 import { UserToolbar } from "@/components/admin/users/user-toolbar";
 import { UsersTable } from "@/components/admin/users/users-table";
 import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
 import { UserFormModal } from "@/components/admin/users/user-form-modal";
-import { mockUsers } from "@/data/mockUsers";
 
 import {
   AlertDialog,
@@ -20,9 +19,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
@@ -33,6 +34,56 @@ export default function UserManagementPage() {
     isOpen: boolean;
     user: User | null;
   }>({ isOpen: false, user: null });
+
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    isOpen: boolean;
+    message: string;
+  }>({ isOpen: false, message: "" });
+
+  const [colleges, setColleges] = useState<any[]>([]);
+
+  // Fetch users and stats from API
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/admin/users/stats");
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
+  };
+
+  const fetchColleges = async () => {
+    try {
+      const response = await fetch("/api/public/college");
+      if (response.ok) {
+        const data = await response.json();
+        setColleges(data);
+      }
+    } catch (error) {
+      console.error("Error loading colleges:", error);
+    }
+  };
+
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/admin/users");
+        if (!response.ok) throw new Error("Failed to fetch users");
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error loading users:", error);
+      }
+    };
+
+    fetchUsers();
+    fetchStats();
+    fetchColleges();
+  }, []);
 
   // Filter users based on selected statuses, roles, and search query
   const filteredUsers = useMemo(() => {
@@ -59,34 +110,132 @@ export default function UserManagementPage() {
     setSelectedUserIds(selectedUserIds.length === filteredUsers.length ? [] : filteredUsers.map((u) => u.id));
   };
 
-  const handleDeleteSelected = () => {
-    alert(`Deleting users: ${selectedUserIds.join(", ")}`);
-    setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
-    setSelectedUserIds([]);
-  };
+  const handleDeleteSelected = async () => {
+    if (selectedUserIds.length === 0) return;
 
-  const handleSaveUser = (userToSave: User) => {
-    if (modalState.user) {
-      setUsers((prev) => prev.map((u) => (u.id === userToSave.id ? userToSave : u)));
-      alert(`Updated user: ${userToSave.name}`);
-    } else {
-      setUsers((prev) => [userToSave, ...prev]);
-      alert(`Added new user: ${userToSave.name}`);
+    if (!confirm(`Are you sure you want to delete ${selectedUserIds.length} users?`)) {
+      return;
     }
-    setModalState({ isOpen: false, user: null });
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids: selectedUserIds }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || "Failed to delete users");
+      }
+
+      setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)));
+      setSelectedUserIds([]);
+      fetchStats(); // Update stats
+      toast.success("Selected users have been deleted successfully.");
+    } catch (error: any) {
+      console.error("Error deleting users:", error);
+      toast.error(`Error: ${error.message}`);
+    }
   };
 
-  const confirmDeleteUser = () => {
+  const handleSaveUser = async (userToSave: User, file?: File | null) => {
+    try {
+      // Prepare FormData (used for both Create and Edit to support file upload)
+      const formData = new FormData();
+      formData.append("name", userToSave.name);
+      formData.append("email", userToSave.email);
+      formData.append("role", userToSave.role);
+      formData.append("status", userToSave.status);
+      formData.append("fullname", userToSave.fullname || "");
+      if (userToSave.subscriptionTier) formData.append("subscriptionTier", userToSave.subscriptionTier.toString());
+      if (userToSave.collegeId) formData.append("collegeId", userToSave.collegeId.toString());
+      if (userToSave.password) formData.append("password", userToSave.password);
+      if (file) formData.append("idImage", file);
+
+      if (modalState.user) {
+        // Edit existing user
+        const response = await fetch(`/api/admin/users/${userToSave.id}`, {
+          method: "PATCH",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 409) {
+            setDuplicateWarning({
+              isOpen: true,
+              message: errorData.error || "User already exists",
+            });
+            return;
+          }
+          throw new Error(errorData.error || "Failed to update user");
+        }
+
+        const updatedUser = await response.json();
+        setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+        fetchStats(); // Update stats in case status changed
+        toast.success(`Updated user: ${updatedUser.name}`);
+      } else {
+        // Add new user
+        const response = await fetch("/api/admin/users", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 409) {
+            setDuplicateWarning({
+              isOpen: true,
+              message: errorData.error || "User already exists",
+            });
+            return;
+          }
+          throw new Error(errorData.error || "Failed to create user");
+        }
+
+        const newUser = await response.json();
+        setUsers((prev) => [newUser, ...prev]);
+        fetchStats(); // Update stats
+        toast.success(`Added new user: ${newUser.name}`);
+      }
+      setModalState({ isOpen: false, user: null });
+    } catch (error: any) {
+      console.error("Error saving user:", error);
+      toast.error(error.message || "Failed to save user changes.");
+    }
+  };
+
+  const confirmDeleteUser = async () => {
     if (!deletingUser) return;
-    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
-    setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
-    alert(`User "${deletingUser.name}" has been deleted.`);
-    setDeletingUser(null);
+
+    try {
+      const response = await fetch(`/api/admin/users/${deletingUser.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || "Failed to delete user");
+      }
+
+      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+      setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id));
+      fetchStats();
+      toast.success(`User "${deletingUser.name}" has been deleted.`);
+      setDeletingUser(null);
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error(`Error: ${error.message}`);
+    }
   };
 
   return (
     <div className="space-y-8">
-      <UserStats />
+      <UserStats stats={stats} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <UserManagementHeader onAddNewUser={() => setModalState({ isOpen: true, user: null })} />
@@ -125,6 +274,7 @@ export default function UserManagementPage() {
         onClose={() => setModalState({ isOpen: false, user: null })}
         onSave={handleSaveUser}
         user={modalState.user}
+        colleges={colleges}
       />
 
       <AlertDialog
@@ -141,11 +291,33 @@ export default function UserManagementPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDeleteUser}
-              className="bg-[#6b0504] hover:bg-[#4a0403]"
+              className="bg-pup-maroon hover:bg-pup-maroon/80 focus:ring-pup-maroon"
             >
               Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={duplicateWarning.isOpen}
+        onOpenChange={(isOpen) => !isOpen && setDuplicateWarning(prev => ({ ...prev, isOpen: false }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              {duplicateWarning.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setDuplicateWarning(prev => ({ ...prev, isOpen: false }))}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

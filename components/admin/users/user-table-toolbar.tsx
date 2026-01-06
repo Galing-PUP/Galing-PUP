@@ -9,7 +9,7 @@ type UserTableToolbarProps = {
 export function UserTableToolbar({ selectedCount, onDelete }: UserTableToolbarProps) {
   return (
     <div className="my-4 flex items-center justify-between rounded-lg bg-red-50 p-4">
-      <p className="text-sm font-semibold text-red-800">
+      <p className="text-sm font-semibold text-pup-maroon">
         {selectedCount} {selectedCount === 1 ? "user" : "users"} selected
       </p>
       <Button
@@ -18,7 +18,7 @@ export function UserTableToolbar({ selectedCount, onDelete }: UserTableToolbarPr
         shape="rounded"
         icon={<Trash2 className="h-4 w-4" />}
         onClick={onDelete}
-        className="bg-red-600 hover:bg-red-700"
+        className="bg-pup-maroon hover:bg-pup-maroon/80"
       >
         Delete all
       </Button>

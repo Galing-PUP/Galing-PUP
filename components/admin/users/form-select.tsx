@@ -13,7 +13,7 @@ export function FormSelect({ label, children, ...props }: FormSelectProps) {
       </label>
       <select
         {...props}
-        className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
+        className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-pup-maroon focus:outline-none focus:ring-1 focus:ring-pup-maroon"
       >
         {children}
       </select>

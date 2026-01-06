@@ -12,22 +12,27 @@ datasource db {
 // ---------------------------------------------------------
 
 model User {
-  id               Int      @id @default(autoincrement()) @map("user_id")
+  id               Int       @id @default(autoincrement()) @map("user_id")
   // supabase OAuth link
-  supabaseAuthId   String?  @unique @map("supabase_uid") @db.Uuid
-  username         String   @unique @db.VarChar(255)
-  email            String   @unique @db.VarChar(255)
-  passwordHash     String?  @map("password_hash") @db.VarChar(255)
-  registrationDate DateTime @map("registration_date") @db.Date
-  isVerified       Boolean  @map("is_verified")
+  supabaseAuthId   String?   @unique @map("supabase_uid") @db.Uuid
+  fullname         String?   @db.VarChar(255)
+  username         String?   @unique @db.VarChar(255)
+  email            String    @unique @db.VarChar(255)
+  passwordHash     String?   @map("password_hash") @db.VarChar(255)
+  registrationDate DateTime  @map("registration_date") @db.Date
+  isVerified       Boolean   @default(false) @map("is_verified")
+  idNumber         String?   @map("id_number") @db.VarChar(100)
+  uploadId         String?   @map("upload_id") @db.VarChar(255)
+  updatedDate      DateTime? @map("updated_date") @db.Date
 
   // Foreign Keys (CamelCase in Code -> Snake_case in DB)
-  currentRoleId Int @map("current_role_id")
-  tierId        Int @map("tier_id")
-
+  currentRoleId    Int              @map("current_role_id")
+  tierId           Int              @map("tier_id")
+  collegeId        Int?             @map("college_id")
   // Relations
   role             Role             @relation(fields: [currentRoleId], references: [id])
   subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
+  college          College?         @relation(fields: [collegeId], references: [id])
 
   bookmarks    UserBookmark[]
   uploadedDocs Document[]     @relation("UserUploads")
@@ -172,6 +177,7 @@ model College {
   collegeAbbr String @unique @map("college_abbr") @db.VarChar(50)
 
   courses Course[]
+  users   User[]
 
   @@map("colleges")
 }

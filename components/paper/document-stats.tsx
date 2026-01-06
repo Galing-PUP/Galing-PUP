@@ -12,7 +12,7 @@ const StatCard = ({
   label: string;
 }) => (
   <div className="flex flex-1 items-center gap-3 rounded-lg border border-gray-200 p-4">
-    <Icon className="h-6 w-6 flex-shrink-0 text-gray-500" />
+    <Icon className="h-6 w-6 shrink-0 text-gray-500" />
     <div>
       <div className="text-2xl font-bold text-gray-900">{value}</div>
       <div className="text-sm text-gray-500">{label}</div>

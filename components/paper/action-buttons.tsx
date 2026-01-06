@@ -36,12 +36,12 @@ const ActionButton = ({
       flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors
       ${
         primary
-          ? "border-transparent bg-red-700 text-white shadow-sm hover:bg-red-800"
+          ? "border-transparent bg-pup-maroon text-white shadow-sm hover:bg-pup-maroon/80"
           : isActive
-            ? "border-yellow-400 bg-yellow-50 text-yellow-800"
+            ? "bg-pup-gold-light/30 border-pup-gold-dark text-pup-maroon"
             : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
       }
-      focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+      focus:outline-none focus:ring-2 focus:ring-pup-maroon focus:ring-offset-2
     `}
   >
     <Icon className="h-4 w-4" />
@@ -213,7 +213,7 @@ export function ActionButtons({
                 handleConfirmRemove();
               }}
               disabled={isRemoving}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-pup-maroon hover:bg-pup-maroon/80 focus:ring-pup-maroon"
             >
               {isRemoving ? "Removing..." : "Remove"}
             </AlertDialogAction>
@@ -263,7 +263,7 @@ export function ActionButtons({
                   onClick={() => setSelectedStyle(style)}
                   className={`rounded-full px-4 py-1 text-sm font-medium border ${
                     selectedStyle === style
-                      ? "bg-red-700 text-white border-red-700"
+                      ? "bg-pup-maroon text-white border-pup-maroon"
                       : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                   }`}
                 >
@@ -291,7 +291,7 @@ export function ActionButtons({
               </button>
               <button
                 type="button"
-                className="rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800"
+                className="rounded-md bg-pup-maroon px-4 py-2 text-sm font-medium text-white hover:bg-pup-maroon/80"
                 onClick={handleCopyStyledCitation}
               >
                 Copy citation
@@ -314,7 +314,7 @@ export function ActionButtons({
             <div className="mt-4 flex justify-center">
               <button
                 type="button"
-                className="rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800"
+                className="rounded-md bg-pup-maroon px-4 py-2 text-sm font-medium text-white hover:bg-pup-maroon/80"
                 onClick={() => setIsCopiedModalOpen(false)}
               >
                 Close

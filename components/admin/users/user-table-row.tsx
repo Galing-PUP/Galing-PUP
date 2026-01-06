@@ -23,7 +23,7 @@ export function UserTableRow({ user, isSelected, onSelect, onEdit, onDelete }: U
           type="checkbox"
           checked={isSelected}
           onChange={onSelect}
-          className="h-4 w-4 rounded border-gray-400 text-red-800 focus:ring-red-800"
+          className="h-4 w-4 rounded border-gray-400 text-pup-maroon focus:ring-pup-maroon"
         />
       </div>
       <div className="col-span-1 text-sm text-gray-700">{user.id}</div>
