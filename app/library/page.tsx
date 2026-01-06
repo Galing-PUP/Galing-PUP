@@ -84,25 +84,31 @@ export default function LibraryPage() {
     }
 
     // Then, sort the filtered results
-    const sorted = [...papers].sort((a, b) => {
+    const sorted = [...papers].sort((paperA, paperB) => {
       switch (sortOption) {
         case "title-asc":
-          return a.document.title.localeCompare(b.document.title);
+          return paperA.document.title.localeCompare(paperB.document.title);
         case "title-desc":
-          return b.document.title.localeCompare(a.document.title);
-        case "date-newest":
-          return new Date(b.document.datePublished).getTime() - new Date(a.document.datePublished).getTime();
-        case "date-oldest":
-          return new Date(a.document.datePublished).getTime() - new Date(b.document.datePublished).getTime();
+          return paperB.document.title.localeCompare(paperA.document.title);
+        case "date-newest": {
+          const publishTimeA = new Date(paperA.document.datePublished).getTime();
+          const publishTimeB = new Date(paperB.document.datePublished).getTime();
+          return publishTimeB - publishTimeA;
+        }
+        case "date-oldest": {
+          const publishTimeA = new Date(paperA.document.datePublished).getTime();
+          const publishTimeB = new Date(paperB.document.datePublished).getTime();
+          return publishTimeA - publishTimeB;
+        }
         case "bookmarked-newest": {
-          const dateA = new Date(a.dateBookmarked).getTime();
-          const dateB = new Date(b.dateBookmarked).getTime();
-          return dateB - dateA;
+          const bookmarkTimeA = new Date(paperA.dateBookmarked).getTime();
+          const bookmarkTimeB = new Date(paperB.dateBookmarked).getTime();
+          return bookmarkTimeB - bookmarkTimeA;
         }
         case "bookmarked-oldest": {
-          const dateA = new Date(a.dateBookmarked).getTime();
-          const dateB = new Date(b.dateBookmarked).getTime();
-          return dateA - dateB;
+          const bookmarkTimeA = new Date(paperA.dateBookmarked).getTime();
+          const bookmarkTimeB = new Date(paperB.dateBookmarked).getTime();
+          return bookmarkTimeA - bookmarkTimeB;
         }
         default:
           return 0;
