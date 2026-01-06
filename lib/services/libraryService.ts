@@ -5,7 +5,7 @@
  * Authentication is now handled server-side via Supabase.
  */
 
-interface BookmarkDocument {
+export interface BookmarkDocument {
   id: number;
   title: string;
   abstract: string;
@@ -19,7 +19,7 @@ interface BookmarkDocument {
   filePath: string;
 }
 
-interface BookmarkData {
+export interface BookmarkData {
   documentId: number;
   dateBookmarked: string;
   document: BookmarkDocument;

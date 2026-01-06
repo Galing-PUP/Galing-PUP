@@ -9,34 +9,20 @@ import { LibrarySearchInput } from "@/components/library/search-input";
 import { useState, useMemo, useEffect } from "react";
 import * as libraryService from "@/lib/services/libraryService";
 import { toast } from "sonner";
-import Link from "next/link";
+import {
+  NoSearchResultsState,
+  EmptyLibraryState,
+  LoggedOutState,
+} from "@/components/library/empty-states";
+
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 
-import { Bookmark, FileText } from "lucide-react";
-
-interface BookmarkedPaper {
-  documentId: number;
-  dateBookmarked: string;
-  document: {
-    id: number;
-    title: string;
-    abstract: string;
-    datePublished: string;
-    downloadsCount: number;
-    citationCount: number;
-    authors: string[];
-    course: string;
-    college: string;
-    resourceType: string;
-    filePath: string;
-  };
-}
+import { BookmarkData } from "@/lib/services/libraryService";
 
 export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState<LibrarySortOption>("bookmarked-newest");
-  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkedPaper[]>(
+  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>(
     [],
   );
   const [isLoading, setIsLoading] = useState(true);
@@ -227,53 +213,12 @@ export default function LibraryPage() {
             </div>
           ) : isAuthenticated ? (
             searchQuery ? (
-              <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-                <p className="text-lg font-medium text-gray-600">
-                  No bookmarks match your search.
-                </p>
-                <Button 
-                  variant="link" 
-                  onClick={() => setSearchQuery("")} 
-                  className="mt-2 text-pup-maroon hover:text-red-900"
-                >
-                  Clear search
-                </Button>
-              </div>
+              <NoSearchResultsState onClear={() => setSearchQuery("")} />
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center shadow-sm">
-                <div className="mb-6 rounded-full bg-pup-maroon/10 p-4">
-                  <FileText className="h-8 w-8 text-pup-maroon" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  Your library is empty
-                </h3>
-                <p className="mt-2 mb-8 max-w-md text-base text-gray-500">
-                  Start building your collection by browsing research papers and saving them for later.
-                </p>
-                <Link href="/browse">
-                  <Button className="bg-pup-maroon px-8 py-6 text-base font-semibold text-white transition-all shadow-md hover:bg-red-900 hover:shadow-lg">
-                    Browse Papers
-                  </Button>
-                </Link>
-              </div>
+              <EmptyLibraryState />
             )
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-16 text-center shadow-sm">
-              <div className="mb-6 rounded-full bg-pup-maroon/10 p-4">
-                <Bookmark className="h-8 w-8 text-pup-maroon" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">
-                Start building your library
-              </h3>
-              <p className="mt-2 mb-8 max-w-md text-base text-gray-500">
-                Found something useful? Create an account to keep your bookmarks in one place.
-              </p>
-              <Link href="/signin">
-                <Button className="bg-pup-maroon px-8 py-6 text-base font-semibold text-white transition-all shadow-md hover:bg-red-900 hover:shadow-lg">
-                  Sign in to Save
-                </Button>
-              </Link>
-            </div>
+            <LoggedOutState />
           )}
 
           {/* Premium Section */}
