@@ -33,15 +33,30 @@ export default function AdminSignInPage() {
         return;
       }
 
-      // Check if user is allowed to login here (Role 3 or 4)
+      // Step 2: Verify credentials & Sign in with Supabase
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error("Invalid password please try again");
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Check if user is allowed to login here (Role 3 or 4)
       if (status.roleId !== 3 && status.roleId !== 4) {
+        await supabase.auth.signOut(); // Security: Sign out if role is invalid
         toast.error("User is not set to login here");
         setLoading(false);
         return;
       }
 
-      // Check if user is verified
+      // Step 4: Check if user is verified
       if (!status.isVerified) {
+        await supabase.auth.signOut(); // Security: Sign out if not verified
         if (status.updatedDate) {
           // Case: Not verified AND has updatedDate -> On Hold
           toast.error("Your account has been put ON HOLD, please contact the support team");
@@ -53,29 +68,11 @@ export default function AdminSignInPage() {
         return;
       }
 
-      // Step 2: Verify credentials
-      const isValid = await verifyCredentials(email, password);
-      if (!isValid) {
-        toast.error("Invalid password please try again");
-        setLoading(false);
-        return;
-      }
-
-      // Step 3: Sign in with Supabase
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-
+      // Success: Redirect
       toast.success("Signed in successfully");
-      router.push("/admin/dashboard");
+      router.push("/admin/publication");
       router.refresh();
+
 
     } catch (error: any) {
       console.error("Login error:", error);
