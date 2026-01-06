@@ -50,13 +50,13 @@ const SIGN_OUT_ITEM: NavItem = {
 
 export function Sidebar() {
   const pathname = usePathname();
+  // State: Controls sidebar expansion (collapsed: 96px, expanded: 280px)
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Use useMemo to calculate active links
+  // Active link calculation: Determines which nav item matches current route
   const activeLookup = useMemo(() => {
     const map = new Map<string, boolean>();
 
-    // Use the updated NAV_ITEMS array
     NAV_ITEMS.forEach((item) => {
       if (item.exact) {
         map.set(item.href, pathname === item.href);
@@ -66,21 +66,23 @@ export function Sidebar() {
     });
 
     return map;
-  }, [pathname, NAV_ITEMS]);
+  }, [pathname]);
 
   return (
+    // Main sidebar container: Full height, responsive width based on expansion state
     <aside
       className={`
-        flex h-screen flex-col bg-[#360000] text-yellow-100
+        flex h-screen flex-col bg-pup-maroon text-pup-gold-light
         transition-all duration-300
         ${isExpanded ? "w-70 p-6" : "w-24 p-4"}
       `}
     >
-      {/* Header/Logo Section */}
+      {/* Header/Logo Section: Clickable toggle for expand/collapse */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="mt-2 mb-10 flex flex-col items-center"
       >
+        {/* Logo: Shows full logo when expanded, star icon when collapsed */}
         <Image
           src={isExpanded ? LogoYellow : StarLogo}
           alt="Galing PUP Logo"
@@ -90,19 +92,21 @@ export function Sidebar() {
           `}
           priority
         />
+        {/* Admin Badge: Only visible when sidebar is expanded */}
         {isExpanded && (
-          <p className="text-sm font-bold tracking-widest text-yellow-200/80">
+          <p className="text-sm font-bold tracking-widest text-pup-gold-light/80">
             SUPER ADMIN
           </p>
         )}
       </button>
 
-      {/* Navigation Links */}
+      {/* Navigation Links: Main menu items (Upload, Publications, Users, Approval) */}
       <nav className="flex-1 space-y-6">
         {NAV_ITEMS.map((item) => {
           const isActive = activeLookup.get(item.href) ?? false;
           const Icon = item.icon;
           return (
+            // Nav Item: Shape changes based on expansion (rounded-lg vs rounded-full)
             <Link
               key={item.href}
               href={item.href}
@@ -113,34 +117,37 @@ export function Sidebar() {
                   : "justify-center rounded-full p-2 w-fit mx-auto"
                 }
                 ${isActive
-                  ? "bg-yellow-100 text-[#360000]"
-                  : "text-yellow-100 hover:bg-black/20 hover:text-yellow-500"
+                  ? "bg-pup-gold-light text-pup-maroon"
+                  : "text-pup-gold-light hover:bg-black/20 hover:text-pup-gold-dark"
                 }
               `}
             >
+              {/* Label Text: Only shown when expanded, color changes based on active state */}
               {isExpanded && (
                 <span
-                  className={`mr-4 flex-1 whitespace-nowrap text-right ${isActive ? "text-[#360000]" : "text-yellow-500"
+                  className={`mr-4 flex-1 whitespace-nowrap text-right ${isActive ? "text-pup-maroon" : "text-pup-gold-dark"
                     }`}
                 >
                   {item.label}
                 </span>
               )}
+              {/* Icon Container: Circular background, darker when active */}
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${isActive ? "bg-[#360000]" : "bg-[#993333]"
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${isActive ? "bg-pup-maroon" : "bg-black/60"
                   }`}
               >
                 <Icon
-                  className={`h-5 w-5 ${isActive ? "text-yellow-200" : "text-[#360000]"
+                  className={`h-5 w-5 ${isActive ? "text-pup-gold-light" : "text-pup-gold-dark"
                     }`}
                 />
               </div>
+              {/* Tooltip: Appears on hover when sidebar is collapsed */}
               {!isExpanded && (
                 <span
                   className="
                     pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2
-                    rounded-md border border-yellow-300/70 bg-yellow-100 px-3 py-1
-                    text-xs font-semibold uppercase tracking-wide text-[#360000] shadow-lg
+                    rounded-md border border-pup-gold-dark/70 bg-pup-gold-light px-3 py-1
+                    text-xs font-semibold uppercase tracking-wide text-pup-maroon shadow-lg
                     opacity-0 transition-opacity duration-200 group-hover:opacity-100
                   "
                 >
@@ -152,7 +159,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Sign Out Button - Separated at bottom */}
+      {/* Sign Out Button: Pinned to bottom, separate from main navigation */}
       <Link
         href={SIGN_OUT_ITEM.href}
         className={`
@@ -161,23 +168,26 @@ export function Sidebar() {
             ? "justify-between rounded-lg p-3 px-4"
             : "justify-center rounded-full p-2 w-fit mx-auto"
           }
-          text-yellow-100 hover:bg-black/20 hover:text-yellow-500
+          text-pup-gold-light hover:bg-black/20 hover:text-pup-gold-dark
         `}
       >
+        {/* Sign Out Label: Only visible when expanded */}
         {isExpanded && (
-          <span className="mr-4 flex-1 whitespace-nowrap text-right text-yellow-500">
+          <span className="mr-4 flex-1 whitespace-nowrap text-right text-pup-gold-dark">
             {SIGN_OUT_ITEM.label}
           </span>
         )}
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#993333] transition-colors">
-          <LogOut className="h-5 w-5 text-[#360000]" />
+        {/* Sign Out Icon: Circular container with logout icon */}
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/60 transition-colors">
+          <LogOut className="h-5 w-5 text-pup-gold-dark" />
         </div>
+        {/* Sign Out Tooltip: Shows label on hover when collapsed */}
         {!isExpanded && (
           <span
             className="
               pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2
-              rounded-md border border-yellow-300/70 bg-yellow-100 px-3 py-1
-              text-xs font-semibold uppercase tracking-wide text-[#360000] shadow-lg
+              rounded-md border border-pup-gold-dark/70 bg-pup-gold-light px-3 py-1
+              text-xs font-semibold uppercase tracking-wide text-pup-maroon shadow-lg
               opacity-0 transition-opacity duration-200 group-hover:opacity-100
             "
           >
