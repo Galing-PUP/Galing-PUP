@@ -4,10 +4,11 @@ import LogoYellow from "@/assets/Logo/logo-yellow.png";
 import StarLogo from "@/assets/Logo/star-logo-yellow.png";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ComponentType, SVGProps, useMemo, useState } from "react";
 
 import { Archive, FileText, LogOut, Upload, User } from "lucide-react";
+import { signOut } from "@/lib/actions";
 
 type NavItem = {
   label: string;
@@ -23,10 +24,9 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Content Approval", href: "/admin/approval", icon: FileText },
 ];
 
-// TODO: Add sign out functionality
 const SIGN_OUT_ITEM: NavItem = {
   label: "Sign Out",
-  href: "/",
+  href: "#",
   icon: LogOut,
   exact: true,
 };
@@ -38,10 +38,12 @@ function NavLink({
   item,
   isActive = false,
   isExpanded,
+  onClick,
 }: {
   item: NavItem;
   isActive?: boolean;
   isExpanded: boolean;
+  onClick?: () => void;
 }) {
   const Icon = item.icon;
 
@@ -69,6 +71,19 @@ function NavLink({
     opacity-0 transition-opacity duration-200 group-hover:opacity-100
   `;
 
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={containerClasses}>
+        {isExpanded && <span className={labelClasses}>{item.label}</span>}
+        <div className={iconClasses}>
+          <Icon className={iconColorClasses} />
+        </div>
+        {/* Tooltip on hover when collapsed */}
+        {!isExpanded && <span className={tooltipClasses}>{item.label}</span>}
+      </button>
+    );
+  }
+
   return (
     <Link href={item.href} className={containerClasses}>
       {isExpanded && <span className={labelClasses}>{item.label}</span>}
@@ -83,6 +98,7 @@ function NavLink({
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Pre-calculate active status for all nav items
@@ -96,6 +112,20 @@ export function Sidebar() {
     });
     return map;
   }, [pathname]);
+
+  /**
+   * Handles sign out for admin users.
+   * Signs out the user and redirects to homepage.
+   */
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
 
   return (
     <aside
@@ -133,8 +163,12 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Bottom Action Section */}
-      <NavLink item={SIGN_OUT_ITEM} isExpanded={isExpanded} />
+      {/* Bottom Action Section - Sign Out */}
+      <NavLink 
+        item={SIGN_OUT_ITEM} 
+        isExpanded={isExpanded}
+        onClick={handleSignOut}
+      />
     </aside>
   );
 }
