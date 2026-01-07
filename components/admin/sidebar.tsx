@@ -4,7 +4,7 @@ import LogoYellow from "@/assets/Logo/logo-yellow.png";
 import StarLogo from "@/assets/Logo/star-logo-yellow.png";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ComponentType, SVGProps, useMemo, useState } from "react";
 
 
@@ -12,7 +12,6 @@ import { Archive, FileText, LogOut, Upload, User, Loader2 } from "lucide-react";
 import { signOut } from "@/lib/actions";
 import { toast } from "sonner";
 
-import { Archive, FileText, LogOut, Upload, User } from "lucide-react";
 
 
 type NavItem = {
@@ -29,10 +28,9 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Content Approval", href: "/admin/approval", icon: FileText },
 ];
 
-// TODO: Add sign out functionality
 const SIGN_OUT_ITEM: NavItem = {
   label: "Sign Out",
-  href: "/",
+  href: "#",
   icon: LogOut,
   exact: true,
 };
@@ -130,6 +128,7 @@ function NavLink({
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -217,15 +216,12 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Action Section */}
-
       <NavLink 
         item={SIGN_OUT_ITEM} 
         isExpanded={isExpanded} 
         onClick={handleSignOut}
         isLoading={isSigningOut}
       />
-
-      <NavLink item={SIGN_OUT_ITEM} isExpanded={isExpanded} />
 
     </aside>
   );
