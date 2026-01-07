@@ -7,13 +7,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ComponentType, SVGProps, useMemo, useState } from "react";
 
-<<<<<<< HEAD
+
 import { Archive, FileText, LogOut, Upload, User, Loader2 } from "lucide-react";
 import { signOut } from "@/lib/actions";
 import { toast } from "sonner";
-=======
+
 import { Archive, FileText, LogOut, Upload, User } from "lucide-react";
->>>>>>> 0634da0050e0c3d6259be5ab5fa67f6e197fca70
+
 
 type NavItem = {
   label: string;
@@ -44,20 +44,20 @@ function NavLink({
   item,
   isActive = false,
   isExpanded,
-<<<<<<< HEAD
+
   onClick,
   isLoading = false,
-=======
->>>>>>> 0634da0050e0c3d6259be5ab5fa67f6e197fca70
+
+
 }: {
   item: NavItem;
   isActive?: boolean;
   isExpanded: boolean;
-<<<<<<< HEAD
+
   onClick?: () => void;
   isLoading?: boolean;
-=======
->>>>>>> 0634da0050e0c3d6259be5ab5fa67f6e197fca70
+
+
 }) {
   const Icon = item.icon;
 
@@ -87,7 +87,7 @@ function NavLink({
     opacity-0 transition-opacity duration-200 group-hover:opacity-100
   `;
 
-<<<<<<< HEAD
+
   const content = (
     <>
       {isExpanded && (
@@ -119,8 +119,8 @@ function NavLink({
     );
   }
 
-=======
->>>>>>> 0634da0050e0c3d6259be5ab5fa67f6e197fca70
+
+
   return (
     <Link href={item.href} className={containerClasses}>
       {content}
@@ -145,7 +145,7 @@ export function Sidebar() {
     return map;
   }, [pathname]);
 
-<<<<<<< HEAD
+
   /**
    * Handles admin sign out with a smooth transition.
    * Shows loading state and toast notification before redirecting.
@@ -178,8 +178,8 @@ export function Sidebar() {
     }
   };
 
-=======
->>>>>>> 0634da0050e0c3d6259be5ab5fa67f6e197fca70
+
+
   return (
     <aside
       className={`flex h-screen flex-col bg-pup-maroon text-pup-gold-light transition-all duration-300 ${isExpanded ? "w-70 p-6" : "w-24 p-4"
@@ -217,16 +217,16 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Action Section */}
-<<<<<<< HEAD
+
       <NavLink 
         item={SIGN_OUT_ITEM} 
         isExpanded={isExpanded} 
         onClick={handleSignOut}
         isLoading={isSigningOut}
       />
-=======
+
       <NavLink item={SIGN_OUT_ITEM} isExpanded={isExpanded} />
->>>>>>> 0634da0050e0c3d6259be5ab5fa67f6e197fca70
+
     </aside>
   );
 }
