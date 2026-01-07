@@ -7,7 +7,8 @@ import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SignInModal } from "./SignInModal";
 import { getCurrentUser, signOut } from "@/lib/actions";
-import { User } from "lucide-react";
+import { User, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type NavItem = {
   label: string;
@@ -70,6 +71,7 @@ export function Header({
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,7 +83,10 @@ export function Header({
     const fetchUser = async () => {
       try {
         const userData = await getCurrentUser();
-        setUser(userData);
+        // Ensure userData matches UserProfile type (username should not be null)
+        if (userData && userData.username) {
+          setUser(userData as UserProfile);
+        }
       } catch (error) {
         console.error("Failed to fetch user:", error);
       }
@@ -100,11 +105,41 @@ export function Header({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Handles user sign out with a smooth transition.
+   * Shows loading state and toast notification before redirecting.
+   */
   const handleSignOut = async () => {
-    setUser(null);
-    setIsDropdownOpen(false);
-    await signOut();
-    router.refresh();
+    try {
+      setIsSigningOut(true);
+      setIsDropdownOpen(false);
+      
+      // Show toast notification
+      toast.loading("Signing out...", { id: "signout" });
+      
+      // Perform sign out
+      await signOut();
+      
+      // Update toast to success
+      toast.success("Signed out successfully", { id: "signout" });
+      
+      // Clear user state for immediate UI update
+      setUser(null);
+      
+      // Add a small delay for smooth transition before refreshing
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      // Refresh the router to update the page
+      router.refresh();
+      
+      // Redirect to home page after refresh
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out. Please try again.", { id: "signout" });
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   const activeLookup = useMemo(() => {
@@ -219,10 +254,18 @@ export function Header({
                       User preferences
                     </button>
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-pup-maroon hover:bg-gray-100 font-medium"
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-pup-maroon hover:bg-gray-100 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleSignOut}
+                      disabled={isSigningOut}
                     >
-                      Logout
+                      {isSigningOut ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Signing out...</span>
+                        </>
+                      ) : (
+                        <span>Logout</span>
+                      )}
                     </button>
                   </div>
                 )}

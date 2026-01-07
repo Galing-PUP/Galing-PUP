@@ -4,10 +4,12 @@ import LogoYellow from "@/assets/Logo/logo-yellow.png";
 import StarLogo from "@/assets/Logo/star-logo-yellow.png";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ComponentType, SVGProps, useMemo, useState } from "react";
 
-import { Archive, FileText, LogOut, Upload, User } from "lucide-react";
+import { Archive, FileText, LogOut, Upload, User, Loader2 } from "lucide-react";
+import { signOut } from "@/lib/actions";
+import { toast } from "sonner";
 
 type NavItem = {
   label: string;
@@ -23,10 +25,9 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Content Approval", href: "/admin/approval", icon: FileText },
 ];
 
-// TODO: Add sign out functionality
 const SIGN_OUT_ITEM: NavItem = {
   label: "Sign Out",
-  href: "/",
+  href: "#",
   icon: LogOut,
   exact: true,
 };
@@ -38,10 +39,14 @@ function NavLink({
   item,
   isActive = false,
   isExpanded,
+  onClick,
+  isLoading = false,
 }: {
   item: NavItem;
   isActive?: boolean;
   isExpanded: boolean;
+  onClick?: () => void;
+  isLoading?: boolean;
 }) {
   const Icon = item.icon;
 
@@ -50,6 +55,8 @@ function NavLink({
     group relative flex items-center font-bold transition-all duration-200
     ${isExpanded ? "justify-between rounded-lg p-3 px-4" : "justify-center rounded-full p-2 w-fit mx-auto"}
     ${isActive ? "bg-pup-gold-light text-pup-maroon" : "text-pup-gold-light hover:bg-black/20 hover:text-pup-gold-dark"}
+    ${onClick ? "cursor-pointer" : ""}
+    ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
   `;
 
   // Icon container and color logic
@@ -69,21 +76,49 @@ function NavLink({
     opacity-0 transition-opacity duration-200 group-hover:opacity-100
   `;
 
-  return (
-    <Link href={item.href} className={containerClasses}>
-      {isExpanded && <span className={labelClasses}>{item.label}</span>}
+  const content = (
+    <>
+      {isExpanded && (
+        <span className={labelClasses}>
+          {isLoading && item.label === "Sign Out" ? "Signing out..." : item.label}
+        </span>
+      )}
       <div className={iconClasses}>
-        <Icon className={iconColorClasses} />
+        {isLoading && item.label === "Sign Out" ? (
+          <Loader2 className={`${iconColorClasses} animate-spin`} />
+        ) : (
+          <Icon className={iconColorClasses} />
+        )}
       </div>
       {/* Tooltip on hover when collapsed */}
-      {!isExpanded && <span className={tooltipClasses}>{item.label}</span>}
+      {!isExpanded && (
+        <span className={tooltipClasses}>
+          {isLoading && item.label === "Sign Out" ? "Signing out..." : item.label}
+        </span>
+      )}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button onClick={onClick} disabled={isLoading} className={containerClasses}>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={item.href} className={containerClasses}>
+      {content}
     </Link>
   );
 }
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Pre-calculate active status for all nav items
   const activeLookup = useMemo(() => {
@@ -96,6 +131,38 @@ export function Sidebar() {
     });
     return map;
   }, [pathname]);
+
+  /**
+   * Handles admin sign out with a smooth transition.
+   * Shows loading state and toast notification before redirecting.
+   */
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true);
+      
+      // Show toast notification
+      toast.loading("Signing out...", { id: "signout" });
+      
+      // Perform sign out
+      await signOut();
+      
+      // Update toast to success
+      toast.success("Signed out successfully", { id: "signout" });
+      
+      // Add a small delay for smooth transition before refreshing
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      
+      // Refresh the router to update the page
+      router.refresh();
+      
+      // Redirect to home page after refresh
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out. Please try again.", { id: "signout" });
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <aside
@@ -134,7 +201,12 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Action Section */}
-      <NavLink item={SIGN_OUT_ITEM} isExpanded={isExpanded} />
+      <NavLink 
+        item={SIGN_OUT_ITEM} 
+        isExpanded={isExpanded} 
+        onClick={handleSignOut}
+        isLoading={isSigningOut}
+      />
     </aside>
   );
 }
