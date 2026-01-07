@@ -35,24 +35,7 @@ export async function GET(request: NextRequest) {
     const baseUsername = email.split('@')[0].toLowerCase()
     let username = baseUsername
 
-    const existing = await prisma.user.findUnique({ 
-        where: { email },
-        select: { currentRoleId: true }
-    })
-
-    // Check if user is an admin (Role ID 3 or 4) - admins cannot sign in with Google
-    if (existing && [3, 4].includes(existing.currentRoleId)) {
-        // Sign out the user immediately
-        await supabase.auth.signOut()
-
-        if (isPopup) {
-            return new NextResponse(
-                `<script>window.opener.postMessage({ type: 'OAUTH_ERROR', message: 'Admin users cannot sign in with Google. Please use email and password.' }, '*'); window.close();</script>`,
-                { headers: { 'Content-Type': 'text/html' } }
-            )
-        }
-        return NextResponse.redirect(`${requestUrl.origin}/signin?error=AdminCannotUseGoogle`)
-    }
+    const existing = await prisma.user.findUnique({ where: { email } })
 
     // If intent is signin, user MUST exist
     if (intent === 'signin' && !existing) {
@@ -83,12 +66,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Step 2: Handle user data in our database
-    // Re-fetch user with all needed fields
-    const userRecord = await prisma.user.findUnique({ where: { email } })
-    
     // If user exists, update supabaseAuthId if missing
-    if (userRecord) {
-        if (!userRecord.supabaseAuthId) {
+    if (existing) {
+        if (!existing.supabaseAuthId) {
             await prisma.user.update({
                 where: { email },
                 data: { supabaseAuthId: user.id }

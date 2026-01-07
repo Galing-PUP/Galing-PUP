@@ -123,25 +123,12 @@ export async function createUserInDb(email: string, username: string, supabaseAu
 }
 
 /**
- * Gets the user's email from an identifier (email or username).
- * Used to resolve email for Supabase Auth when user enters username.
- * @param identifier The email or username of the user.
- * @returns The user's email or null if not found.
+ * Verifies user credentials by comparing password hash.
  */
-export async function getUserEmail(identifier: string) {
-    const user = await prisma.user.findFirst({
-        where: {
-            OR: [
-                { email: identifier.toLowerCase() },
-                { username: identifier },
-            ],
-        },
-        select: { email: true },
-    });
-
-    return user?.email || null;
-}
-
+/**
+ * Verifies user credentials by comparing password hash.
+ * Accepts either email or username.
+ */
 export async function verifyCredentials(identifier: string, password: string) {
     const user = await prisma.user.findFirst({
         where: {

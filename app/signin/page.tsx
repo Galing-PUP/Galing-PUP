@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { signInWithGooglePopup } from "@/lib/auth";
-import { checkUserStatus, verifyCredentials, getUserEmail } from "@/lib/actions";
+import { checkUserStatus, verifyCredentials } from "@/lib/actions";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -22,16 +22,6 @@ export default function SignInPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      // Check if user is trying to login as admin via Google
-      // Note: Admin users cannot sign in with Google
-      if (email) {
-        const status = await checkUserStatus(email);
-        if (status.exists && status.isAdmin) {
-          toast.error("Admin users cannot sign in with Google. Please use email and password.");
-          return;
-        }
-      }
-      
       await signInWithGooglePopup("signin");
       toast.success("Signed in successfully");
       router.push("/");
@@ -57,53 +47,9 @@ export default function SignInPage() {
       }
 
       // Check if user is an admin (Role ID 3 or 4)
-      // If admin, proceed with admin login flow and redirect to admin publication
       if (status.isAdmin) {
-        // Step 2: Get the user's email (in case they entered username)
-        const userEmail = await getUserEmail(email);
-        if (!userEmail) {
-          toast.error("User email not found");
-          setLoading(false);
-          return;
-        }
-
-        // Step 3: Verify credentials against the database hash
-        const isValid = await verifyCredentials(email, password);
-        if (!isValid) {
-          toast.error("Invalid password please try again");
-          setLoading(false);
-          return;
-        }
-
-        // Step 4: Attempt to sign in with Supabase (requires email)
-        const supabase = createClient();
-        const { error } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password,
-        });
-
-        if (error) {
-          toast.error(error.message || "Authentication failed");
-          setLoading(false);
-          return;
-        }
-
-        // Step 5: Check if user is verified
-        if (!status.isVerified) {
-          await supabase.auth.signOut(); // Security: Sign out if not verified
-          if (status.updatedDate) {
-            toast.error("Your account has been put ON HOLD, please contact the support team");
-          } else {
-            toast.message("Your request is kindly processing, please wait for admin approval");
-          }
-          setLoading(false);
-          return;
-        }
-
-        // Success: Redirect to admin publication page
-        toast.success("Signed in successfully");
-        router.push("/admin/publication");
-        router.refresh();
+        toast.error("Please login using the admin portal");
+        setLoading(false);
         return;
       }
 
@@ -121,15 +67,7 @@ export default function SignInPage() {
         return;
       }
 
-      // Step 2: Get the user's email (in case they entered username)
-      const userEmail = await getUserEmail(email);
-      if (!userEmail) {
-        toast.error("User email not found");
-        setLoading(false);
-        return;
-      }
-
-      // Step 3: Verify credentials against the database hash
+      // Step 2: Verify credentials against the database hash
       const isValid = await verifyCredentials(email, password);
       if (!isValid) {
         toast.error("Invalid password please try again");
@@ -137,10 +75,10 @@ export default function SignInPage() {
         return;
       }
 
-      // Step 4: Attempt to sign in with Supabase (requires email)
+      // Step 3: Attempt to sign in with Supabase
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({
-        email: userEmail,
+        email,
         password,
       });
 
