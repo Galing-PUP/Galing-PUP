@@ -91,7 +91,7 @@ async function main() {
       passwordHash: faker.internet.password(),
       registrationDate: faker.date.past({ years: 1 }),
       updatedDate: null,
-      status: faker.helpers.arrayElement(Object.values(UserStatus)), // APPROVED or PENDING remove DELETED
+      status: faker.helpers.arrayElement([UserStatus.PENDING, UserStatus.APPROVED]), // Exclude DELETED
       tierId: faker.helpers.arrayElement([1, 2]),
     };
     fakeUsers.push(fakeUser);

@@ -42,7 +42,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
         name: "",
         email: "",
         collegeId: undefined, // Optional
-        uploadId: undefined   // Optional
+        idNumber: undefined,
+        idImagePath: undefined   // Optional
       };
       setFormData(defaults);
       setInitialData(defaults);
@@ -65,7 +66,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
       status: formData.status || "Pending",
       subscriptionTier: formData.subscriptionTier || 1, // Default to Free
       collegeId: formData.collegeId,
-      uploadId: formData.uploadId,
+      idImagePath: formData.idImagePath,
     };
 
     if (formData.password) {
@@ -133,10 +134,10 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
   const title = user ? "Edit User Information" : "Add New User";
   const description = user ? "Update the user's details and save the changes." : "Fill in the details to add a new user.";
 
-  // Construct image URL if uploadId is a path
-  const imageUrl = user?.uploadId && !user.uploadId.startsWith('http')
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ID_UPLOAD/${user.uploadId}`
-    : user?.uploadId;
+  // Construct image URL if idImagePath is a path
+  const imageUrl = user?.idImagePath && !user.idImagePath.startsWith('http')
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ID_UPLOAD/${user.idImagePath}`
+    : user?.idImagePath;
 
 
   return (
@@ -324,7 +325,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
               <input
                 type="text"
                 readOnly
-                value={selectedFile ? selectedFile.name : (formData.uploadId ? "Existing file" : "No file chosen")}
+                value={selectedFile ? selectedFile.name : (formData.idImagePath ? "Existing file" : "No file chosen")}
                 placeholder="No file chosen"
                 className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
               />
