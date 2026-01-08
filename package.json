@@ -38,12 +38,13 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.2.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/bun": "latest",
     "@types/node": "^24.10.1",
-    "baseline-browser-mapping": "^2.8.32",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "baseline-browser-mapping": "^2.8.32",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.1",
     "prisma": "^7.1.0",
