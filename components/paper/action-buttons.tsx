@@ -62,7 +62,7 @@ export function ActionButtons({
   title,
   citation,
 }: ActionButtonsProps) {
-  const { isBookmarked, addToLibrary, removeFromLibrary, maxBookmarks } =
+  const { isBookmarked, addToLibrary, removeFromLibrary, maxBookmarks, isAuthenticated } =
     useLibrary();
   const isInLibrary = isBookmarked(paperId);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -111,6 +111,11 @@ export function ActionButtons({
   };
 
   const handleDownloadClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to download documents");
+      return;
+    }
+
     if (!pdfUrl) {
       alert("PDF is not available for this document.");
       return;
