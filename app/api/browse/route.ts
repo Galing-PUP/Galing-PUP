@@ -5,6 +5,7 @@ type SearchResult = {
   id: number;
   title: string;
   authors: string[];
+  authorEmails: string[];
   additionalAuthors: number;
   field: string;
   date: string;
@@ -112,13 +113,16 @@ export async function GET(req: NextRequest) {
 
   const results: SearchResult[] = docs.map((doc) => {
     const allAuthors = doc.authors.map((a) => a.author.fullName);
+    const allAuthorEmails = doc.authors.map((a) => a.author.email);
     const authors = allAuthors.slice(0, 3);
+    const authorEmails = allAuthorEmails.slice(0, 3);
     const additionalAuthors = Math.max(0, allAuthors.length - authors.length);
 
     return {
       id: doc.id,
       title: doc.title,
       authors,
+      authorEmails,
       additionalAuthors,
       field: doc.course?.courseName ?? "Unknown",
       date: new Date(doc.datePublished).toLocaleDateString("en-US", {

@@ -56,6 +56,10 @@ export default async function PaperPage(props: PaperPageProps) {
     .sort((a, b) => a.authorOrder - b.authorOrder)
     .map((a) => a.author.fullName);
 
+  const authorEmails = document.authors
+    .sort((a, b) => a.authorOrder - b.authorOrder)
+    .map((a) => a.author.email);
+
   const yearPublished = document.datePublished.getFullYear().toString();
   const courseName = document.course.courseName;
   const department =
@@ -74,7 +78,6 @@ export default async function PaperPage(props: PaperPageProps) {
 
   return (
     <div className="min-h-screen">
-
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Left Column */}
@@ -84,6 +87,7 @@ export default async function PaperPage(props: PaperPageProps) {
               <HeaderInfo
                 title={document.title}
                 authors={authors}
+                authorEmails={authorEmails}
                 documentType={documentType}
                 yearPublished={yearPublished}
                 courseName={courseName}

@@ -1,10 +1,10 @@
-
 import Link from "next/link";
 
 type SearchResult = {
   id: number;
   title: string;
   authors: string[];
+  authorEmails: string[];
   additionalAuthors: number;
   field: string;
   date: string;
@@ -40,7 +40,9 @@ export function SearchResultCard({
             {result.authors.map((author, index) => (
               <span key={index}>
                 <a
-                  href="#"
+                  href={`mailto:${result.authorEmails[index]}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="underline hover:text-[#6b0504] transition-colors"
                 >
                   {author}
@@ -52,14 +54,17 @@ export function SearchResultCard({
               <span>
                 ,{" "}
                 <a
-                  href="#"
+                  href={`/paper/${result.id}`}
                   className="underline hover:text-[#6b0504] transition-colors"
                 >
                   +{result.additionalAuthors} more authors
                 </a>
               </span>
             )}
-            <span> • {result.field} • {result.date}</span>
+            <span>
+              {" "}
+              • {result.field} • {result.date}
+            </span>
           </div>
 
           {/* Abstract */}
@@ -83,4 +88,3 @@ export function SearchResultCard({
 }
 
 export default SearchResultCard;
-
