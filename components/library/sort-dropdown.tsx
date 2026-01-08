@@ -22,6 +22,7 @@ export type LibrarySortOption =
 type SortDropdownProps = {
   value: LibrarySortOption;
   onChange: (value: LibrarySortOption) => void;
+  disabled?: boolean;
 };
 
 const sortOptions = [
@@ -63,7 +64,7 @@ const sortOptions = [
   },
 ];
 
-export function LibrarySortDropdown({ value, onChange }: SortDropdownProps) {
+export function LibrarySortDropdown({ value, onChange, disabled = false }: SortDropdownProps) {
   const currentOption = sortOptions.find((opt) => opt.value === value);
 
   return (
@@ -71,7 +72,8 @@ export function LibrarySortDropdown({ value, onChange }: SortDropdownProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+          className="flex items-center gap-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={disabled}
         >
           {currentOption && <currentOption.icon className="h-4 w-4" />}
           <span className="hidden sm:inline">Sort:</span>
