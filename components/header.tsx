@@ -195,15 +195,7 @@ export function Header({
 
           {/* Authentication Buttons or User Profile */}
           <div className="hidden items-center justify-self-end gap-4 md:flex col-start-3 col-end-4">
-            {isSigningOut ? (
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col items-end gap-1">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-                <Skeleton className="h-10 w-10 rounded-full" />
-              </div>
-            ) : user ? (
+            {user ? (
               <div
                 className="flex items-center gap-3 relative"
                 ref={dropdownRef}
