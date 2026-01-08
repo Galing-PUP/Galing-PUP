@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { prisma } from "@/lib/db";
 import { hash, compare } from "bcrypt";
+import { RoleName, UserStatus } from "@/lib/generated/prisma/enums";
 
 // ---------------------------------------------------------
 // TEST DATA & MEMORY
@@ -24,12 +25,7 @@ describe("User Model Advanced Tests (camelCase Prisma client)", () => {
   // SETUP: FETCH DEPENDENCIES & CLEANUP
   // ---------------------------------------------------------
   beforeAll(async () => {
-    // 1. Fetch Default Role (e.g. Viewer/Registered)
-    const role = await prisma.role.findFirst();
-    if (!role) throw new Error("Database Error: No roles seeded.");
-    defaultRoleId = role.id;
-
-    // 2. Fetch Default Tier (Free)
+    // 1. Fetch Default Tier (Free)
     const freeTier =
       (await prisma.subscriptionTier.findFirst({
         where: { tierName: { contains: "Free", mode: "insensitive" } },
@@ -38,14 +34,14 @@ describe("User Model Advanced Tests (camelCase Prisma client)", () => {
     if (!freeTier) throw new Error("Database Error: No tiers seeded.");
     defaultTierId = freeTier.id;
 
-    // 3. Fetch an "Upgrade" Tier (Any tier that isn't the default one)
+    // 2. Fetch an "Upgrade" Tier (Any tier that isn't the default one)
     const paidTier = await prisma.subscriptionTier.findFirst({
       where: { id: { not: defaultTierId } },
     });
     // If no paid tier exists, fallback to default (test will pass but strictly won't "change" tier)
     upgradeTierId = paidTier ? paidTier.id : defaultTierId;
 
-    // 4. Cleanup Stale Data
+    // 3. Cleanup Stale Data
     const existing = await prisma.user.findFirst({
       where: {
         OR: [{ username: TEST_USER.username }, { email: TEST_USER.email }],
@@ -80,8 +76,8 @@ describe("User Model Advanced Tests (camelCase Prisma client)", () => {
         email: TEST_USER.email,
         passwordHash: hashedPassword,
         registrationDate: TEST_REGISTRATION_DATE,
-        isVerified: true,
-        currentRoleId: defaultRoleId,
+        status: UserStatus.APPROVED,
+        role: RoleName.REGISTERED,
         tierId: defaultTierId,
       },
     });
@@ -154,8 +150,8 @@ describe("User Model Advanced Tests (camelCase Prisma client)", () => {
         email: "different_email@gmail.com",
         passwordHash: "123",
         registrationDate: new Date(),
-        isVerified: true,
-        currentRoleId: defaultRoleId,
+        status: UserStatus.APPROVED,
+        role: RoleName.REGISTERED,
         tierId: defaultTierId,
       },
     });
@@ -169,8 +165,8 @@ describe("User Model Advanced Tests (camelCase Prisma client)", () => {
         email: TEST_USER.email, // DUPLICATE
         passwordHash: "123",
         registrationDate: new Date(),
-        isVerified: true,
-        currentRoleId: defaultRoleId,
+        status: UserStatus.APPROVED,
+        role: RoleName.REGISTERED,
         tierId: defaultTierId,
       },
     });
@@ -189,44 +185,42 @@ describe("User Model Advanced Tests (camelCase Prisma client)", () => {
     expect(updated.tierId).toBe(defaultTierId);
   });
 
-  test("Should fail when updating to an invalid Role ID", async () => {
-    const invalidRoleID = 999999;
+  test("Should fail when updating to an invalid Role", async () => {
+    const invalidRole = "INVALID_ROLE" as RoleName;
     const attempt = prisma.user.update({
       where: { id: TEST_USER_ID! },
-      data: { currentRoleId: invalidRoleID },
+      data: { role: invalidRole },
     });
     expect(Promise.resolve(attempt)).rejects.toThrow();
   });
 
-  test("Update ID on Admin Role and Verify", async () => {
-    // 1. Update Role
+  test("Update Role to ADMIN and Verify", async () => {
+    // Update Role
     const updated = await prisma.user.update({
       where: { id: TEST_USER_ID! },
-      data: { currentRoleId: defaultRoleId },
+      data: { role: RoleName.ADMIN },
     });
-    expect(updated.currentRoleId).toBe(defaultRoleId);
+    expect(updated.role).toBe(RoleName.ADMIN);
 
-    // 2. Query Role relation to verify existence
+    // Verify role is stored correctly
     const userWithRole = await prisma.user.findUnique({
       where: { id: TEST_USER_ID! },
-      include: { role: true },
     });
 
     expect(userWithRole?.role).toBeDefined();
-    expect(userWithRole?.role.id).toBe(defaultRoleId);
+    expect(userWithRole?.role).toBe(RoleName.ADMIN);
   });
 
-  test("Verify Role relation works correctly", async () => {
-    const userWithRole = await prisma.user.findUnique({
+  test("Verify Role enum works correctly", async () => {
+    const user = await prisma.user.findUnique({
       where: { id: TEST_USER_ID! },
-      include: { role: true },
     });
 
-    expect(userWithRole).not.toBeNull();
-    expect(userWithRole?.role).toBeDefined();
-    expect(userWithRole?.role.id).toBe(defaultRoleId);
+    expect(user).not.toBeNull();
+    expect(user?.role).toBeDefined();
+    expect(user?.role).toBe(RoleName.ADMIN);
 
-    console.log("Verified User Role:", userWithRole?.role?.roleName);
+    console.log("Verified User Role:", user?.role);
   });
 
   // ---------------------------------------------------------
