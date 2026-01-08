@@ -54,7 +54,6 @@ export async function getAuthenticatedUser() {
       },
       include: {
         subscriptionTier: true,
-        role: true,
       },
     });
 

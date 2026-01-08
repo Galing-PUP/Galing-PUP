@@ -42,7 +42,6 @@ export async function GET(request: NextRequest) {
                 college: true,
               },
             },
-            resourceType: true,
           },
         },
       },
@@ -65,7 +64,7 @@ export async function GET(request: NextRequest) {
         authors: bookmark.document.authors.map((da) => da.author.fullName),
         course: bookmark.document.course.courseName,
         college: bookmark.document.course.college.collegeName,
-        resourceType: bookmark.document.resourceType.typeName,
+        resourceType: bookmark.document.resourceType, // Now an enum, not a relation
         filePath: bookmark.document.filePath,
       },
     }));

@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { UserStatus } from "@/lib/generated/prisma/enums";
 
 export async function GET() {
     try {
-        const [totalUsers, pendingApproval, totalTiers] = await Promise.all([
+        const [totalUsers, pendingRequests, totalTiers] = await Promise.all([
             prisma.user.count(),
             prisma.user.count({
-                where: { isVerified: false },
+                where: { status: UserStatus.PENDING },
             }),
             prisma.subscriptionTier.count(),
         ]);
 
         return NextResponse.json({
             totalUsers,
-            pendingApproval,
+            pendingRequests,
             totalTiers,
         });
     } catch (error) {
