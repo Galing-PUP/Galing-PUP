@@ -4,22 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-
+import { getAuthenticatedUser } from "@/lib/auth/server";
 
 /**
  * Fetches the currently authenticated user's profile, including their subscription tier.
  * @returns The user profile object or null if not authenticated.
  */
 export async function getCurrentUser() {
-    const supabase = await createClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-
-    if (!authUser) return null;
-
-    const user = await prisma.user.findUnique({
-        where: { supabaseAuthId: authUser.id },
-        include: { subscriptionTier: true },
-    });
+    const user = await getAuthenticatedUser();
 
     if (!user) return null;
 

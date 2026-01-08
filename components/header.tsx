@@ -54,7 +54,7 @@ const DEFAULT_PRIMARY_ACTION: ActionLink = {
 /**
  * Header component that displays navigation, authentication buttons, or user profile.
  * Handles responsive design and user session state.
- * 
+ *
  * @param props - The component props.
  * @returns The rendered Header component.
  */
@@ -92,7 +92,10 @@ export function Header({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -104,6 +107,7 @@ export function Header({
     setUser(null);
     setIsDropdownOpen(false);
     await signOut();
+    router.push("/");
     router.refresh();
   };
 
@@ -132,9 +136,14 @@ export function Header({
   };
 
   // hides the header for admin pages, sign in, and sign up pages
-  if (pathname.startsWith("/admin") || pathname === "/signin" ||
-    pathname === "/signup" || pathname === "/verify-otp" ||
-    pathname === "/forgot-password" || pathname === "/update-password") {
+  if (
+    pathname.startsWith("/admin") ||
+    pathname === "/signin" ||
+    pathname === "/signup" ||
+    pathname === "/verify-otp" ||
+    pathname === "/forgot-password" ||
+    pathname === "/update-password"
+  ) {
     return null;
   }
 
@@ -171,10 +180,11 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={`pb-1 transition-colors duration-200
-                  ${isActive
+                  ${
+                    isActive
                       ? "font-medium border-b-2 border-pup-gold-light text-pup-maroon"
                       : "text-gray-500 hover:text-gray-900"
-                    }
+                  }
                 `}
                 >
                   {item.label}
@@ -185,8 +195,19 @@ export function Header({
 
           {/* Authentication Buttons or User Profile */}
           <div className="hidden items-center justify-self-end gap-4 md:flex col-start-3 col-end-4">
-            {user ? (
-              <div className="flex items-center gap-3 relative" ref={dropdownRef}>
+            {isSigningOut ? (
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-end gap-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+            ) : user ? (
+              <div
+                className="flex items-center gap-3 relative"
+                ref={dropdownRef}
+              >
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-semibold text-neutral-900 leading-tight">
                     {user.username}
