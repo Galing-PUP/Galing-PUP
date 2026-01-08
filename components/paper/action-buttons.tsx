@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Library, Quote, Share2, Share } from "lucide-react";
+import { Download, Library, Quote, Share2 } from "lucide-react";
 import React, { useState } from "react";
 import { useLibrary } from "@/lib/hooks/useLibrary";
 import { toast } from "sonner";
@@ -323,16 +323,6 @@ export function ActionButtons({
           </div>
         </div>
       )}
-      {/* Standalone Share icon from image */}
-      <div className="mt-4 flex justify-center">
-        <button
-          type="button"
-          className="rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-          aria-label="Share"
-        >
-          <Share className="h-5 w-5" />
-        </button>
-      </div>
     </>
   );
 }
