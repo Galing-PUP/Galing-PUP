@@ -15,22 +15,24 @@ model User {
   id               Int       @id @default(autoincrement()) @map("user_id")
   // supabase OAuth link
   supabaseAuthId   String?   @unique @map("supabase_uid") @db.Uuid
-  fullname         String?   @db.VarChar(255)
-  username         String?   @unique @db.VarChar(255)
-  email            String    @unique @db.VarChar(255)
-  passwordHash     String?   @map("password_hash") @db.VarChar(255)
+  fullname         String?   @db.Text
+  username         String?   @unique @db.Text
+  role             RoleName  @default(REGISTERED)
+  email            String    @unique @db.Text
+  passwordHash     String?   @map("password_hash") @db.Text
   registrationDate DateTime  @map("registration_date") @db.Date
-  isVerified       Boolean   @default(false) @map("is_verified")
-  idNumber         String?   @map("id_number") @db.VarChar(100)
-  uploadId         String?   @map("upload_id") @db.VarChar(255)
   updatedDate      DateTime? @map("updated_date") @db.Date
 
+  // Verification
+  status      UserStatus @default(PENDING) @map("status")
+  idNumber    String?    @map("id_number") @db.Text
+  idImagePath String?    @map("id_image") @db.Text
+
   // Foreign Keys (CamelCase in Code -> Snake_case in DB)
-  currentRoleId    Int              @map("current_role_id")
-  tierId           Int              @map("tier_id")
-  collegeId        Int?             @map("college_id")
+  tierId    Int  @map("tier_id")
+  collegeId Int? @map("college_id")
+
   // Relations
-  role             Role             @relation(fields: [currentRoleId], references: [id])
   subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
   college          College?         @relation(fields: [collegeId], references: [id])
 
@@ -42,27 +44,35 @@ model User {
   @@map("users")
 }
 
-model Role {
-  id       Int    @id @default(autoincrement()) @map("role_id")
-  roleName String @map("role_name") @db.VarChar(255)
+enum RoleName {
+  REGISTERED
+  ADMIN
+  SUPERADMIN
+}
 
-  users User[]
-
-  @@map("roles")
+enum UserStatus {
+  PENDING
+  APPROVED
+  DELETED
 }
 
 model SubscriptionTier {
-  id                 Int     @id @default(autoincrement()) @map("tier_id")
-  tierName           String  @map("tier_name") @db.VarChar(255)
-  dailyDownloadLimit Int     @map("daily_download_limit")
-  dailyCitationLimit Int     @map("daily_citation_limit")
-  maxBookmarks       Int     @map("max_bookmarks")
-  hasAds             Boolean @map("has_ads")
-  hasAiInsights      Boolean @map("has_ai_insights")
+  id                 Int      @id @default(autoincrement()) @map("tier_id")
+  tierName           TierName @default(FREE) @map("tier_name")
+  dailyDownloadLimit Int      @map("daily_download_limit")
+  dailyCitationLimit Int      @map("daily_citation_limit")
+  maxBookmarks       Int      @map("max_bookmarks")
+  hasAds             Boolean  @map("has_ads")
+  hasAiInsights      Boolean  @map("has_ai_insights")
 
   users User[]
 
   @@map("subscription_tiers")
+}
+
+enum TierName {
+  FREE
+  PAID
 }
 
 // ---------------------------------------------------------
@@ -70,35 +80,47 @@ model SubscriptionTier {
 // ---------------------------------------------------------
 
 model Document {
-  id             Int      @id @default(autoincrement()) @map("document_id")
-  title          String   @db.VarChar(255)
-  abstract       String   @db.Text
-  filePath       String   @map("file_path") @db.VarChar(255)
-  datePublished  DateTime @map("date_published") @db.Date
-  visibility     String   @db.VarChar(50) // 'Public' or 'Restricted'
-  downloadsCount Int      @default(0) @map("downloads_count")
-  citationCount  Int      @default(0) @map("citation_count")
-  aiSummary      String?  @map("ai_summary") @db.Text
-  aiInsights     String?  @map("ai_insights") @db.Text
+  id             Int           @id @default(autoincrement()) @map("document_id")
+  title          String        @unique @db.Text
+  abstract       String        @db.Text
+  filePath       String        @map("file_path") @db.Text
+  datePublished  DateTime?     @map("date_published") @db.Date
+  status         DocStatus     @default(PENDING)
+  resourceType   ResourceTypes @default(THESIS) @map("resource_type")
+  downloadsCount Int           @default(0) @map("downloads_count")
+  citationCount  Int           @default(0) @map("citation_count")
+  aiSummary      String?       @map("ai_summary") @db.Text
 
   // Foreign Keys
-  uploaderId     Int @map("uploader_id")
-  courseId       Int @map("course_id")
-  resourceTypeId Int @map("resource_type_id")
-  libraryId      Int @map("library_id")
+  uploaderId Int @map("uploader_id")
+  courseId   Int @map("course_id")
 
   // Relations
-  uploader     User         @relation("UserUploads", fields: [uploaderId], references: [id])
-  course       Course       @relation(fields: [courseId], references: [id])
-  resourceType ResourceType @relation(fields: [resourceTypeId], references: [id])
-  library      Library      @relation(fields: [libraryId], references: [id])
+  uploader User   @relation("UserUploads", fields: [uploaderId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
 
   bookmarks    UserBookmark[]
   authors      DocumentAuthor[]
   keywords     DocumentKeyword[]
   activityLogs ActivityLog[]
 
+  @@index([title])
   @@map("documents")
+}
+
+enum DocStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DELETED
+}
+
+enum ResourceTypes {
+  THESIS
+  CAPSTONE
+  DISSERTATION
+  ARTICLE
+  RESEARCH_PAPER
 }
 
 model UserBookmark {
@@ -126,9 +148,12 @@ model DocumentAuthor {
 }
 
 model Author {
-  id       Int    @id @default(autoincrement()) @map("author_id")
-  fullName String @map("full_name") @db.VarChar(255)
-  email    String @db.VarChar(255)
+  id         Int     @id @default(autoincrement()) @map("author_id")
+  firstName  String  @map("first_name") @db.Text
+  middleName String? @map("middle_name") @db.Text
+  lastName   String  @map("last_name") @db.Text
+  fullName   String  @map("full_name") @db.Text
+  email      String  @db.Text
 
   documents DocumentAuthor[]
 
@@ -148,7 +173,7 @@ model DocumentKeyword {
 
 model Keyword {
   id          Int    @id @default(autoincrement()) @map("keyword_id")
-  keywordText String @unique @map("keyword_text") @db.VarChar(255)
+  keywordText String @unique @map("keyword_text") @db.Text
 
   documents DocumentKeyword[]
 
@@ -161,8 +186,8 @@ model Keyword {
 
 model Course {
   id         Int    @id @default(autoincrement()) @map("course_id")
-  courseName String @map("course_name") @db.VarChar(255)
-  courseAbbr String @map("course_abbr") @db.VarChar(50)
+  courseName String @map("course_name") @db.Text
+  courseAbbr String @map("course_abbr") @db.Text
   collegeId  Int    @map("college_id")
 
   college   College    @relation(fields: [collegeId], references: [id])
@@ -173,31 +198,13 @@ model Course {
 
 model College {
   id          Int    @id @default(autoincrement()) @map("college_id")
-  collegeName String @unique @map("college_name") @db.VarChar(255)
-  collegeAbbr String @unique @map("college_abbr") @db.VarChar(50)
+  collegeName String @unique @map("college_name") @db.Text
+  collegeAbbr String @unique @map("college_abbr") @db.Text
 
   courses Course[]
   users   User[]
 
   @@map("colleges")
-}
-
-model ResourceType {
-  id       Int    @id @default(autoincrement()) @map("resource_type_id")
-  typeName String @map("type_name") @db.VarChar(255)
-
-  documents Document[]
-
-  @@map("resource_types")
-}
-
-model Library {
-  id   Int    @id @default(autoincrement()) @map("library_id")
-  name String @db.VarChar(255)
-
-  documents Document[]
-
-  @@map("libraries")
 }
 
 // ---------------------------------------------------------
@@ -208,7 +215,7 @@ model ActivityLog {
   id           BigInt   @id @default(autoincrement()) @map("log_id")
   userId       Int      @map("user_id")
   documentId   Int?     @map("document_id")
-  activityType String   @map("activity_type") @db.VarChar(255)
+  activityType String   @map("activity_type") @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
 
   user     User      @relation(fields: [userId], references: [id])
