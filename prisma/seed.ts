@@ -169,11 +169,17 @@ async function main() {
   console.log("Seeding Documents...");
   const fakeDocs: DocumentCreateManyInput[] = [];
   for (let i = 0; i < 30; i++) {
+    // Generate submission date first (older date)
+    const submissionDate = faker.date.past({ years: 10 });
+    // Published date should be after submission (between submission and now)
+    const datePublished = faker.date.between({ from: submissionDate, to: new Date() });
+    
     const fakeDoc: DocumentCreateManyInput = {
       title: faker.lorem.sentence(),
       abstract: faker.lorem.paragraph({ min: 4, max: 7 }),
       filePath: faker.system.commonFileName("pdf"),
-      datePublished: faker.date.past({ years: 10 }),
+      datePublished,
+      submissionDate,
       status: faker.helpers.arrayElement(Object.values(DocStatus)),
       resourceType: faker.helpers.arrayElement(Object.values(ResourceTypes)),
       downloadsCount: faker.number.int({ min: 0, max: 1000 }),
