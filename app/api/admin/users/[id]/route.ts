@@ -1,20 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { RoleName, UserStatus } from "@/lib/generated/prisma/enums";
 import { hash } from "bcryptjs";
 
 
-/**
- * helper function to get role id by role name
- * @param roleName - The role name
- * @returns The role id
- */
-async function getRoleId(roleName: string) {
-    const role = await prisma.role.findFirst({
-        where: { roleName: roleName },
-    });
-    return role?.id;
-}
 
 /**
  * @param request - The incoming request
@@ -142,19 +132,19 @@ export async function PATCH(
         const password = formData.get("password") as string;
         const file = formData.get("idImage") as File | null;
 
-        const roleId = await getRoleId(role);
-        if (!roleId) {
-            return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-        }
+        // Resolve Role from string to enum
+        let roleEnum: RoleName = RoleName.REGISTERED; // Default
+        if (role === "ADMIN") roleEnum = RoleName.ADMIN;
+        else if (role === "SUPERADMIN") roleEnum = RoleName.SUPERADMIN;
 
         const updateData: any = {
             username: name,
             fullname: fullname,
             email: email,
             collegeId: collegeId, // Can be null/undefined logic depending on requirement, here allowing undefined/null
-            currentRoleId: roleId,
+            role: roleEnum,
             tierId: subscriptionTier ? parseInt(subscriptionTier as string) : undefined,
-            isVerified: status === "Accepted",
+            status: status === "Accepted" ? UserStatus.APPROVED : UserStatus.PENDING,
             updatedDate: new Date(),
         };
 
@@ -167,7 +157,7 @@ export async function PATCH(
             // Check if user has an existing uploaded image
             const currentUser = await prisma.user.findUnique({
                 where: { id },
-                select: { uploadId: true }
+                select: { idImagePath: true }
             });
 
             const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
@@ -185,10 +175,10 @@ export async function PATCH(
             }
 
             // If upload successful and there was an old image, delete the old one
-            if (currentUser?.uploadId) {
+            if (currentUser?.idImagePath) {
                 const { error: deleteError } = await supabaseAdmin.storage
                     .from(ID_UPLOAD_BUCKET)
-                    .remove([currentUser.uploadId]);
+                    .remove([currentUser.idImagePath]);
 
                 if (deleteError) {
                     // Log error but don't fail the request, as the new image is already uploaded
@@ -196,7 +186,7 @@ export async function PATCH(
                 }
             }
 
-            updateData.uploadId = uploadData.path;
+            updateData.idImagePath = uploadData.path;
         }
 
 
@@ -227,9 +217,6 @@ export async function PATCH(
         const updatedUser = await prisma.user.update({
             where: { id },
             data: updateData,
-            include: {
-                role: true,
-            },
         });
 
         return NextResponse.json({
@@ -237,11 +224,11 @@ export async function PATCH(
             name: updatedUser.username,
             fullname: updatedUser.fullname,
             email: updatedUser.email,
-            role: updatedUser.role.roleName,
-            status: updatedUser.isVerified ? "Accepted" : "Pending",
+            role: updatedUser.role,
+            status: updatedUser.status === UserStatus.APPROVED ? "Accepted" : "Pending",
             subscriptionTier: updatedUser.tierId,
             collegeId: updatedUser.collegeId,
-            uploadId: updatedUser.uploadId,
+            idImagePath: updatedUser.idImagePath,
             registrationDate: updatedUser.registrationDate.toISOString().split('T')[0],
         });
     } catch (error) {

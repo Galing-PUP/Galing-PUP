@@ -18,12 +18,13 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { FilterX } from "lucide-react";
+import { ResourceTypes } from "@/lib/generated/prisma/enums";
+import { formatResourceType } from "@/lib/utils/format";
 
 export type FilterValues = {
-  campus: string;
   course: string;
   year: string;
-  documentType: string;
+  documentType: ResourceTypes | "All Types";
 };
 
 type FilterBoxProps = {
@@ -35,7 +36,6 @@ type FilterBoxProps = {
 };
 
 const DEFAULT_FILTERS: FilterValues = {
-  campus: "All Campuses",
   course: "All Courses",
   year: "All Years",
   documentType: "All Types",
@@ -66,8 +66,15 @@ export function FilterBox({
   ).length;
 
   return (
-    <Card className={`w-full overflow-hidden border-none shadow-none ${className}`}>
-      <Accordion type="single" collapsible defaultValue="filters" className="w-full">
+    <Card
+      className={`w-full overflow-hidden border-none shadow-none ${className}`}
+    >
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="filters"
+        className="w-full"
+      >
         <AccordionItem value="filters" className="border-none">
           <AccordionTrigger className="px-4 py-2 hover:no-underline [&[data-state=open]]:text-pup-maroon">
             <span className="flex items-center gap-2 text-lg font-semibold text-pup-maroon">
@@ -81,28 +88,14 @@ export function FilterBox({
           </AccordionTrigger>
           <AccordionContent className="px-1 pb-4">
             <div className="space-y-4 px-1">
-              {/* Campus Filter */}
-              <div className="space-y-2">
-                <Label htmlFor="campus-filter" className="text-xs font-semibold uppercase text-muted-foreground">Campus</Label>
-                <Select
-                  value={filters.campus}
-                  onValueChange={(value) => handleValueChange("campus", value)}
-                >
-                  <SelectTrigger id="campus-filter" className="w-full">
-                    <SelectValue placeholder="Select Campus" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All Campuses">All Campuses</SelectItem>
-                    <SelectItem value="Main Campus">Main Campus</SelectItem>
-                    <SelectItem value="Branch Campus 1">Branch Campus 1</SelectItem>
-                    <SelectItem value="Branch Campus 2">Branch Campus 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               {/* Course Filter */}
               <div className="space-y-2">
-                <Label htmlFor="course-filter" className="text-xs font-semibold uppercase text-muted-foreground">Course</Label>
+                <Label
+                  htmlFor="course-filter"
+                  className="text-xs font-semibold uppercase text-muted-foreground"
+                >
+                  Course
+                </Label>
                 <Select
                   value={filters.course}
                   onValueChange={(value) => handleValueChange("course", value)}
@@ -123,7 +116,12 @@ export function FilterBox({
 
               {/* Year Filter */}
               <div className="space-y-2">
-                <Label htmlFor="year-filter" className="text-xs font-semibold uppercase text-muted-foreground">Year</Label>
+                <Label
+                  htmlFor="year-filter"
+                  className="text-xs font-semibold uppercase text-muted-foreground"
+                >
+                  Year
+                </Label>
                 <Select
                   value={filters.year}
                   onValueChange={(value) => handleValueChange("year", value)}
@@ -144,21 +142,28 @@ export function FilterBox({
 
               {/* Document Type Filter */}
               <div className="space-y-2">
-                <Label htmlFor="type-filter" className="text-xs font-semibold uppercase text-muted-foreground">Document Type</Label>
+                <Label
+                  htmlFor="type-filter"
+                  className="text-xs font-semibold uppercase text-muted-foreground"
+                >
+                  Document Type
+                </Label>
                 <Select
                   value={filters.documentType}
-                  onValueChange={(value) => handleValueChange("documentType", value)}
+                  onValueChange={(value) =>
+                    handleValueChange("documentType", value)
+                  }
                 >
                   <SelectTrigger id="type-filter" className="w-full">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All Types">All Types</SelectItem>
-                    <SelectItem value="Research Paper">Research Paper</SelectItem>
-                    <SelectItem value="Thesis">Thesis</SelectItem>
-                    <SelectItem value="Dissertation">Dissertation</SelectItem>
-                    <SelectItem value="Journal Article">Journal Article</SelectItem>
-                    <SelectItem value="Conference Paper">Conference Paper</SelectItem>
+                    {Object.values(ResourceTypes).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {formatResourceType(type)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

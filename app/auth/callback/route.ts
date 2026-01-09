@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
+import { RoleName, UserStatus } from '@/lib/generated/prisma/enums'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -86,16 +87,16 @@ export async function GET(request: NextRequest) {
             where: { supabaseAuthId: user.id },
             update: {
                 email,
-                isVerified: true,
-                currentRoleId: 2,
+                status: UserStatus.APPROVED,
+                role: RoleName.REGISTERED,
             },
             create: {
                 supabaseAuthId: user.id,
                 email,
                 username,
                 registrationDate: new Date(),
-                isVerified: true, // Auto-verify OAuth users
-                currentRoleId: 1,
+                status: UserStatus.APPROVED, // Auto-verify OAuth users
+                role: RoleName.REGISTERED,
                 tierId: 1,
             },
         })

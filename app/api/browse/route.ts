@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const q = searchParams.get("q")?.trim() ?? "";
-  const campus = searchParams.get("campus") ?? "All Campuses";
   const courseName = searchParams.get("course") ?? "All Courses";
   const year = searchParams.get("year") ?? "All Years";
   const documentType = searchParams.get("documentType") ?? "All Types";
@@ -56,29 +55,13 @@ export async function GET(req: NextRequest) {
   }
 
   if (documentType !== "All Types") {
-    let typeFilter = documentType;
-    if (documentType === "Journal Article" || documentType === "Conference Paper") {
-      typeFilter = "Article";
-    }
-
-    where.resourceType = {
-      typeName: { contains: typeFilter, mode: "insensitive" },
-    };
+    // documentType is already a ResourceTypes enum value from the frontend
+    where.resourceType = documentType;
   }
 
   if (courseName !== "All Courses") {
     where.course = {
       courseName: { contains: courseName, mode: "insensitive" },
-    };
-  }
-
-  if (campus !== "All Campuses") {
-    let keyword = campus;
-    if (campus === "Main Campus") keyword = "Main";
-    if (campus.startsWith("Branch")) keyword = "Branch";
-
-    where.library = {
-      name: { contains: keyword, mode: "insensitive" },
     };
   }
 
@@ -125,10 +108,12 @@ export async function GET(req: NextRequest) {
       authorEmails,
       additionalAuthors,
       field: doc.course?.courseName ?? "Unknown",
-      date: new Date(doc.datePublished).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      }),
+      date: doc.datePublished
+        ? new Date(doc.datePublished).toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          })
+        : "Unknown",
       abstract: doc.abstract,
       pdfUrl: undefined, // or map from doc.filePath if you have a URL
     };

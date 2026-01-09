@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { RoleName, UserStatus } from "@/lib/generated/prisma/enums";
 import { hash } from "bcryptjs";
 
 /**
@@ -10,9 +11,6 @@ import { hash } from "bcryptjs";
 export async function GET() {
     try {
         const users = await prisma.user.findMany({
-            include: {
-                role: true,
-            },
             orderBy: {
                 id: "asc",
             },
@@ -23,12 +21,11 @@ export async function GET() {
             name: user.username,
             fullname: user.fullname || "",
             email: user.email,
-            // fallbacks to user if the user has no role
-            role: user.role?.roleName || "User",
-            status: user.isVerified ? "Accepted" : "Pending",
+            role: user.role, // Now an enum, not a relation
+            status: user.status === UserStatus.APPROVED ? "Accepted" : "Pending",
             subscriptionTier: user.tierId,
             collegeId: user.collegeId || undefined,
-            uploadId: user.uploadId || undefined,
+            idImagePath: user.idImagePath || undefined,
             registrationDate: user.registrationDate.toISOString().split('T')[0], // format as YYYY-MM-DD
         }));
 
@@ -85,11 +82,10 @@ export async function POST(request: Request) {
             );
         }
 
-        // 3. Resolve Role ID
-        const roleRecord = await prisma.role.findFirst({
-            where: { roleName: role },
-        });
-        const roleId = roleRecord?.id || 1; // Default to Viewer/Registered if not found
+        // Resolve Role from string to enum
+        let roleEnum: RoleName = RoleName.REGISTERED; // Default
+        if (role === "ADMIN") roleEnum = RoleName.ADMIN;
+        else if (role === "SUPERADMIN") roleEnum = RoleName.SUPERADMIN;
 
         // 4. Create in Supabase Auth
         // We use admin API to create user without sending confirmation email immediately if verified
@@ -147,15 +143,12 @@ export async function POST(request: Request) {
                 email: email,
                 passwordHash: passwordHash,
                 supabaseAuthId: authData.user.id,
-                currentRoleId: roleId,
+                role: roleEnum,
                 tierId: subscriptionTier ? parseInt(subscriptionTier as string) : 1,
                 collegeId: collegeId,
-                uploadId: uploadId,
+                idImagePath: uploadId,
                 registrationDate: new Date(),
-                isVerified: status === "Accepted",
-            },
-            include: {
-                role: true,
+                status: status === "Accepted" ? UserStatus.APPROVED : UserStatus.PENDING,
             },
         });
 
@@ -164,8 +157,8 @@ export async function POST(request: Request) {
             id: newUser.id.toString(),
             name: newUser.username,
             email: newUser.email,
-            role: newUser.role.roleName,
-            status: newUser.isVerified ? "Accepted" : "Pending",
+            role: newUser.role,
+            status: newUser.status === UserStatus.APPROVED ? "Accepted" : "Pending",
             subscriptionTier: newUser.tierId,
             registrationDate: newUser.registrationDate.toISOString().split('T')[0],
         }, { status: 201 });

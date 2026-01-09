@@ -7,6 +7,7 @@ import { FormSelect } from "@/components/admin/publications/form-select";
 import { FormDatePicker } from "@/components/admin/publications/form-date-picker";
 import { VisibilityToggle } from "@/components/admin/publications/visibility-toggle";
 import { FormFileUpload } from "@/components/admin/publications/form-file-upload";
+import { courses } from "@/data/collegeCourses";
 
 // 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
@@ -24,10 +25,13 @@ export default function Upload() {
     file: null as File | null,
   });
 
-  const [courseOptions, setCourseOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use static course data instead of fetching from API
+  const courseOptions = courses.map((c) => ({
+    value: String(c.id),
+    label: c.courseName,
+  }));
 
   // Dropdown options
   const resourceTypeOptions = [
@@ -37,28 +41,6 @@ export default function Upload() {
     { value: "dissertation", label: "Dissertation" },
     { value: "journal", label: "Journal" },
   ];
-
-  useEffect(() => {
-    async function loadCourses() {
-      try {
-        const res = await fetch("/api/courses");
-        if (!res.ok) {
-          throw new Error(`Failed to load courses: ${res.status}`);
-        }
-        const data: { id: number; courseName: string }[] = await res.json();
-        setCourseOptions(
-          data.map((c) => ({
-            value: String(c.id),
-            label: c.courseName,
-          })),
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    loadCourses();
-  }, []);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,

@@ -8,9 +8,9 @@ export type User = {
   role: UserRole;
   status: UserStatus;
   subscriptionTier?: number;
-  registrationDate?: string;
+  registrationDate: string;
   password?: string;
   fullname?: string;
   collegeId?: number;
-  uploadId?: string;
+  idImagePath?: string;
 };
