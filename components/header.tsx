@@ -8,6 +8,8 @@ import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SignInModal } from "./SignInModal";
 import { getCurrentUser, signOut } from "@/lib/actions";
 import { User } from "lucide-react";
+import { formatTier } from "@/lib/utils/format";
+import { TierName } from "@/lib/generated/prisma/enums";
 
 type NavItem = {
   label: string;
@@ -22,7 +24,7 @@ type ActionLink = {
 
 type UserProfile = {
   username: string;
-  tierName: string;
+  tierName: TierName;
   email: string;
 };
 
@@ -205,7 +207,7 @@ export function Header({
                     {user.username}
                   </span>
                   <span className="text-xs text-neutral-500 font-medium">
-                    {user.tierName} user
+                    {formatTier(user.tierName)} user
                   </span>
                 </div>
 
