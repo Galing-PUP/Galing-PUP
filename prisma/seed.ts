@@ -170,9 +170,9 @@ async function main() {
   const fakeDocs: DocumentCreateManyInput[] = [];
   for (let i = 0; i < 30; i++) {
     // Generate submission date first (older date)
-    const submissionDate = faker.date.past({ years: 10 });
+    const datePublished = faker.date.past({ years: 10 });
     // Published date should be after submission (between submission and now)
-    const datePublished = faker.date.between({ from: submissionDate, to: new Date() });
+    const submissionDate = faker.date.between({ from: datePublished, to: new Date() });
     
     const fakeDoc: DocumentCreateManyInput = {
       title: faker.lorem.sentence(),
