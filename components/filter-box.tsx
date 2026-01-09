@@ -18,12 +18,14 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { FilterX } from "lucide-react";
+import { ResourceTypes } from "@/lib/generated/prisma/enums";
+import { formatResourceType } from "@/lib/utils/format";
 
 export type FilterValues = {
   campus: string;
   course: string;
   year: string;
-  documentType: string;
+  documentType: ResourceTypes | "All Types";
 };
 
 type FilterBoxProps = {
@@ -154,11 +156,11 @@ export function FilterBox({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All Types">All Types</SelectItem>
-                    <SelectItem value="Research Paper">Research Paper</SelectItem>
-                    <SelectItem value="Thesis">Thesis</SelectItem>
-                    <SelectItem value="Dissertation">Dissertation</SelectItem>
-                    <SelectItem value="Journal Article">Journal Article</SelectItem>
-                    <SelectItem value="Conference Paper">Conference Paper</SelectItem>
+                    {Object.values(ResourceTypes).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {formatResourceType(type)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-
 import { SearchBar } from "@/components/search-bar";
 import { FilterBox, FilterValues } from "@/components/filter-box";
 import { SearchResultCard } from "@/components/search-result-card";
 import { SearchResultSkeletonList } from "@/components/search-result-skeleton";
 import { SortDropdown } from "@/components/sort-dropdown";
+import { courses } from "@/data/collegeCourses";
 import {
   Pagination,
   PaginationContent,
@@ -49,26 +49,11 @@ export default function BrowsePage() {
   const [sortBy, setSortBy] = useState<
     "Newest to Oldest" | "Oldest to Newest" | "Title A-Z" | "Title Z-A"
   >("Newest to Oldest");
-  const [courseOptions, setCourseOptions] = useState<string[]>([]);
+  
+  // Use static course data instead of fetching from API
+  const courseOptions = courses.map((c) => c.courseName);
 
   const resultsPerPage = 10;
-
-  useEffect(() => {
-    async function loadCourses() {
-      try {
-        const res = await fetch("/api/courses");
-        if (!res.ok) {
-          throw new Error(`Failed to load courses: ${res.status}`);
-        }
-        const data: { courseName: string }[] = await res.json();
-        setCourseOptions(data.map((c) => c.courseName));
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    loadCourses();
-  }, []);
 
   useEffect(() => {
     setSearchTerm(activeSearchTerm);
