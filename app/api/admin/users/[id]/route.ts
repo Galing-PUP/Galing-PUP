@@ -141,10 +141,10 @@ export async function PATCH(
             username: name,
             fullname: fullname,
             email: email,
-            collegeId: collegeId, // Can be null/undefined logic depending on requirement, here allowing undefined/null
+            collegeId: collegeId,
             role: roleEnum,
             tierId: subscriptionTier ? parseInt(subscriptionTier as string) : undefined,
-            status: status === "Accepted" ? UserStatus.APPROVED : UserStatus.PENDING,
+            status: status === "Accepted" ? UserStatus.APPROVED : status === "Delete" ? UserStatus.DELETED : UserStatus.PENDING,
             updatedDate: new Date(),
         };
 
@@ -225,7 +225,7 @@ export async function PATCH(
             fullname: updatedUser.fullname,
             email: updatedUser.email,
             role: updatedUser.role,
-            status: updatedUser.status === UserStatus.APPROVED ? "Accepted" : "Pending",
+            status: updatedUser.status === UserStatus.APPROVED ? "Accepted" : updatedUser.status === UserStatus.DELETED ? "Delete" : "Pending",
             subscriptionTier: updatedUser.tierId,
             collegeId: updatedUser.collegeId,
             idImagePath: updatedUser.idImagePath,
