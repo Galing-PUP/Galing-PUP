@@ -40,7 +40,6 @@ export default function BrowsePage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(activeSearchTerm);
   const [filters, setFilters] = useState<FilterValues>({
-    campus: "All Campuses",
     course: "All Courses",
     year: "All Years",
     documentType: "All Types",
@@ -49,7 +48,7 @@ export default function BrowsePage() {
   const [sortBy, setSortBy] = useState<
     "Newest to Oldest" | "Oldest to Newest" | "Title A-Z" | "Title Z-A"
   >("Newest to Oldest");
-  
+
   // Use static course data instead of fetching from API
   const courseOptions = courses.map((c) => c.courseName);
 
@@ -69,9 +68,6 @@ export default function BrowsePage() {
           params.set("q", activeSearchTerm.trim());
         }
 
-        if (filters.campus !== "All Campuses") {
-          params.set("campus", filters.campus);
-        }
         if (filters.course !== "All Courses") {
           params.set("course", filters.course);
         }
@@ -106,7 +102,8 @@ export default function BrowsePage() {
 
   const totalResults = results.length;
   const totalPages = Math.ceil(totalResults / resultsPerPage) || 1;
-  const startResult = totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
+  const startResult =
+    totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   // Get paginated results
@@ -158,7 +155,6 @@ export default function BrowsePage() {
 
   return (
     <>
-
       <div className="min-h-screen bg-white">
         {/* Search Bar Section */}
         <div className="mx-auto max-w-6xl px-4 pt-8 pb-6 md:px-8">
@@ -202,8 +198,8 @@ export default function BrowsePage() {
               {/* Results Header */}
               <div className="flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-4 md:flex-row md:items-center">
                 <p className="text-sm text-gray-600">
-                  Showing {startResult}-{endResult} of {totalResults.toLocaleString()}{" "}
-                  results
+                  Showing {startResult}-{endResult} of{" "}
+                  {totalResults.toLocaleString()} results
                 </p>
                 <SortDropdown value={sortBy} onChange={setSortBy} />
               </div>
@@ -229,9 +225,14 @@ export default function BrowsePage() {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (currentPage > 1) setCurrentPage(currentPage - 1);
+                            if (currentPage > 1)
+                              setCurrentPage(currentPage - 1);
                           }}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : ""
+                          }
                         />
                       </PaginationItem>
 
@@ -270,9 +271,14 @@ export default function BrowsePage() {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                            if (currentPage < totalPages)
+                              setCurrentPage(currentPage + 1);
                           }}
-                          className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                          className={
+                            currentPage >= totalPages
+                              ? "pointer-events-none opacity-50"
+                              : ""
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>
