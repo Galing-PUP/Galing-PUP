@@ -27,7 +27,7 @@ const InfoItem = ({
 );
 
 type DocumentInfoProps = {
-  yearPublished: string;
+  datePublished: Date | null;
   campus: string;
   department: string;
   advisor?: string | null;
@@ -35,19 +35,28 @@ type DocumentInfoProps = {
 };
 
 export function DocumentInfo({
-  yearPublished,
+  datePublished,
   campus,
   department,
   advisor,
   pages,
 }: DocumentInfoProps) {
+  // Format the date for display
+  const formattedDate = datePublished
+    ? datePublished.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Not specified";
+
   return (
     <section className="rounded-lg border border-gray-200 p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-900">
         Document Information
       </h2>
       <div className="mt-4 space-y-4">
-        <InfoItem icon={Calendar} label="Year Published" value={yearPublished} />
+        <InfoItem icon={Calendar} label="Date Published" value={formattedDate} />
         <InfoItem icon={MapPin} label="Campus" value={campus} />
         <InfoItem
           icon={Building2}

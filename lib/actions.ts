@@ -3,30 +3,31 @@
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/db";
+import { RoleName, UserStatus } from "@/lib/generated/prisma/enums";
 import bcrypt from "bcryptjs";
-
+import { getAuthenticatedUser } from "@/lib/auth/server";
 
 /**
  * Fetches the currently authenticated user's profile, including their subscription tier.
  * @returns The user profile object or null if not authenticated.
  */
 export async function getCurrentUser() {
-    const supabase = await createClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-
-    if (!authUser) return null;
-
-    const user = await prisma.user.findUnique({
-        where: { supabaseAuthId: authUser.id },
-        include: { subscriptionTier: true },
-    });
+    const user = await getAuthenticatedUser();
 
     if (!user) return null;
 
+    // Fetch subscription tier separately since getAuthenticatedUser might not include it
+    const userWithTier = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: { subscriptionTier: true },
+    });
+
+    if (!userWithTier) return null;
+
     return {
-        username: user.username,
-        tierName: user.subscriptionTier.tierName,
-        email: user.email,
+        username: userWithTier.username,
+        tierName: userWithTier.subscriptionTier.tierName,
+        email: userWithTier.email,
     };
 }
 
@@ -60,24 +61,24 @@ export async function checkUserStatus(identifier: string) {
         },
         select: {
             id: true,
-            currentRoleId: true,
-            isVerified: true,
+            role: true,
+            status: true,
             updatedDate: true,
         },
     });
 
     if (!user) {
-        return { exists: false, isAdmin: false, isVerified: false, roleId: 0, updatedDate: null };
+        return { exists: false, isAdmin: false, isVerified: false, roleId: RoleName.REGISTERED, updatedDate: null };
     }
 
-    // Admin roles are 3 and 4
-    const isAdmin = [3, 4].includes(user.currentRoleId);
+    // Admin roles are ADMIN and SUPERADMIN
+    const isAdmin = user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN;
 
     return {
         exists: true,
         isAdmin,
-        isVerified: user.isVerified,
-        roleId: user.currentRoleId,
+        isVerified: user.status === UserStatus.APPROVED,
+        roleId: user.role,
         updatedDate: user.updatedDate
     };
 }
@@ -97,7 +98,7 @@ export async function checkUsernameAvailability(username: string) {
 
 /**
  * Verifies a user in the database.
- * Sets isVerified to true and currentRoleId to 2.
+ * Sets status to APPROVED and role to REGISTERED.
  */
 /**
  * Creates a new user in the database with hashed password.
@@ -115,8 +116,8 @@ export async function createUserInDb(email: string, username: string, supabaseAu
             supabaseAuthId,
             passwordHash,
             registrationDate: new Date(),
-            isVerified: false,
-            currentRoleId: 1, // Default role
+            status: UserStatus.PENDING,
+            role: RoleName.REGISTERED, // Default role
             tierId: 1, // Default tier
         },
     });
@@ -149,7 +150,7 @@ export async function verifyCredentials(identifier: string, password: string) {
 
 /**
  * Verifies a user in the database.
- * Sets isVerified to true and currentRoleId to 2.
+ * Sets status to APPROVED and role to REGISTERED.
  * If user doesn't exist, creates one (fallback).
  */
 export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
@@ -162,8 +163,8 @@ export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
         await prisma.user.update({
             where: { email: email.toLowerCase() },
             data: {
-                isVerified: true,
-                currentRoleId: 2,
+                status: UserStatus.APPROVED,
+                role: RoleName.REGISTERED,
                 ...(supabaseAuthId ? { supabaseAuthId } : {}),
             },
         });
@@ -175,16 +176,16 @@ export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
         await prisma.user.upsert({
             where: { supabaseAuthId },
             update: {
-                isVerified: true,
-                currentRoleId: 2,
+                status: UserStatus.APPROVED,
+                role: RoleName.REGISTERED,
             },
             create: {
                 supabaseAuthId,
                 email: email.toLowerCase(),
                 username,
                 registrationDate: new Date(),
-                isVerified: true,
-                currentRoleId: 2,
+                status: UserStatus.APPROVED,
+                role: RoleName.REGISTERED,
                 tierId: 1,
             },
         });
@@ -193,8 +194,8 @@ export async function verifyUserInDb(email: string, supabaseAuthId?: string) {
         await prisma.user.update({
             where: { email: email.toLowerCase() },
             data: {
-                isVerified: true,
-                currentRoleId: 2,
+                status: UserStatus.APPROVED,
+                role: RoleName.REGISTERED,
             },
         });
     }

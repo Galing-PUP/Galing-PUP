@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { prisma } from "@/lib/db";
 import { hash, compare } from "bcrypt";
+import { RoleName, UserStatus } from "@/lib/generated/prisma/enums";
 
 // ---------------------------------------------------------
 // CONSTANTS & STATE
@@ -17,7 +18,6 @@ const TEST_USER = {
 };
 
 let testUserId: number;
-let testRoleId: number;
 let testTierId: number;
 
 describe("User Password Management Tests (camelCase Prisma client)", () => {
@@ -26,11 +26,9 @@ describe("User Password Management Tests (camelCase Prisma client)", () => {
   // ---------------------------------------------------------
   beforeAll(async () => {
     // 1. Get Dependencies
-    const role = await prisma.role.findFirst();
     const tier = await prisma.subscriptionTier.findFirst();
-    if (!role || !tier) throw new Error("Seeding Error: Missing role or tier");
+    if (!tier) throw new Error("Seeding Error: Missing tier");
 
-    testRoleId = role.id;
     testTierId = tier.id;
 
     // 2. Clean Stale User
@@ -49,8 +47,8 @@ describe("User Password Management Tests (camelCase Prisma client)", () => {
         email: TEST_USER.email,
         passwordHash: hashedOriginal,
         registrationDate: new Date(),
-        isVerified: true,
-        currentRoleId: testRoleId,
+        status: UserStatus.APPROVED,
+        role: RoleName.REGISTERED,
         tierId: testTierId,
       },
     });
@@ -98,12 +96,12 @@ describe("User Password Management Tests (camelCase Prisma client)", () => {
   // ---------------------------------------------------------
   // CASE 3: UPDATE VIA REVERSE SEARCH (ROLE ID + USERNAME)
   // ---------------------------------------------------------
-  test("Case 3: Update via reverse search on roleId and username", async () => {
+  test("Case 3: Update via reverse search on role and username", async () => {
     // 1. Find user using Role and Username
     const foundUser = await prisma.user.findFirst({
       where: {
         username: TEST_USER.username,
-        currentRoleId: testRoleId,
+        role: RoleName.REGISTERED,
       },
     });
 
@@ -126,12 +124,12 @@ describe("User Password Management Tests (camelCase Prisma client)", () => {
   // ---------------------------------------------------------
   // CASE 4: UPDATE VIA REVERSE SEARCH (ROLE ID + USER ID)
   // ---------------------------------------------------------
-  test("Case 4: Update via reverse search on roleId and id", async () => {
+  test("Case 4: Update via reverse search on role and id", async () => {
     // 1. Find user using Role and ID
     const foundUser = await prisma.user.findFirst({
       where: {
         id: testUserId,
-        currentRoleId: testRoleId,
+        role: RoleName.REGISTERED,
       },
     });
 

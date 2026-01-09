@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { prisma } from '@/lib/db';
+import { RoleName, UserStatus } from '@/lib/generated/prisma/enums';
 import bcrypt from 'bcryptjs';
 
-const ROLE_ADMIN = 3;
+
 const ID_UPLOAD_BUCKET = 'ID_UPLOAD';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -91,12 +92,12 @@ export async function POST(req: NextRequest) {
                 passwordHash: hashedPassword,
                 idNumber: idNumber,
                 collegeId: collegeId, // Can be null if not found
-                currentRoleId: ROLE_ADMIN, // Default Role: 3 (Admin)
+                role: RoleName.ADMIN, // Default Role: ADMIN for access requests
                 tierId: 1, // Default Tier: 1 (Free) - Assuming 1 is Free based on typical logic, adjust if needed
                 registrationDate: new Date(),
                 updatedDate: new Date(),
-                isVerified: false, // Explicitly false
-                uploadId: uploadData.path, // Store the path or ID
+                status: UserStatus.PENDING, // Pending verification
+                idImagePath: uploadData.path, // Store the path or ID
             },
         });
 

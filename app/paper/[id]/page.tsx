@@ -6,6 +6,7 @@ import { DocumentStats } from "@/components/paper/document-stats";
 import { HeaderInfo } from "@/components/paper/header-info";
 import { Keywords } from "@/components/paper/keywords";
 import { prisma } from "@/lib/db";
+import { formatResourceType } from "@/lib/utils/format";
 import { notFound } from "next/navigation";
 
 type PaperPageProps = {
@@ -38,8 +39,6 @@ export default async function PaperPage(props: PaperPageProps) {
           college: true,
         },
       },
-      resourceType: true,
-      library: true,
       keywords: {
         include: {
           keyword: true,
@@ -52,16 +51,16 @@ export default async function PaperPage(props: PaperPageProps) {
     notFound();
   }
 
-  const authors = document.authors
-    .sort((a, b) => a.authorOrder - b.authorOrder)
-    .map((a) => a.author.fullName);
+  // Extract data from document
+  const authors = document.authors.map((a) => a.author.fullName);
+  const authorEmails = document.authors.map((a) => a.author.email);
 
-  const yearPublished = document.datePublished.getFullYear().toString();
+  const datePublished = document.datePublished;
+  const yearPublished = document.datePublished?.getFullYear().toString() ?? "n.d.";
   const courseName = document.course.courseName;
-  const department =
-    document.course.college?.collegeName ?? document.course.courseName;
-  const campus = document.library.name;
-  const documentType = document.resourceType.typeName;
+  const department = document.course.college?.collegeName ?? document.course.courseName;
+  const campus = "Polytechnic University of the Philippines";
+  const documentType = formatResourceType(document.resourceType);
   const keywords = document.keywords.map((k) => k.keyword.keywordText);
 
   const downloads = document.downloadsCount;
@@ -74,7 +73,6 @@ export default async function PaperPage(props: PaperPageProps) {
 
   return (
     <div className="min-h-screen">
-
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
           {/* Left Column */}
@@ -84,6 +82,7 @@ export default async function PaperPage(props: PaperPageProps) {
               <HeaderInfo
                 title={document.title}
                 authors={authors}
+                authorEmails={authorEmails}
                 documentType={documentType}
                 yearPublished={yearPublished}
                 courseName={courseName}
@@ -119,7 +118,7 @@ export default async function PaperPage(props: PaperPageProps) {
           {/* Right Column */}
           <div className="sticky top-24 w-full space-y-6 lg:w-1/3">
             <DocumentInfo
-              yearPublished={yearPublished}
+              datePublished={datePublished}
               campus={campus}
               department={department}
             />

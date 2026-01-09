@@ -18,24 +18,28 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { FilterX } from "lucide-react";
+import { ResourceTypes } from "@/lib/generated/prisma/enums";
+import { formatResourceType } from "@/lib/utils/format";
 
 export type FilterValues = {
-  campus: string;
   course: string;
   year: string;
-  documentType: string;
+  documentType: ResourceTypes | "All Types";
 };
 
 type FilterBoxProps = {
   className?: string;
+  /** Visual style variant for the filter box */
+  variant?: "pill" | "sidebar";
   /** Notify parent when filters change */
   onChange?: (filters: FilterValues) => void;
   /** Available courses coming from the database */
   courseOptions?: string[];
+  /** Whether the filters accordion should be expanded by default */
+  defaultExpanded?: boolean;
 };
 
 const DEFAULT_FILTERS: FilterValues = {
-  campus: "All Campuses",
   course: "All Courses",
   year: "All Years",
   documentType: "All Types",
@@ -43,8 +47,10 @@ const DEFAULT_FILTERS: FilterValues = {
 
 export function FilterBox({
   className = "",
+  variant = "pill",
   onChange,
   courseOptions = [],
+  defaultExpanded = false,
 }: FilterBoxProps) {
   const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS);
 
@@ -65,12 +71,144 @@ export function FilterBox({
     (value) => !value.startsWith("All")
   ).length;
 
+  // Sidebar variant: static card with filters always visible (used on browse page)
+  if (variant === "sidebar") {
+    return (
+      <Card
+        className={`w-full rounded-2xl border border-pup-maroon/15 bg-white/95 shadow-sm ${className}`}
+      >
+        <div className="space-y-5 p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-pup-maroon">
+              Filters
+            </span>
+            {activeFilterCount > 0 && (
+              <span className="ml-2 flex h-5 min-w-[1.6rem] items-center justify-center rounded-full bg-pup-maroon px-1 text-[10px] font-semibold text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
+
+          <div className="h-px w-full bg-pup-maroon/10" />
+
+          {/* Course Filter */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="course-filter"
+              className="text-xs font-semibold uppercase text-muted-foreground"
+            >
+              Course
+            </Label>
+            <Select
+              value={filters.course}
+              onValueChange={(value) => handleValueChange("course", value)}
+            >
+              <SelectTrigger
+                id="course-filter"
+                className="w-full h-9 rounded-lg border-pup-maroon/20 text-xs"
+              >
+                <SelectValue placeholder="Select Course" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Courses">All Courses</SelectItem>
+                {courseOptions.map((course) => (
+                  <SelectItem key={course} value={course}>
+                    {course}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Year Filter */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="year-filter"
+              className="text-xs font-semibold uppercase text-muted-foreground"
+            >
+              Year
+            </Label>
+            <Select
+              value={filters.year}
+              onValueChange={(value) => handleValueChange("year", value)}
+            >
+              <SelectTrigger
+                id="year-filter"
+                className="w-full h-9 rounded-lg border-pup-maroon/20 text-xs"
+              >
+                <SelectValue placeholder="Select Year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Years">All Years</SelectItem>
+                {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Document Type Filter */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="type-filter"
+              className="text-xs font-semibold uppercase text-muted-foreground"
+            >
+              Document Type
+            </Label>
+            <Select
+              value={filters.documentType}
+              onValueChange={(value) =>
+                handleValueChange("documentType", value)
+              }
+            >
+              <SelectTrigger
+                id="type-filter"
+                className="w-full h-9 rounded-lg border-pup-maroon/20 text-xs"
+              >
+                <SelectValue placeholder="Select Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Types">All Types</SelectItem>
+                {Object.values(ResourceTypes).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {formatResourceType(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Clear Filters Button */}
+          <Button
+            variant="outline"
+            onClick={handleClearFilters}
+            className="mt-1 w-full h-9 justify-center rounded-full border-pup-maroon/40 text-xs font-medium text-pup-maroon hover:bg-pup-maroon hover:text-white"
+            disabled={activeFilterCount === 0}
+          >
+            <FilterX className="mr-2 h-4 w-4" />
+            Clear Filters
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  // Pill variant: compact trigger with floating dropdown (used on admin publication page)
   return (
-    <Card className={`w-full overflow-hidden border-none shadow-none ${className}`}>
-      <Accordion type="single" collapsible defaultValue="filters" className="w-full">
+    <Card
+      className={`relative inline-block w-full overflow-visible border-none shadow-none bg-transparent ${className}`}
+    >
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue={defaultExpanded ? "filters" : undefined}
+        className="w-full"
+      >
         <AccordionItem value="filters" className="border-none">
-          <AccordionTrigger className="px-4 py-2 hover:no-underline [&[data-state=open]]:text-pup-maroon">
-            <span className="flex items-center gap-2 text-lg font-semibold text-pup-maroon">
+          <AccordionTrigger className="h-10 min-w-[190px] rounded-full border border-pup-maroon/40 bg-white/80 px-4 py-2 text-sm font-semibold text-pup-maroon shadow-sm hover:no-underline [&[data-state=open]]:text-pup-maroon">
+            <span className="flex items-center gap-2">
               Filters
               {activeFilterCount > 0 && (
                 <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-pup-maroon text-xs text-white">
@@ -79,30 +217,16 @@ export function FilterBox({
               )}
             </span>
           </AccordionTrigger>
-          <AccordionContent className="px-1 pb-4">
-            <div className="space-y-4 px-1">
-              {/* Campus Filter */}
-              <div className="space-y-2">
-                <Label htmlFor="campus-filter" className="text-xs font-semibold uppercase text-muted-foreground">Campus</Label>
-                <Select
-                  value={filters.campus}
-                  onValueChange={(value) => handleValueChange("campus", value)}
-                >
-                  <SelectTrigger id="campus-filter" className="w-full">
-                    <SelectValue placeholder="Select Campus" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All Campuses">All Campuses</SelectItem>
-                    <SelectItem value="Main Campus">Main Campus</SelectItem>
-                    <SelectItem value="Branch Campus 1">Branch Campus 1</SelectItem>
-                    <SelectItem value="Branch Campus 2">Branch Campus 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+          <AccordionContent className="absolute right-0 mt-2 z-40 w-[min(20rem,calc(100vw-3rem))] rounded-2xl border border-pup-maroon/30 bg-white px-4 py-4 shadow-lg">
+            <div className="space-y-4">
               {/* Course Filter */}
               <div className="space-y-2">
-                <Label htmlFor="course-filter" className="text-xs font-semibold uppercase text-muted-foreground">Course</Label>
+                <Label
+                  htmlFor="course-filter"
+                  className="text-xs font-semibold uppercase text-muted-foreground"
+                >
+                  Course
+                </Label>
                 <Select
                   value={filters.course}
                   onValueChange={(value) => handleValueChange("course", value)}
@@ -123,7 +247,12 @@ export function FilterBox({
 
               {/* Year Filter */}
               <div className="space-y-2">
-                <Label htmlFor="year-filter" className="text-xs font-semibold uppercase text-muted-foreground">Year</Label>
+                <Label
+                  htmlFor="year-filter"
+                  className="text-xs font-semibold uppercase text-muted-foreground"
+                >
+                  Year
+                </Label>
                 <Select
                   value={filters.year}
                   onValueChange={(value) => handleValueChange("year", value)}
@@ -144,21 +273,28 @@ export function FilterBox({
 
               {/* Document Type Filter */}
               <div className="space-y-2">
-                <Label htmlFor="type-filter" className="text-xs font-semibold uppercase text-muted-foreground">Document Type</Label>
+                <Label
+                  htmlFor="type-filter"
+                  className="text-xs font-semibold uppercase text-muted-foreground"
+                >
+                  Document Type
+                </Label>
                 <Select
                   value={filters.documentType}
-                  onValueChange={(value) => handleValueChange("documentType", value)}
+                  onValueChange={(value) =>
+                    handleValueChange("documentType", value)
+                  }
                 >
                   <SelectTrigger id="type-filter" className="w-full">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All Types">All Types</SelectItem>
-                    <SelectItem value="Research Paper">Research Paper</SelectItem>
-                    <SelectItem value="Thesis">Thesis</SelectItem>
-                    <SelectItem value="Dissertation">Dissertation</SelectItem>
-                    <SelectItem value="Journal Article">Journal Article</SelectItem>
-                    <SelectItem value="Conference Paper">Conference Paper</SelectItem>
+                    {Object.values(ResourceTypes).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {formatResourceType(type)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

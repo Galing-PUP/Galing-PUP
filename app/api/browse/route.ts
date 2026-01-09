@@ -5,6 +5,7 @@ type SearchResult = {
   id: number;
   title: string;
   authors: string[];
+  authorEmails: string[];
   additionalAuthors: number;
   field: string;
   date: string;
@@ -16,7 +17,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const q = searchParams.get("q")?.trim() ?? "";
-  const campus = searchParams.get("campus") ?? "All Campuses";
   const courseName = searchParams.get("course") ?? "All Courses";
   const year = searchParams.get("year") ?? "All Years";
   const documentType = searchParams.get("documentType") ?? "All Types";
@@ -55,29 +55,13 @@ export async function GET(req: NextRequest) {
   }
 
   if (documentType !== "All Types") {
-    let typeFilter = documentType;
-    if (documentType === "Journal Article" || documentType === "Conference Paper") {
-      typeFilter = "Article";
-    }
-
-    where.resourceType = {
-      typeName: { contains: typeFilter, mode: "insensitive" },
-    };
+    // documentType is already a ResourceTypes enum value from the frontend
+    where.resourceType = documentType;
   }
 
   if (courseName !== "All Courses") {
     where.course = {
       courseName: { contains: courseName, mode: "insensitive" },
-    };
-  }
-
-  if (campus !== "All Campuses") {
-    let keyword = campus;
-    if (campus === "Main Campus") keyword = "Main";
-    if (campus.startsWith("Branch")) keyword = "Branch";
-
-    where.library = {
-      name: { contains: keyword, mode: "insensitive" },
     };
   }
 
@@ -112,19 +96,24 @@ export async function GET(req: NextRequest) {
 
   const results: SearchResult[] = docs.map((doc) => {
     const allAuthors = doc.authors.map((a) => a.author.fullName);
+    const allAuthorEmails = doc.authors.map((a) => a.author.email);
     const authors = allAuthors.slice(0, 3);
+    const authorEmails = allAuthorEmails.slice(0, 3);
     const additionalAuthors = Math.max(0, allAuthors.length - authors.length);
 
     return {
       id: doc.id,
       title: doc.title,
       authors,
+      authorEmails,
       additionalAuthors,
       field: doc.course?.courseName ?? "Unknown",
-      date: new Date(doc.datePublished).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      }),
+      date: doc.datePublished
+        ? new Date(doc.datePublished).toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          })
+        : "Unknown",
       abstract: doc.abstract,
       pdfUrl: undefined, // or map from doc.filePath if you have a URL
     };

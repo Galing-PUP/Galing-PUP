@@ -5,10 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
-import { SignInModal } from "./SignInModal";
+import { SignInModal } from "@/components/SignInModal";
 import { getCurrentUser, signOut } from "@/lib/actions";
 import { User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatTier } from "@/lib/utils/format";
+import { TierName } from "@/lib/generated/prisma/enums";
 
 type NavItem = {
   label: string;
@@ -23,7 +25,7 @@ type ActionLink = {
 
 type UserProfile = {
   username: string;
-  tierName: string;
+  tierName: TierName;
   email: string;
 };
 
@@ -55,7 +57,7 @@ const DEFAULT_PRIMARY_ACTION: ActionLink = {
 /**
  * Header component that displays navigation, authentication buttons, or user profile.
  * Handles responsive design and user session state.
- * 
+ *
  * @param props - The component props.
  * @returns The rendered Header component.
  */
@@ -97,7 +99,10 @@ export function Header({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -113,26 +118,15 @@ export function Header({
     try {
       setIsSigningOut(true);
       setIsDropdownOpen(false);
-      
       // Show toast notification
       toast.loading("Signing out...", { id: "signout" });
-      
-      // Perform sign out
       await signOut();
-      
-      // Update toast to success
       toast.success("Signed out successfully", { id: "signout" });
-      
       // Clear user state for immediate UI update
       setUser(null);
-      
       // Add a small delay for smooth transition before refreshing
       await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      // Refresh the router to update the page
       router.refresh();
-      
-      // Redirect to home page after refresh
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -167,9 +161,14 @@ export function Header({
   };
 
   // hides the header for admin pages, sign in, and sign up pages
-  if (pathname.startsWith("/admin") || pathname === "/signin" ||
-    pathname === "/signup" || pathname === "/verify-otp" ||
-    pathname === "/forgot-password" || pathname === "/update-password") {
+  if (
+    pathname.startsWith("/admin") ||
+    pathname === "/signin" ||
+    pathname === "/signup" ||
+    pathname === "/verify-otp" ||
+    pathname === "/forgot-password" ||
+    pathname === "/update-password"
+  ) {
     return null;
   }
 
@@ -206,10 +205,11 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={`pb-1 transition-colors duration-200
-                  ${isActive
+                  ${
+                    isActive
                       ? "font-medium border-b-2 border-pup-gold-light text-pup-maroon"
                       : "text-gray-500 hover:text-gray-900"
-                    }
+                  }
                 `}
                 >
                   {item.label}
@@ -221,13 +221,16 @@ export function Header({
           {/* Authentication Buttons or User Profile */}
           <div className="hidden items-center justify-self-end gap-4 md:flex col-start-3 col-end-4">
             {user ? (
-              <div className="flex items-center gap-3 relative" ref={dropdownRef}>
+              <div
+                className="flex items-center gap-3 relative"
+                ref={dropdownRef}
+              >
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-semibold text-neutral-900 leading-tight">
                     {user.username}
                   </span>
                   <span className="text-xs text-neutral-500 font-medium">
-                    {user.tierName} user
+                    {formatTier(user.tierName)} user
                   </span>
                 </div>
 

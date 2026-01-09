@@ -2,16 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Search,
-  Filter,
-  Menu,
-  Pencil,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  X,
-} from "lucide-react";
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { FilterBox, FilterValues } from "@/components/filter-box";
 import SortDropdown from "@/components/sort-dropdown";
@@ -49,11 +40,8 @@ export default function PublicationPage() {
   const [publicationToDelete, setPublicationToDelete] =
     useState<AdminPublication | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterValues>({
-    campus: "All Campuses",
     course: "All Courses",
     year: "All Years",
     documentType: "All Types",
@@ -231,9 +219,9 @@ export default function PublicationPage() {
   return (
     <div className="w-full h-full relative">
       {/* --- Top Actions --- */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+      <div className="mb-8 space-y-4">
         {/* Search Bar */}
-        <div className="relative w-full">
+        <div className="relative w-full rounded-2xl bg-white/70 shadow-sm ring-1 ring-pup-maroon/20 px-2 py-1">
           <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
             <Search size={20} color={COLORS.maroon} strokeWidth={1.5} />
           </div>
@@ -242,35 +230,27 @@ export default function PublicationPage() {
             placeholder="Search publications by title or keywords..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="block w-full pl-14 pr-32 py-3 text-gray-800 bg-transparent rounded-full border focus:ring-2 focus:outline-none transition-all"
-            style={{ borderColor: COLORS.maroon }}
+            className="block w-full pl-14 pr-6 py-3 text-sm text-gray-800 bg-transparent rounded-full border border-transparent focus:border-pup-maroon focus:ring-0 focus:outline-none transition-all"
           />
-          <div className="absolute inset-y-1 right-1 flex items-center">
-            <button
-              className="text-white rounded-full px-8 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: COLORS.maroon }}
-            >
-              Search
-            </button>
-          </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex items-center space-x-3 shrink-0">
-          <button
-            className="p-2.5 rounded-full border hover:bg-gray-200 transition-colors"
-            style={{ borderColor: COLORS.maroon }}
-            onClick={() => setIsFilterModalOpen(true)}
-          >
-            <Filter size={22} color={COLORS.maroon} strokeWidth={1.5} />
-          </button>
-          <button
-            className="p-2.5 rounded-full border hover:bg-gray-200 transition-colors"
-            style={{ borderColor: COLORS.maroon }}
-            onClick={() => setIsSortModalOpen(true)}
-          >
-            <Menu size={22} color={COLORS.maroon} strokeWidth={1.5} />
-          </button>
+        {/* Inline Sort + Filter */}
+        <div className="flex flex-col md:flex-row md:items-center gap-2">
+          <SortDropdown
+            value={sortBy}
+            onChange={(value) => {
+              setSortBy(value as AdminSortOption);
+            }}
+            className="w-full md:w-auto"
+          />
+          <div className="w-full md:w-auto md:min-w-[260px]">
+            <FilterBox
+              courseOptions={courseOptions}
+              onChange={(next) => {
+                setFilters(next);
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -419,52 +399,6 @@ export default function PublicationPage() {
           >
             <span>Next</span> <ChevronRight size={16} />
           </button>
-        </div>
-      )}
-
-      {/* --- FILTER MODAL --- */}
-      {isFilterModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <button
-              onClick={() => setIsFilterModalOpen(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Filters
-            </h2>
-            <FilterBox
-              courseOptions={courseOptions}
-              onChange={(next) => {
-                setFilters(next);
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* --- SORT MODAL --- */}
-      {isSortModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-xs rounded-2xl bg-white p-6 shadow-xl">
-            <button
-              onClick={() => setIsSortModalOpen(false)}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-700 transition-colors"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Sort by
-            </h2>
-            <SortDropdown
-              value={sortBy}
-              onChange={(value) => {
-                setSortBy(value as AdminSortOption);
-              }}
-            />
-          </div>
         </div>
       )}
 

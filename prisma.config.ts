@@ -11,6 +11,6 @@ export default defineConfig({
   },
   // When using actual supabase, use the DIRECT_URL as DATABASE_URL
   datasource: {
-    url: env("DATABASE_URL")
+    url: env("DIRECT_URL")
   },
 });

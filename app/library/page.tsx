@@ -1,11 +1,13 @@
 "use client";
 
-
 import { BookmarkCard } from "@/components/library/bookmark-card";
 import { BookmarkCardSkeleton } from "@/components/library/bookmark-card-skeleton";
 import { PremiumBanner } from "@/components/library/premium-banner";
 import { PremiumSection } from "@/components/library/premium-section";
-import { LibrarySortDropdown, LibrarySortOption } from "@/components/library/sort-dropdown";
+import {
+  LibrarySortDropdown,
+  LibrarySortOption,
+} from "@/components/library/sort-dropdown";
 import { LibrarySearchInput } from "@/components/library/search-input";
 import { useState, useMemo, useEffect } from "react";
 import * as libraryService from "@/lib/services/libraryService";
@@ -22,10 +24,9 @@ import { BookmarkData } from "@/lib/services/libraryService";
 
 export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<LibrarySortOption>("bookmarked-newest");
-  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>(
-    [],
-  );
+  const [sortOption, setSortOption] =
+    useState<LibrarySortOption>("bookmarked-newest");
+  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [maxBookmarks, setMaxBookmarks] = useState(10);
   const [tierName, setTierName] = useState("Free");
@@ -79,10 +80,10 @@ export default function LibraryPage() {
         (paper) =>
           paper.document.title.toLowerCase().includes(query) ||
           paper.document.authors.some((author: string) =>
-            author.toLowerCase().includes(query),
+            author.toLowerCase().includes(query)
           ) ||
           paper.document.course.toLowerCase().includes(query) ||
-          paper.document.abstract.toLowerCase().includes(query),
+          paper.document.abstract.toLowerCase().includes(query)
       );
     }
 
@@ -94,13 +95,21 @@ export default function LibraryPage() {
         case "title-desc":
           return paperB.document.title.localeCompare(paperA.document.title);
         case "date-newest": {
-          const publishTimeA = new Date(paperA.document.datePublished).getTime();
-          const publishTimeB = new Date(paperB.document.datePublished).getTime();
+          const publishTimeA = new Date(
+            paperA.document.datePublished
+          ).getTime();
+          const publishTimeB = new Date(
+            paperB.document.datePublished
+          ).getTime();
           return publishTimeB - publishTimeA;
         }
         case "date-oldest": {
-          const publishTimeA = new Date(paperA.document.datePublished).getTime();
-          const publishTimeB = new Date(paperB.document.datePublished).getTime();
+          const publishTimeA = new Date(
+            paperA.document.datePublished
+          ).getTime();
+          const publishTimeB = new Date(
+            paperB.document.datePublished
+          ).getTime();
           return publishTimeA - publishTimeB;
         }
         case "bookmarked-newest": {
@@ -129,7 +138,6 @@ export default function LibraryPage() {
 
   return (
     <>
-
       <div className="min-h-screen bg-white">
         {/* Header Section with Maroon Background */}
         <div className="bg-pup-maroon px-4 py-12 md:px-8">
@@ -169,8 +177,13 @@ export default function LibraryPage() {
               value={searchQuery}
               onChange={setSearchQuery}
               className="flex-1"
+              disabled={!isAuthenticated || bookmarkedPapers.length === 0}
             />
-            <LibrarySortDropdown value={sortOption} onChange={setSortOption} />
+            <LibrarySortDropdown 
+              value={sortOption} 
+              onChange={setSortOption} 
+              disabled={!isAuthenticated || bookmarkedPapers.length === 0}
+            />
           </div>
 
           {/* Bookmarked Papers */}
@@ -192,7 +205,7 @@ export default function LibraryPage() {
                     field: bookmark.document.course,
                     college: bookmark.document.college,
                     year: new Date(
-                      bookmark.document.datePublished,
+                      bookmark.document.datePublished
                     ).getFullYear(),
                     abstract: bookmark.document.abstract,
                     citations: bookmark.document.citationCount,
@@ -204,7 +217,7 @@ export default function LibraryPage() {
                   onRemove={() => {
                     // Remove card from local state immediately
                     setBookmarkedPapers((prev) =>
-                      prev.filter((b) => b.documentId !== bookmark.documentId),
+                      prev.filter((b) => b.documentId !== bookmark.documentId)
                     );
                     toast.success("Bookmark removed successfully");
                   }}

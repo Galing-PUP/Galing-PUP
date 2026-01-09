@@ -10,6 +10,7 @@ type LibrarySearchInputProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 };
 
 export function LibrarySearchInput({
@@ -17,11 +18,12 @@ export function LibrarySearchInput({
   onChange,
   placeholder = "Search your bookmarks...",
   className = "",
+  disabled = false,
 }: LibrarySearchInputProps) {
   const id = useId();
 
   return (
-    <div className={`w-full space-y-2 ${className}`}>
+    <div className={`w-full space-y-2 ${className} ${disabled ? "opacity-50" : ""}`}>
       <Label htmlFor={id} className="sr-only">
         Search bookmarks
       </Label>
@@ -36,7 +38,8 @@ export function LibrarySearchInput({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="peer pl-10 focus:border-yellow-400 focus:ring-yellow-400"
+          className="peer pl-10 focus:border-yellow-400 focus:ring-yellow-400 disabled:cursor-not-allowed"
+          disabled={disabled}
         />
       </div>
     </div>
