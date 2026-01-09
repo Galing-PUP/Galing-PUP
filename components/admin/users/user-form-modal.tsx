@@ -143,59 +143,117 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30 p-4">
       <div className="w-full max-w-5xl h-[90vh] flex flex-col rounded-xl border border-gray-200 bg-white shadow-2xl">
-        <div className="flex items-start justify-between p-8 border-b border-gray-100">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-            <p className="mt-1 text-gray-500">{description}</p>
-          </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-700">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-8 space-y-6">
-          {/* Row 1: Full Name and Username */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormInput
-              label="Full Name"
-              value={formData.fullname || ""}
-              onChange={e => handleInputChange('fullname', e.target.value)}
-              placeholder="Juan D. Dela Cruz"
-            />
-            <FormInput
-              label="Username"
-              value={formData.name || ""}
-              onChange={e => handleInputChange('name', e.target.value)}
-              placeholder="Username"
-            />
-          </div>
-
-          {/* Row 2: Email (Full Width) */}
-          <div>
-            <FormInput
-              label="Email Address"
-              type="email"
-              value={formData.email || ""}
-              onChange={e => handleInputChange('email', e.target.value)}
-              placeholder="example@gmail.com"
-            />
-            {emailError && (
-              <p className="mt-1 text-xs text-red-600">{emailError}</p>
-            )}
-            {/* Row 3: Change Password */}
-            <div className="mt-4">
-              <FormInput
-                label="New Password"
-                type="password"
-                value={formData.password || ""}
-                onChange={e => handleInputChange('password', e.target.value)}
-                placeholder="Leave blank to keep current password"
-              />
+        {user ? (
+          <div className="bg-gradient-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${
+                  formData.status === 'Accepted' 
+                    ? 'bg-green-50 border-green-200' 
+                    : formData.status === 'Pending' 
+                    ? 'bg-yellow-50 border-yellow-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${
+                    formData.status === 'Accepted' 
+                      ? 'bg-green-500' 
+                      : formData.status === 'Pending' 
+                      ? 'bg-yellow-500' 
+                      : 'bg-red-500'
+                  }`} />
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${
+                    formData.status === 'Accepted' 
+                      ? 'text-green-700' 
+                      : formData.status === 'Pending' 
+                      ? 'text-yellow-700' 
+                      : 'text-red-700'
+                  }`}>{formData.status || "Unknown"}</span>
+                </div>
+                <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
+                  {formData.fullname || "User Name"}
+                </h2>
+                <div className="space-y-1.5 pl-1">
+                  <div className="flex items-center gap-2.5">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-sm font-semibold text-gray-700">@{formData.name || "username"}</p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm text-gray-600">{formData.email || "email@example.com"}</p>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={onClose} 
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
           </div>
+        ) : (
+          <div className="flex items-start justify-between p-8 border-b border-gray-200">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+              <p className="mt-1 text-gray-500">{description}</p>
+            </div>
+            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-700 transition-colors">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+        )}
 
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+          {/* For new users only: Show full name, username, email, and password fields */}
+          {!user && (
+            <>
+              {/* Row 1: Full Name and Username */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <FormInput
+                  label="Full Name"
+                  value={formData.fullname || ""}
+                  onChange={e => handleInputChange('fullname', e.target.value)}
+                  placeholder="Juan D. Dela Cruz"
+                />
+                <FormInput
+                  label="Username"
+                  value={formData.name || ""}
+                  onChange={e => handleInputChange('name', e.target.value)}
+                  placeholder="Username"
+                />
+              </div>
 
-          {/* Row 4: 2x2 Layout for Role, Status, Subscription Tier, College */}
+              {/* Row 2: Email (Full Width) */}
+              <div>
+                <FormInput
+                  label="Email Address"
+                  type="email"
+                  value={formData.email || ""}
+                  onChange={e => handleInputChange('email', e.target.value)}
+                  placeholder="example@gmail.com"
+                />
+                {emailError && (
+                  <p className="mt-1 text-xs text-red-600">{emailError}</p>
+                )}
+                {/* Row 3: Change Password */}
+                <div className="mt-4">
+                  <FormInput
+                    label="New Password"
+                    type="password"
+                    value={formData.password || ""}
+                    onChange={e => handleInputChange('password', e.target.value)}
+                    placeholder="Enter password"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* 2x2 Layout for Role, Status, Subscription Tier, College */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Role */}
             <div>
@@ -318,7 +376,12 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
               <button
                 type="button"
                 onClick={handleFileUpload}
-                className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                disabled={!!user}
+                className={`inline-flex items-center rounded-l-md border border-r-0 border-gray-300 px-3 text-sm ${
+                  user 
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 cursor-pointer'
+                } transition-colors`}
               >
                 Change File
               </button>
@@ -334,6 +397,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                 type="file"
                 onChange={handleFileChange}
                 accept="image/*"
+                disabled={!!user}
                 className="hidden"
               />
             </div>
