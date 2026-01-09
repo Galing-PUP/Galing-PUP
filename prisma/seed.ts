@@ -81,17 +81,23 @@ async function main() {
 
   // 10 REGISTERED users
   for (let i = 0; i < 10; i++) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const fullname = `${firstName} ${lastName}`;
     const fakeUser: UserCreateManyInput = {
       collegeId: null, // REGISTERED users don't have college affiliation
       supabaseAuthId: null,
-      fullname: faker.person.fullName(),
-      username: faker.internet.username(),
+      fullname,
+      username: faker.internet.username({ firstName, lastName }),
       role: RoleName.REGISTERED,
-      email: faker.internet.email(),
+      email: faker.internet.email({ firstName, lastName }).toLowerCase(),
       passwordHash: faker.internet.password(),
       registrationDate: faker.date.past({ years: 1 }),
       updatedDate: null,
-      status: faker.helpers.arrayElement([UserStatus.PENDING, UserStatus.APPROVED]), // Exclude DELETED
+      status: faker.helpers.arrayElement([
+        UserStatus.PENDING,
+        UserStatus.APPROVED,
+      ]), // Exclude DELETED
       tierId: faker.helpers.arrayElement([1, 2]),
     };
     fakeUsers.push(fakeUser);
@@ -99,13 +105,16 @@ async function main() {
 
   // 2 SUPERADMIN users
   for (let i = 0; i < 2; i++) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const fullname = `${firstName} ${lastName}`;
     const fakeUser: UserCreateManyInput = {
       collegeId: null, // SUPERADMIN has access to all colleges
       supabaseAuthId: null,
-      fullname: faker.person.fullName(),
-      username: faker.internet.username(),
+      fullname,
+      username: faker.internet.username({ firstName, lastName }),
       role: RoleName.SUPERADMIN,
-      email: faker.internet.email(),
+      email: faker.internet.email({ firstName, lastName }).toLowerCase(),
       passwordHash: faker.internet.password(),
       registrationDate: faker.date.past({ years: 1 }),
       updatedDate: null,
@@ -119,13 +128,16 @@ async function main() {
 
   // 5 ADMIN users (college staff)
   for (let i = 0; i < 5; i++) {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+    const fullname = `${firstName} ${lastName}`;
     const fakeUser: UserCreateManyInput = {
       collegeId: faker.helpers.arrayElement(allCollegeIds), // ADMIN is assigned to a specific college
       supabaseAuthId: null,
-      fullname: faker.person.fullName(),
-      username: faker.internet.username(),
+      fullname,
+      username: faker.internet.username({ firstName, lastName }),
       role: RoleName.ADMIN,
-      email: faker.internet.email(),
+      email: faker.internet.email({ firstName, lastName }).toLowerCase(),
       passwordHash: faker.internet.password(),
       registrationDate: faker.date.past({ years: 1 }),
       updatedDate: null,
@@ -190,18 +202,14 @@ async function main() {
     const firstName = faker.person.firstName();
     const middleName = faker.person.middleName();
     const lastName = faker.person.lastName();
+    const fullName = `${firstName} ${middleName} ${lastName}`;
 
     fakeAuthors.push({
       firstName,
       middleName: faker.datatype.boolean() ? middleName : null,
       lastName,
-      fullName: `${firstName} ${
-        faker.datatype.boolean() ? middleName : ""
-      } ${lastName}`,
-      email: faker.internet.email({
-        firstName: firstName.toLowerCase(),
-        lastName: lastName.toLowerCase(),
-      }),
+      fullName,
+      email: faker.internet.email({ firstName, lastName }).toLowerCase(),
     });
   }
 
