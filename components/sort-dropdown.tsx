@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 
 type SortOption =
   | "Newest to Oldest"
@@ -33,13 +32,12 @@ export function SortDropdown({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <Label className="text-sm font-medium text-muted-foreground uppercase whitespace-nowrap">Sort by:</Label>
+    <div className={`relative inline-block ${className}`}>
       <Select value={value} onValueChange={handleValueChange}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="h-10 min-w-[190px] rounded-full border border-pup-maroon/40 bg-white/80 px-4 py-2 text-sm font-semibold text-pup-maroon shadow-sm focus:outline-none focus:ring-0 focus:border-pup-maroon">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="z-40 rounded-2xl border-pup-maroon/30">
           <SelectItem value="Newest to Oldest">Newest to Oldest</SelectItem>
           <SelectItem value="Oldest to Newest">Oldest to Newest</SelectItem>
           <SelectItem value="Title A-Z">Title A-Z</SelectItem>
