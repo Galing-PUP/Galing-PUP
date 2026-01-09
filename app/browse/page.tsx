@@ -185,7 +185,9 @@ export default function BrowsePage() {
             <aside className="w-full lg:w-64 md:w-72 lg:flex-shrink-0 lg:pl-0 md:pl-0">
               <div className="sticky top-8">
                 <FilterBox
+                  variant="sidebar"
                   courseOptions={courseOptions}
+                  defaultExpanded
                   onChange={(next) => {
                     setFilters(next);
                   }}
