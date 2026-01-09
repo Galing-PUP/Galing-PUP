@@ -96,13 +96,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { documentId } = body;
+    let { documentId } = body;
 
-    if (!documentId || typeof documentId !== "number") {
+    // Convert string to number if needed (JSON can send numbers as strings)
+    if (typeof documentId === "string") {
+      documentId = parseInt(documentId, 10);
+    }
+
+    // Validate documentId is a valid number
+    if (!documentId || typeof documentId !== "number" || isNaN(documentId)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Document ID is required and must be a number",
+          message: "Document ID is required and must be a valid number",
         },
         { status: 400 }
       );
@@ -191,10 +197,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the bookmark
+    // dateBookmarked has a default value in the schema, so we don't need to provide it
     const bookmark = await prisma.userBookmark.create({
       data: {
         userId: userId,
         documentId: documentId,
+        dateBookmarked: new Date(), // Explicitly set to avoid type issues
       },
     });
 
