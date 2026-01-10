@@ -84,7 +84,7 @@ export default function Edit() {
       }
 
       alert("Document updated successfully!");
-      router.push("/admin/publications");
+      router.push("/admin/publication");
     } catch (error) {
       console.error("Error updating document:", error);
       setError(error instanceof Error ? error.message : "Failed to update document");
