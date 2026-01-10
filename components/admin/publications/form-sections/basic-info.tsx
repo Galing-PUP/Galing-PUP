@@ -91,7 +91,7 @@ export function BasicInfoSection({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+      <CardContent className="pt-2 space-y-6">
         {/* Document Title */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-semibold">

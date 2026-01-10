@@ -37,7 +37,7 @@ export function AuthorsSection({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-2">
         <AuthorSelector
           selectedAuthors={formData.authors}
           onAuthorsChange={(authors) =>

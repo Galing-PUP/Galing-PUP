@@ -50,7 +50,7 @@ export function FileSection({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-6 space-y-6">
+      <CardContent className="pt-2 space-y-6">
         {/* Existing File Display (Edit Mode) */}
         {existingFileName && (
           <div className="flex flex-col gap-4">
