@@ -1,0 +1,719 @@
+"use client";
+
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dropzone,
+  DropzoneContent,
+  DropzoneEmptyState,
+} from "@/components/ui/shadcn-io/dropzone";
+import {
+  CalendarIcon,
+  FileText,
+  Users,
+  GraduationCap,
+  Upload,
+  X,
+  GripVertical,
+  Sparkles,
+  ChevronDownIcon,
+} from "lucide-react";
+import { courses } from "@/data/collegeCourses";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+export interface Author {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+}
+
+export interface PublicationFormData {
+  title: string;
+  abstract: string;
+  keywords: string[];
+  datePublished: string;
+  resourceType: string;
+  visibility: string;
+  authors: Author[];
+  courseId: string;
+  library: string;
+  file: File | null;
+}
+
+interface PublicationFormProps {
+  initialData?: Partial<PublicationFormData>;
+  onSubmit: (data: PublicationFormData) => void;
+  onCancel: () => void;
+  isSubmitting?: boolean;
+  title: string;
+  description: string;
+  submitLabel: string;
+  existingFileName?: string;
+  existingFileSize?: number;
+  existingFileDate?: string;
+}
+
+/**
+ * A modern, sectioned form component for managing research publications.
+ * Features multi-author management, tag chips, drag-and-drop file upload,
+ * and AI summary placeholder.
+ */
+export function PublicationForm({
+  initialData,
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+  title,
+  description,
+  submitLabel,
+  existingFileName,
+  existingFileSize,
+  existingFileDate,
+}: PublicationFormProps) {
+  const [formData, setFormData] = useState<PublicationFormData>({
+    title: initialData?.title || "",
+    abstract: initialData?.abstract || "",
+    keywords: initialData?.keywords || [],
+    datePublished: initialData?.datePublished || "",
+    resourceType: initialData?.resourceType || "",
+    visibility: initialData?.visibility || "public",
+    authors: initialData?.authors || [
+      { firstName: "", middleName: "", lastName: "", email: "" },
+    ],
+    courseId: initialData?.courseId || "",
+    library: initialData?.library || "",
+    file: null,
+  });
+
+  const [keywordInput, setKeywordInput] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    initialData?.datePublished ? new Date(initialData.datePublished) : undefined
+  );
+
+  const resourceTypeOptions = [
+    { value: "thesis", label: "Thesis" },
+    { value: "capstone", label: "Capstone" },
+    { value: "article", label: "Article" },
+    { value: "dissertation", label: "Dissertation" },
+    { value: "journal", label: "Journal" },
+  ];
+
+  const courseOptions = courses.map((c) => ({
+    value: String(c.id),
+    label: `${c.courseAbbr} - ${c.courseName}`,
+  }));
+
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Author management functions
+  const addAuthor = () => {
+    setFormData((prev) => ({
+      ...prev,
+      authors: [
+        ...prev.authors,
+        { firstName: "", middleName: "", lastName: "", email: "" },
+      ],
+    }));
+  };
+
+  const removeAuthor = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      authors: prev.authors.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateAuthor = (
+    index: number,
+    field: keyof Author,
+    value: string,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      authors: prev.authors.map((author, i) =>
+        i === index ? { ...author, [field]: value } : author
+      ),
+    }));
+  };
+
+  const moveAuthor = (index: number, direction: "up" | "down") => {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= formData.authors.length) return;
+
+    setFormData((prev) => {
+      const newAuthors = [...prev.authors];
+      const temp = newAuthors[index];
+      newAuthors[index] = newAuthors[newIndex];
+      newAuthors[newIndex] = temp;
+      return { ...prev, authors: newAuthors };
+    });
+  };
+
+  // Keyword/tag management
+  const addKeyword = (keyword: string) => {
+    const trimmed = keyword.trim();
+    if (trimmed && !formData.keywords.includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        keywords: [...prev.keywords, trimmed],
+      }));
+    }
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      keywords: prev.keywords.filter((k) => k !== keyword),
+    }));
+  };
+
+  const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      if (keywordInput) {
+        addKeyword(keywordInput);
+        setKeywordInput("");
+      }
+    }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const submitData = {
+      ...formData,
+      file: uploadedFiles[0] || formData.file,
+    };
+    onSubmit(submitData);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Section 1: Metadata */}
+      <Card>
+        <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Section 1: Metadata</CardTitle>
+              <CardDescription className="text-xs">
+                Core identification and descriptive details
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          {/* Document Title */}
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-semibold">
+              Document Title
+            </Label>
+            <Input
+              id="title"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              placeholder="Enter the full title of the publication"
+              className="text-sm"
+              required
+            />
+          </div>
+
+          {/* Abstract */}
+          <div className="space-y-2">
+            <Label htmlFor="abstract" className="text-sm font-semibold">
+              Abstract
+            </Label>
+            <Textarea
+              id="abstract"
+              name="abstract"
+              value={formData.abstract}
+              onChange={handleInputChange}
+              placeholder="Enter a brief summary of your research (150-300 words)"
+              rows={4}
+              className="text-sm resize-none"
+              required
+            />
+          </div>
+
+          {/* Date, Resource Type, Visibility Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Date of Publication */}
+            <div className="space-y-2">
+              <Label htmlFor="datePublished" className="text-sm font-semibold">
+                Date Published
+              </Label>
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="datePublished"
+                    className="w-full justify-between font-normal text-sm"
+                  >
+                    {selectedDate
+                      ? selectedDate.toLocaleDateString()
+                      : "Select date"}
+                    <ChevronDownIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    captionLayout="dropdown"
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setFormData((prev) => ({
+                        ...prev,
+                        datePublished: date ? date.toISOString().split("T")[0] : "",
+                      }));
+                      setDatePickerOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Resource Type */}
+            <div className="space-y-2">
+              <Label htmlFor="resourceType" className="text-sm font-semibold">
+                Resource Type
+              </Label>
+              <Select
+                value={formData.resourceType}
+                onValueChange={(value) =>
+                  handleSelectChange("resourceType", value)
+                }
+              >
+                <SelectTrigger id="resourceType" className="text-sm">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {resourceTypeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Visibility */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Visibility</Label>
+              <div className="flex border rounded-md overflow-hidden h-10">
+                <label
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 cursor-pointer transition-colors text-sm font-medium",
+                    formData.visibility === "public"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-white dark:bg-slate-950 hover:bg-gray-50 dark:hover:bg-slate-900"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="public"
+                    checked={formData.visibility === "public"}
+                    onChange={handleInputChange}
+                    className="sr-only"
+                  />
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                      formData.visibility === "public"
+                        ? "border-primary"
+                        : "border-gray-400"
+                    )}
+                  >
+                    {formData.visibility === "public" && (
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    )}
+                  </div>
+                  Public
+                </label>
+                <div className="w-px bg-gray-300 dark:bg-slate-700" />
+                <label
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 cursor-pointer transition-colors text-sm font-medium",
+                    formData.visibility === "restricted"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-white dark:bg-slate-950 hover:bg-gray-50 dark:hover:bg-slate-900"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="restricted"
+                    checked={formData.visibility === "restricted"}
+                    onChange={handleInputChange}
+                    className="sr-only"
+                  />
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                      formData.visibility === "restricted"
+                        ? "border-primary"
+                        : "border-gray-400"
+                    )}
+                  >
+                    {formData.visibility === "restricted" && (
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    )}
+                  </div>
+                  Restricted
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Summary Placeholder - Feature not yet functional */}
+          <div className="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/10">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="text-sm font-bold text-primary">
+                AI-Generated Summary
+              </span>
+              <span className="text-xs text-muted-foreground italic">
+                (Feature coming soon)
+              </span>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+              AI-powered summaries will automatically generate concise overviews
+              of your research once this feature is implemented.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Authorship */}
+      <Card>
+        <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Section 2: Authorship</CardTitle>
+                <CardDescription className="text-xs">
+                  Manage contributors and their roles
+                </CardDescription>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={addAuthor}
+              className="text-primary hover:text-primary"
+            >
+              <span className="text-lg mr-1">+</span> Add Author
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="space-y-3">
+            {formData.authors.map((author, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg group"
+              >
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => moveAuthor(index, "up")}
+                    disabled={index === 0}
+                    className="text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveAuthor(index, "down")}
+                    disabled={index === formData.authors.length - 1}
+                    className="text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
+                  <Input
+                    placeholder="First Name"
+                    value={author.firstName}
+                    onChange={(e) =>
+                      updateAuthor(index, "firstName", e.target.value)
+                    }
+                    className="text-sm"
+                    required
+                  />
+                  <Input
+                    placeholder="Middle Name"
+                    value={author.middleName || ""}
+                    onChange={(e) =>
+                      updateAuthor(index, "middleName", e.target.value)
+                    }
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Last Name"
+                    value={author.lastName}
+                    onChange={(e) =>
+                      updateAuthor(index, "lastName", e.target.value)
+                    }
+                    className="text-sm"
+                    required
+                  />
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={author.email}
+                    onChange={(e) =>
+                      updateAuthor(index, "email", e.target.value)
+                    }
+                    className="text-sm"
+                    required
+                  />
+                </div>
+
+                {formData.authors.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeAuthor(index)}
+                    className="text-slate-400 hover:text-red-500"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Classification */}
+      <Card>
+        <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <GraduationCap className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">
+                Section 3: Classification
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Institutional hierarchy and discoverability keywords
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Course */}
+            <div className="space-y-2">
+              <Label htmlFor="courseId" className="text-sm font-semibold">
+                Course / Program
+              </Label>
+              <Select
+                value={formData.courseId}
+                onValueChange={(value) => handleSelectChange("courseId", value)}
+              >
+                <SelectTrigger id="courseId" className="text-sm">
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courseOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Library */}
+            <div className="space-y-2">
+              <Label htmlFor="library" className="text-sm font-semibold">
+                Library
+              </Label>
+              <Input
+                id="library"
+                name="library"
+                value={formData.library}
+                onChange={handleInputChange}
+                placeholder="Enter the affiliated library"
+                className="text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Keywords / Tags */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">Keywords / Tags</Label>
+            <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-white dark:bg-slate-950 min-h-[42px]">
+              {formData.keywords.map((keyword) => (
+                <span
+                  key={keyword}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded"
+                >
+                  {keyword}
+                  <button
+                    type="button"
+                    onClick={() => removeKeyword(keyword)}
+                    className="hover:bg-primary/20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                onKeyDown={handleKeywordKeyDown}
+                onBlur={() => {
+                  if (keywordInput) {
+                    addKeyword(keywordInput);
+                    setKeywordInput("");
+                  }
+                }}
+                className="flex-1 min-w-[120px] border-none focus:ring-0 p-0 text-sm bg-transparent placeholder:text-muted-foreground"
+                placeholder="Add a tag..."
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Press Enter or comma to add tags
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 4: File Management */}
+      <Card>
+        <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Upload className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">
+                Section 4: File Management
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Upload and verify the primary academic document
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          {/* Existing File Display (Edit Mode) */}
+          {existingFileName && (
+            <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <div className="flex items-center gap-3">
+                <FileText className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="text-sm font-bold">{existingFileName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {existingFileSize && formatFileSize(existingFileSize)}
+                    {existingFileDate && ` • Uploaded on ${existingFileDate}`}
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-wider rounded-full">
+                Current File
+              </span>
+            </div>
+          )}
+
+          {/* Dropzone */}
+          <Dropzone
+            src={uploadedFiles}
+            onDrop={(acceptedFiles) => {
+              setUploadedFiles(acceptedFiles);
+              setFormData((prev) => ({ ...prev, file: acceptedFiles[0] }));
+            }}
+            accept={{
+              "application/pdf": [".pdf"],
+              "application/msword": [".doc"],
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                [".docx"],
+            }}
+            maxSize={50 * 1024 * 1024} // 50MB
+            className="border-2 border-dashed hover:border-primary transition-colors"
+          >
+            <DropzoneContent />
+            <DropzoneEmptyState />
+          </Dropzone>
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-4 pt-6 border-t">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          className="bg-primary hover:bg-primary/90"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Submitting..." : submitLabel}
+        </Button>
+      </div>
+    </form>
+  );
+}
