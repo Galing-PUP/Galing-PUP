@@ -2,20 +2,24 @@
 
 import { useState } from "react";
 import { PublicationForm, type PublicationFormData } from "@/components/admin/publications/publication-form";
+import { useRouter } from "next/navigation";
 
 // 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (formData: PublicationFormData) => {
     if (isSubmitting) return;
 
     if (!formData.file) {
-      alert("Please select a file to upload.");
+      setError("Please select a file to upload.");
       return;
     }
 
     setIsSubmitting(true);
+    setError(null);
 
     const body = new FormData();
     body.append("title", formData.title);
@@ -43,12 +47,16 @@ export default function Upload() {
 
       const data = await res.json();
       console.log("Document created:", data);
-      alert("Publication submitted successfully for approval.");
-      window.location.reload(); // Simple way to reset everything for now
+      
+      // Show success message and redirect
+      alert("Publication submitted successfully for approval!");
+      router.push("/admin/publications");
     } catch (error) {
       console.error(error);
-      alert(
-        "There was an error submitting your publication. Please try again.",
+      setError(
+        error instanceof Error
+          ? error.message
+          : "There was an error submitting your publication. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -56,7 +64,7 @@ export default function Upload() {
   };
 
   const handleCancel = () => {
-    window.location.reload();
+    router.back();
   };
 
   return (
@@ -73,6 +81,12 @@ export default function Upload() {
           using the form below.
         </p>
       </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
 
       <PublicationForm
         onSubmit={handleSubmit}

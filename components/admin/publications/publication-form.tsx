@@ -43,6 +43,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CourseCombobox } from "@/components/admin/publications/course-combobox";
+import { publicationSchema, publicationEditSchema } from "@/lib/validations/publication-schema";
 
 export interface Author {
   firstName: string;
@@ -111,6 +112,7 @@ export function PublicationForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     initialData?.datePublished ? new Date(initialData.datePublished) : undefined
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const resourceTypeOptions = [
     { value: "THESIS", label: "Thesis" },
@@ -207,10 +209,31 @@ export function PublicationForm({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
     const submitData = {
       ...formData,
       file: uploadedFiles[0] || formData.file,
     };
+
+    // Validate with Zod
+    const schema = existingFileName ? publicationEditSchema : publicationSchema;
+    const result = schema.safeParse(submitData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((err) => {
+        const path = err.path.join(".");
+        fieldErrors[path] = err.message;
+      });
+      setErrors(fieldErrors);
+      
+      // Scroll to first error
+      const firstErrorElement = document.querySelector('[data-error="true"]');
+      firstErrorElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     onSubmit(submitData);
   };
 
@@ -220,6 +243,16 @@ export function PublicationForm({
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+  };
+
+  // Helper to display field errors
+  const FieldError = ({ name }: { name: string }) => {
+    if (!errors[name]) return null;
+    return (
+      <p className="text-sm text-red-600 mt-1" data-error="true">
+        {errors[name]}
+      </p>
+    );
   };
 
   return (
@@ -251,9 +284,10 @@ export function PublicationForm({
               value={formData.title}
               onChange={handleInputChange}
               placeholder="Enter the full title of the publication"
-              className="text-sm"
+              className={cn("text-sm", errors.title && "border-red-500")}
               required
             />
+            <FieldError name="title" />
           </div>
 
           {/* Abstract */}
@@ -268,9 +302,10 @@ export function PublicationForm({
               onChange={handleInputChange}
               placeholder="Enter a brief summary of your research (150-300 words)"
               rows={4}
-              className="text-sm resize-none"
+              className={cn("text-sm resize-none", errors.abstract && "border-red-500")}
               required
             />
+            <FieldError name="abstract" />
           </div>
 
           {/* Date, Resource Type, Visibility Grid */}

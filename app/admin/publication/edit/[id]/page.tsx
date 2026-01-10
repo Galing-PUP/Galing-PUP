@@ -1,88 +1,52 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useParams, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar } from "lucide-react";
-
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   PublicationForm,
   type PublicationFormData,
-  type Author,
 } from "@/components/admin/publications/publication-form";
 
 export default function Edit() {
   const params = useParams();
+  const router = useRouter();
   const documentId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [initialData, setInitialData] = useState<Partial<PublicationFormData> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch existing document data
+  // Fetch existing document data from API
   useEffect(() => {
     if (documentId) {
       const fetchDocumentData = async () => {
         try {
-          // Mock data for demonstration
-          const { getPublicationById } = await import(
-            "@/data/mockPublications"
-          );
-          const publication = getPublicationById(documentId);
-
-          if (publication) {
-            // Convert authors string to Author array
-            const authorsArray: Author[] = publication.authors
-              .split(",")
-              .map((name) => {
-                const trimmed = name.trim();
-                const parts = trimmed.split(" ");
-                return {
-                  firstName: parts[0] || "",
-                  middleName: parts.length > 2 ? parts.slice(1, -1).join(" ") : "",
-                  lastName: parts[parts.length - 1] || "",
-                  email: "", // Mock data doesn't have emails
-                };
-              });
-
-            // Convert keywords string to array
-            const keywordsArray = publication.keywords
-              .split(",")
-              .map((k) => k.trim())
-              .filter((k) => k);
-
-            setInitialData({
-              title: publication.title,
-              abstract: publication.abstract,
-              keywords: keywordsArray,
-              datePublished: publication.datePublished,
-              resourceType: publication.resourceType.toUpperCase(), // Convert to match enum
-              authors: authorsArray,
-              courseId: "1", // Fallback for mock
-            });
+          const response = await fetch(`/api/admin/documents/${documentId}`);
+          
+          if (!response.ok) {
+            throw new Error("Failed to fetch document");
           }
+
+          const data = await response.json();
+
+          setInitialData({
+            title: data.title,
+            abstract: data.abstract,
+            keywords: data.keywords,
+            datePublished: data.datePublished,
+            resourceType: data.resourceType,
+            authors: data.authors,
+            courseId: data.courseId,
+          });
 
           setIsLoading(false);
         } catch (error) {
           console.error("Error fetching document:", error);
+          setError("Failed to load document. Please try again.");
           setIsLoading(false);
         }
       };
@@ -91,19 +55,46 @@ export default function Edit() {
     }
   }, [documentId]);
 
-  const handleSubmit = (formData: PublicationFormData) => {
+  const handleSubmit = async (formData: PublicationFormData) => {
     setIsSubmitting(true);
-    console.log("Form updated:", formData);
-    // TODO: Implement backend update with documentId
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const body = new FormData();
+      body.append("title", formData.title);
+      body.append("abstract", formData.abstract);
+      body.append("keywords", formData.keywords.join(", "));
+      body.append("datePublished", formData.datePublished);
+      body.append("resourceType", formData.resourceType);
+      body.append("authors", JSON.stringify(formData.authors));
+      body.append("courseId", formData.courseId);
+      
+      if (formData.file) {
+        body.append("file", formData.file);
+      }
+
+      const response = await fetch(`/api/admin/documents/${documentId}`, {
+        method: "PUT",
+        body,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to update document");
+      }
+
+      alert("Document updated successfully!");
+      router.push("/admin/publications");
+    } catch (error) {
+      console.error("Error updating document:", error);
+      setError(error instanceof Error ? error.message : "Failed to update document");
+    } finally {
       setIsSubmitting(false);
-      alert("Changes saved successfully.");
-      window.history.back();
-    }, 1000);
+    }
   };
 
   const handleCancel = () => {
-    window.history.back();
+    router.back();
   };
 
   if (isLoading) {
@@ -128,6 +119,24 @@ export default function Edit() {
     );
   }
 
+  if (error && !initialData) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600">{error}</p>
+            <Button onClick={() => router.back()} className="mt-4">
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full relative">
       {/* Header */}
@@ -143,6 +152,12 @@ export default function Edit() {
         </p>
       </div>
 
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+
       {initialData && (
         <PublicationForm
           initialData={initialData}
@@ -152,12 +167,8 @@ export default function Edit() {
           title="Publication Edit Form"
           description="Update fields as needed"
           submitLabel="Save Changes"
-          existingFileName="research_document.pdf"
-          existingFileSize={4200000}
-          existingFileDate="Nov 14, 2023"
         />
       )}
     </div>
   );
 }
-
