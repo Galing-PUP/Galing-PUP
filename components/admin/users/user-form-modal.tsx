@@ -2,10 +2,26 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { User } from "@/types/users";
-import { Button } from "@/components/button";
-import { FormInput } from "./form-input";
-import { FormSelect } from "./form-select";
-import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { User as UserIcon, Mail } from "lucide-react";
 
 type College = {
   id: number;
@@ -22,39 +38,39 @@ type UserFormModalProps = {
 };
 
 export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserFormModalProps) {
-  const [formData, setFormData] = useState<Partial<User>>({});
+  // Initialize formData based on whether we're editing or creating
+  const getInitialFormData = () => {
+    if (user) {
+      return user;
+    }
+    return {
+      role: "Registered",
+      status: "Pending",
+      subscriptionTier: 1,
+      fullname: "",
+      name: "",
+      email: "",
+      collegeId: undefined,
+      idNumber: undefined,
+      idImagePath: undefined
+    } as Partial<User>;
+  };
+
+  const [formData, setFormData] = useState<Partial<User>>(getInitialFormData());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [initialData, setInitialData] = useState<Partial<User>>({});
+  const [initialData] = useState<Partial<User>>(getInitialFormData());
   const [emailError, setEmailError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) {
-      setFormData(user);
-      setInitialData(user);
-    } else {
-      // Initialize defaults for new user
-      const defaults: Partial<User> = {
-        role: "Registered",
-        status: "Pending",
-        subscriptionTier: 1,
-        fullname: "",
-        name: "",
-        email: "",
-        collegeId: undefined, // Optional
-        idNumber: undefined,
-        idImagePath: undefined   // Optional
-      };
-      setFormData(defaults);
-      setInitialData(defaults);
+    if (isOpen) {
+      const newData = getInitialFormData();
+      setFormData(newData);
+      setSelectedFile(null);
+      setEmailError("");
     }
-    setSelectedFile(null);
-    setEmailError("");
-  }, [isOpen, user]);
-
-  if (!isOpen) {
-    return null;
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleSave = () => {
     const userToSave: User = {
@@ -64,7 +80,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
       email: formData.email || "",
       role: formData.role || "Registered",
       status: formData.status || "Pending",
-      subscriptionTier: formData.subscriptionTier || 1, // Default to Free
+      subscriptionTier: formData.subscriptionTier || 1,
+      registrationDate: formData.registrationDate || new Date().toISOString(),
       collegeId: formData.collegeId,
       idImagePath: formData.idImagePath,
     };
@@ -139,21 +156,28 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ID_UPLOAD/${user.idImagePath}`
     : user?.idImagePath;
 
+  // Get status badge variant
+  const getStatusBadgeVariant = (status?: string) => {
+    switch (status) {
+      case 'Accepted':
+        return 'default';
+      case 'Pending':
+        return 'secondary';
+      case 'Delete':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30 p-4">
-      <div className="w-full max-w-5xl h-[90vh] flex flex-col rounded-xl border border-gray-200 bg-white shadow-2xl">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
         {user ? (
-          <div className="bg-gradient-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm">
+          <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
             <div className="flex items-start justify-between">
               <div className="space-y-3">
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${
-                  formData.status === 'Accepted' 
-                    ? 'bg-green-50 border-green-200' 
-                    : formData.status === 'Pending' 
-                    ? 'bg-yellow-50 border-yellow-200' 
-                    : 'bg-red-50 border-red-200'
-                }`}>
+                <Badge variant={getStatusBadgeVariant(formData.status)} className="gap-2">
                   <div className={`w-2 h-2 rounded-full animate-pulse ${
                     formData.status === 'Accepted' 
                       ? 'bg-green-500' 
@@ -161,88 +185,76 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                       ? 'bg-yellow-500' 
                       : 'bg-red-500'
                   }`} />
-                  <span className={`text-xs font-semibold uppercase tracking-wider ${
-                    formData.status === 'Accepted' 
-                      ? 'text-green-700' 
-                      : formData.status === 'Pending' 
-                      ? 'text-yellow-700' 
-                      : 'text-red-700'
-                  }`}>{formData.status || "Unknown"}</span>
-                </div>
+                  {formData.status || "Unknown"}
+                </Badge>
                 <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
                   {formData.fullname || "User Name"}
                 </h2>
                 <div className="space-y-1.5 pl-1">
                   <div className="flex items-center gap-2.5">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <UserIcon className="w-4 h-4 text-gray-400" />
                     <p className="text-sm font-semibold text-gray-700">@{formData.name || "username"}</p>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
+                    <Mail className="w-4 h-4 text-gray-400" />
                     <p className="text-sm text-gray-600">{formData.email || "email@example.com"}</p>
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={onClose} 
-                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                <X className="h-6 w-6" />
-              </button>
             </div>
           </div>
         ) : (
-          <div className="flex items-start justify-between p-8 border-b border-gray-200">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-              <p className="mt-1 text-gray-500">{description}</p>
-            </div>
-            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-700 transition-colors">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          <DialogHeader className="p-8 pb-4 rounded-t-lg">
+            <DialogTitle className="text-2xl font-bold text-gray-900">{title}</DialogTitle>
+            <DialogDescription className="text-gray-500">{description}</DialogDescription>
+          </DialogHeader>
         )}
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto px-8 space-y-6">
           {/* For new users only: Show full name, username, email, and password fields */}
           {!user && (
             <>
               {/* Row 1: Full Name and Username */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <FormInput
-                  label="Full Name"
-                  value={formData.fullname || ""}
-                  onChange={e => handleInputChange('fullname', e.target.value)}
-                  placeholder="Juan D. Dela Cruz"
-                />
-                <FormInput
-                  label="Username"
-                  value={formData.name || ""}
-                  onChange={e => handleInputChange('name', e.target.value)}
-                  placeholder="Username"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="fullname">Full Name</Label>
+                  <Input
+                    id="fullname"
+                    value={formData.fullname || ""}
+                    onChange={e => handleInputChange('fullname', e.target.value)}
+                    placeholder="Juan D. Dela Cruz"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={formData.name || ""}
+                    onChange={e => handleInputChange('name', e.target.value)}
+                    placeholder="Username"
+                  />
+                </div>
               </div>
 
-              {/* Row 2: Email (Full Width) */}
-              <div>
-                <FormInput
-                  label="Email Address"
-                  type="email"
-                  value={formData.email || ""}
-                  onChange={e => handleInputChange('email', e.target.value)}
-                  placeholder="example@gmail.com"
-                />
-                {emailError && (
-                  <p className="mt-1 text-xs text-red-600">{emailError}</p>
-                )}
-                {/* Row 3: Change Password */}
-                <div className="mt-4">
-                  <FormInput
-                    label="New Password"
+              {/* Row 2: Email and Password */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email || ""}
+                    onChange={e => handleInputChange('email', e.target.value)}
+                    placeholder="example@gmail.com"
+                  />
+                  {emailError && (
+                    <p className="text-xs text-red-600">{emailError}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">New Password</Label>
+                  <Input
+                    id="password"
                     type="password"
                     value={formData.password || ""}
                     onChange={e => handleInputChange('password', e.target.value)}
@@ -256,141 +268,128 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
           {/* 2x2 Layout for Role, Status, Subscription Tier, College */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Role */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Role</label>
-              <div className="relative">
-                <select
-                  value={formData.role || "User"}
-                  onChange={e => handleInputChange('role', e.target.value)}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                >
-                  <option>Viewer</option>
-                  <option>Registered</option>
-                  <option>Admin</option>
-                  <option>Superadmin</option>
-                </select>
-                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select
+                value={formData.role || "Registered"}
+                onValueChange={value => handleInputChange('role', value)}
+              >
+                <SelectTrigger id="role" className="w-full">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Viewer">Viewer</SelectItem>
+                  <SelectItem value="Registered">Registered</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Superadmin">Superadmin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Status */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Status</label>
-              <div className="relative">
-                <select
-                  value={formData.status || ""}
-                  onChange={e => handleInputChange('status', e.target.value)}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-pup-maroon focus:outline-none focus:ring-1 focus:ring-pup-maroon"
-                >
-                  <option value="" disabled>User Status</option>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Delete">Delete</option>
-                </select>
-                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={formData.status || ""}
+                onValueChange={value => handleInputChange('status', value)}
+              >
+                <SelectTrigger id="status" className="w-full">
+                  <SelectValue placeholder="User Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Accepted">Accepted</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Delete">Delete</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Subscription Tier */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Subscription Tier</label>
-              <div className="relative">
-                <select
-                  value={formData.subscriptionTier || 1}
-                  onChange={e => handleInputChange('subscriptionTier', parseInt(e.target.value))}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                >
-                  <option value={1}>Free</option>
-                  <option value={2}>Paid</option>
-                </select>
-                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="subscription">Subscription Tier</Label>
+              <Select
+                value={String(formData.subscriptionTier || 1)}
+                onValueChange={value => handleInputChange('subscriptionTier', parseInt(value))}
+              >
+                <SelectTrigger id="subscription" className="w-full">
+                  <SelectValue placeholder="Select tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Free</SelectItem>
+                  <SelectItem value="2">Paid</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* College Dropdown */}
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">College</label>
-              <div className="relative">
-                <select
-                  value={formData.collegeId || ""}
-                  onChange={e => handleInputChange('collegeId', parseInt(e.target.value))}
-                  className="w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-12 text-sm shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800"
-                >
-                  <option value="" disabled>Select College</option>
+            <div className="space-y-2">
+              <Label htmlFor="college">College</Label>
+              <Select
+                value={formData.collegeId ? String(formData.collegeId) : ""}
+                onValueChange={value => {
+                  if (value) {
+                    handleInputChange('collegeId', parseInt(value));
+                  }
+                }}
+              >
+                <SelectTrigger id="college" className="w-full">
+                  <SelectValue placeholder="Select College" />
+                </SelectTrigger>
+                <SelectContent>
                   {colleges.map((college) => (
-                    <option key={college.id} value={college.id}>
+                    <SelectItem key={college.id} value={String(college.id)}>
                       {college.collegeName}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-                <div className="absolute right-0 top-0 h-full w-12 bg-red-100 border-l border-gray-300 rounded-r-md pointer-events-none flex items-center justify-center">
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Registration Date and ID Number */}
-            {user && (
-              <>
-                <FormInput
-                  label="Registration Date"
+          {/* Registration Date and ID Number (for existing users) */}
+          {user && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="registrationDate">Registration Date</Label>
+                <Input
+                  id="registrationDate"
                   value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString() : ""}
-                  disabled={true}
-                  onChange={() => { }} // Read only
+                  disabled
+                  className="bg-gray-50"
                 />
+              </div>
 
-                <div>
-                  <FormInput
-                    label="ID Number"
-                    value={formData.id || ""}
-                    onChange={e => handleInputChange('id', e.target.value)}
-                    disabled={true}
-                  />
-                </div>
-              </>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="idNumber">ID Number</Label>
+                <Input
+                  id="idNumber"
+                  value={formData.id || ""}
+                  disabled
+                  className="bg-gray-50"
+                />
+              </div>
+            </div>
+          )}
 
           {/* ID Image Display & Upload */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">ID Image</label>
+          <div className="space-y-2">
+            <Label htmlFor="idImage">ID Image</Label>
 
-            <div className="flex mb-4">
-              <button
+            <div className="flex">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={handleFileUpload}
                 disabled={!!user}
-                className={`inline-flex items-center rounded-l-md border border-r-0 border-gray-300 px-3 text-sm ${
-                  user 
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 cursor-pointer'
-                } transition-colors`}
+                className="rounded-r-none border-r-0"
               >
                 Change File
-              </button>
-              <input
-                type="text"
+              </Button>
+              <Input
                 readOnly
                 value={selectedFile ? selectedFile.name : (formData.idImagePath ? "Existing file" : "No file chosen")}
                 placeholder="No file chosen"
-                className="w-full rounded-r-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+                className="rounded-l-none bg-gray-100 text-gray-500"
               />
               <input
                 ref={fileInputRef}
@@ -403,37 +402,36 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
             </div>
 
             {imageUrl ? (
-              <div className="mb-2">
+              <div className="mt-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageUrl}
                   alt="User ID"
                   className="w-full h-auto object-contain border border-gray-300 rounded-md"
                   onError={(e) => {
-                    // Hide broken image or show placeholder
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               </div>
             ) : (
-              <p className="text-sm text-gray-500 mb-2 italic">No ID image uploaded.</p>
+              <p className="text-sm text-gray-500 italic">No ID image uploaded.</p>
             )}
           </div>
         </div>
-        <div className="flex justify-end gap-4 p-8 border-t border-gray-100">
-          <Button variant="outline" shape="rounded" onClick={onClose} className="border-gray-300">
+
+        <DialogFooter className="p-8 pt-4 border-t border-gray-100 rounded-b-lg">
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           <Button
-            variant="primary"
-            shape="rounded"
             onClick={handleSave}
             disabled={!hasChanges()}
             className={!hasChanges() ? "opacity-50 cursor-not-allowed" : ""}
           >
             {user ? 'Save Changes' : 'Add User'}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
