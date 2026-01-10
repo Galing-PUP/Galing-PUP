@@ -91,7 +91,7 @@ export function PublicationForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-6">
       {/* Section 1: Metadata */}
       <BasicInfoSection
         formData={formData}
