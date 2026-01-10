@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ResourceTypes } from "@/lib/generated/prisma/enums";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, unlink } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 
@@ -11,6 +11,8 @@ async function ensureUploadsDir() {
 }
 
 export async function POST(req: NextRequest) {
+  let filePathOnDisk: string | undefined;
+
   try {
     const formData = await req.formData();
 
@@ -69,14 +71,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Handle File Upload First
+    // Pre-check for duplicate title to avoid saving file unnecessarily
+    const existingDoc = await prisma.document.findUnique({
+      where: { title },
+      select: { id: true },
+    });
+
+    if (existingDoc) {
+      return NextResponse.json(
+        { error: "A document with this title already exists." },
+        { status: 409 }
+      );
+    }
+
+    // Handle File Upload
     const uploadDir = await ensureUploadsDir();
     const fileExt = path.extname(file.name) || ".pdf";
     const fileBaseName = `${Date.now()}-${Math.random()
       .toString(36)
       .slice(2, 10)}`;
     const fileName = `${fileBaseName}${fileExt}`;
-    const filePathOnDisk = path.join(uploadDir, fileName);
+    filePathOnDisk = path.join(uploadDir, fileName); // Set scope var
     const publicFilePath = `/uploads/${fileName}`;
 
     const fileBytes = await file.arrayBuffer();
@@ -168,8 +183,25 @@ export async function POST(req: NextRequest) {
       { id: result.id, filePath: publicFilePath },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating document:", error);
+
+    // Cleanup file if it was created but operation failed
+    if (filePathOnDisk) {
+      try {
+        await unlink(filePathOnDisk);
+        console.log("Cleaned up orphaned file:", filePathOnDisk);
+      } catch (cleanupError) {
+        console.error("Failed to cleanup file:", cleanupError);
+      }
+    }
+
+    if (error.code === "P2002" && error.meta?.target?.includes("title")) {
+        return NextResponse.json(
+            { error: "A document with this title already exists." },
+            { status: 409 }
+        );
+    }
     return NextResponse.json(
       {
         error:
