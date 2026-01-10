@@ -203,7 +203,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                     {formData.status || "Unknown"}
                   </Badge>
                   <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
-                    {formData.fullname || "User Name"}
+                    {formData.fullname || ""}
                   </h2>
                   <div className="space-y-1.5 pl-1">
                     <div className="flex items-center gap-2.5">
