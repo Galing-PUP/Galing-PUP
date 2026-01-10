@@ -1,18 +1,22 @@
 "use client";
 
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
-import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import { Button, GoogleIcon } from "@/components/button";
+import {
+  checkUsernameAvailability,
+  checkUserStatus,
+  createUserInDb,
+} from "@/lib/actions";
 import { signInWithGooglePopup } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
-import { checkUsernameAvailability, checkUserStatus, createUserInDb } from "@/lib/actions";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -35,7 +39,8 @@ export default function SignUpPage() {
   const validateUsername = (value: string) => {
     if (!value) return "";
     if (/\s/.test(value)) return "Spaces are not allowed";
-    if (!/^[a-zA-Z0-9.]+$/.test(value)) return "Special characters are not allowed";
+    if (!/^[a-zA-Z0-9.]+$/.test(value))
+      return "Special characters are not allowed";
     return "";
   };
 
@@ -56,7 +61,8 @@ export default function SignUpPage() {
   };
 
   const isPasswordValid = Object.values(passwordValidation).every(Boolean);
-  const doPasswordsMatch = password === confirmPassword && confirmPassword !== "";
+  const doPasswordsMatch =
+    password === confirmPassword && confirmPassword !== "";
 
   // Generate password error message
   const getPasswordError = () => {
@@ -106,7 +112,10 @@ export default function SignUpPage() {
           <form className="flex flex-col gap-4">
             {/* Username Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="username" className="text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="username"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Username
               </label>
               <input
@@ -115,10 +124,11 @@ export default function SignUpPage() {
                 value={username}
                 onChange={handleUsernameChange}
                 placeholder="Enter your username"
-                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${usernameError
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
-                  }`}
+                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                  usernameError
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
+                }`}
               />
               {usernameError && (
                 <p className="text-sm text-red-600">{usernameError}</p>
@@ -127,7 +137,10 @@ export default function SignUpPage() {
 
             {/* Email Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Email
               </label>
               <input
@@ -136,10 +149,11 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="yourname@gmail.com"
-                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${!isEmailValid
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
-                  }`}
+                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                  !isEmailValid
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
+                }`}
               />
               {!isEmailValid && email !== "" && (
                 <p className="text-sm text-red-600">
@@ -150,13 +164,14 @@ export default function SignUpPage() {
 
             {/* Password Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Password
               </label>
               {passwordError && (
-                <p className="text-sm text-red-600">
-                  {passwordError}
-                </p>
+                <p className="text-sm text-red-600">{passwordError}</p>
               )}
               <div className="relative">
                 <input
@@ -183,7 +198,10 @@ export default function SignUpPage() {
 
             {/* Confirm Password Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="confirmPassword"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -193,12 +211,13 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${doPasswordsMatch
-                    ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
-                    : confirmPassword
+                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${
+                    doPasswordsMatch
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
+                      : confirmPassword
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
                       : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
-                    }`}
+                  }`}
                 />
                 <button
                   type="button"
@@ -213,14 +232,10 @@ export default function SignUpPage() {
                 </button>
               </div>
               {confirmPassword && !doPasswordsMatch && (
-                <p className="text-sm text-red-600">
-                  Passwords do not match
-                </p>
+                <p className="text-sm text-red-600">Passwords do not match</p>
               )}
               {doPasswordsMatch && (
-                <p className="text-sm text-green-600">
-                  ✓ Passwords match
-                </p>
+                <p className="text-sm text-green-600">✓ Passwords match</p>
               )}
             </div>
 
@@ -231,12 +246,23 @@ export default function SignUpPage() {
               size="lg"
               fullWidth
               shape="rounded"
-              disabled={!username || !email || !password || !confirmPassword || !isEmailValid || !isPasswordValid || !doPasswordsMatch || !!usernameError || loading}
+              disabled={
+                !username ||
+                !email ||
+                !password ||
+                !confirmPassword ||
+                !isEmailValid ||
+                !isPasswordValid ||
+                !doPasswordsMatch ||
+                !!usernameError ||
+                loading
+              }
               onClick={async () => {
                 setLoading(true);
                 try {
                   // Step 1: Check if username is already taken in the database
-                  const { exists: usernameExists } = await checkUsernameAvailability(username);
+                  const { exists: usernameExists } =
+                    await checkUsernameAvailability(username);
                   if (usernameExists) {
                     toast.error("Username already exists, please login");
                     setLoading(false);
@@ -262,8 +288,12 @@ export default function SignUpPage() {
                       const status = await checkUserStatus(email);
                       if (status.exists && !status.isVerified) {
                         // If unverified, redirect to OTP page to finish setup
-                        toast.error("User already registered but not verified. Redirecting to verification...");
-                        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+                        toast.error(
+                          "User already registered but not verified. Redirecting to verification..."
+                        );
+                        router.push(
+                          `/verify-otp?email=${encodeURIComponent(email)}`
+                        );
                       } else {
                         // If verified, ask them to login
                         toast.error("User already registered, please login");
@@ -276,7 +306,12 @@ export default function SignUpPage() {
 
                   // Step 4: Signup successful, create user in DB and redirect
                   if (data.user) {
-                    await createUserInDb(email, username, data.user.id, password);
+                    await createUserInDb(
+                      email,
+                      username,
+                      data.user.id,
+                      password
+                    );
                   }
 
                   toast.success("Account created! Please verify your email.");

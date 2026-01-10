@@ -1,18 +1,18 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
-import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
+import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import { Button, GoogleIcon } from "@/components/button";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
-import { signInWithGooglePopup } from "@/lib/auth";
 import { checkUserStatus, verifyCredentials } from "@/lib/actions";
+import { signInWithGooglePopup } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -56,12 +56,16 @@ export default function SignInPage() {
       // Check if user is verified
       if (!status.isVerified) {
         if (status.roleId === 1 && status.updatedDate) {
-          toast.error("Your account is currently ON HOLD, please contact the support team");
+          toast.error(
+            "Your account is currently ON HOLD, please contact the support team"
+          );
           setLoading(false);
           return;
         }
 
-        toast.error("User is not verified, please check your email for the code");
+        toast.error(
+          "User is not verified, please check your email for the code"
+        );
         router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
         setLoading(false);
         return;
@@ -134,7 +138,10 @@ export default function SignInPage() {
 
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Email or Username
               </label>
               <input
@@ -149,7 +156,10 @@ export default function SignInPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Password
               </label>
               <input
@@ -167,7 +177,7 @@ export default function SignInPage() {
               <button
                 type="button"
                 className="text-sm font-medium text-[#7C1D1D] hover:underline"
-                onClick={() => router.push('/forgot-password')}
+                onClick={() => router.push("/forgot-password")}
               >
                 Forgot Password?
               </button>
