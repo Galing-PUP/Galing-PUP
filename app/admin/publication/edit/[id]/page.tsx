@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,7 +58,19 @@ export default function Edit() {
 
   const handleSubmit = async (formData: PublicationFormData) => {
     setIsSubmitting(true);
-    setError(null);
+    
+    let promiseResolve: (value: any) => void;
+    let promiseReject: (reason?: any) => void;
+    const submissionPromise = new Promise((resolve, reject) => {
+        promiseResolve = resolve;
+        promiseReject = reject;
+    });
+
+    toast.promise(submissionPromise, {
+        loading: 'Updating publication...',
+        success: 'Document updated successfully!',
+        error: (err: any) => `Update failed: ${err.message}`,
+    });
 
     try {
       const body = new FormData();
@@ -79,15 +92,20 @@ export default function Edit() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error || "Failed to update document");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to update document");
       }
+      
+      promiseResolve!(null);
 
-      alert("Document updated successfully!");
-      router.push("/admin/publication");
+      // Slight delay for UX
+      setTimeout(() => {
+        router.push("/admin/publication");
+      }, 1000);
+      
     } catch (error) {
       console.error("Error updating document:", error);
-      setError(error instanceof Error ? error.message : "Failed to update document");
+      promiseReject!(error instanceof Error ? error : new Error("Unknown error"));
     } finally {
       setIsSubmitting(false);
     }

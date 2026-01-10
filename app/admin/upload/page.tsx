@@ -6,6 +6,7 @@ import {
   type PublicationFormData,
 } from "@/components/admin/publications/publication-form";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
@@ -17,52 +18,60 @@ export default function Upload() {
     if (isSubmitting) return;
 
     if (!formData.file) {
-      setError("Please select a file to upload.");
+      toast.error("Please select a file to upload.");
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
+    let promiseResolve: (value: any) => void;
+    let promiseReject: (reason?: any) => void;
+    const submissionPromise = new Promise((resolve, reject) => {
+        promiseResolve = resolve;
+        promiseReject = reject;
+    });
 
-    const body = new FormData();
-    body.append("title", formData.title);
-    body.append("abstract", formData.abstract);
-    body.append("keywords", formData.keywords.join(", ")); // Convert array to comma-separated string
-    body.append("datePublished", formData.datePublished);
-    body.append("resourceType", formData.resourceType);
-
-    // Convert authors array to JSON string for API
-    body.append("authors", JSON.stringify(formData.authors));
-
-    body.append("courseId", formData.courseId);
-    body.append("file", formData.file);
+    toast.promise(submissionPromise, {
+        loading: 'Uploading publication...',
+        success: 'Publication submitted successfully for approval!',
+        error: (err: any) => `Submission failed: ${err.message}`,
+    });
 
     try {
-      const res = await fetch("/api/admin/documents", {
-        method: "POST",
-        body,
-      });
+        const body = new FormData();
+        body.append("title", formData.title);
+        body.append("abstract", formData.abstract);
+        body.append("keywords", formData.keywords.join(", "));
+        body.append("datePublished", formData.datePublished);
+        body.append("resourceType", formData.resourceType);
+        body.append("authors", JSON.stringify(formData.authors));
+        body.append("courseId", formData.courseId);
+        body.append("file", formData.file);
 
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.error || "Failed to submit publication.");
-      }
+        const res = await fetch("/api/admin/documents", {
+            method: "POST",
+            body,
+        });
 
-      const data = await res.json();
-      console.log("Document created:", data);
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.error || "Failed to submit publication.");
+        }
 
-      // Show success message and redirect
-      alert("Publication submitted successfully for approval!");
-      router.push("/admin/publication");
+        const data = await res.json();
+        console.log("Document created:", data);
+        
+        promiseResolve!(data);
+        
+        // Slight delay before redirect to let user see success message
+        setTimeout(() => {
+            router.push("/admin/publication");
+        }, 1000);
+
     } catch (error) {
-      console.error(error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "There was an error submitting your publication. Please try again."
-      );
+        console.error(error);
+        promiseReject!(error instanceof Error ? error : new Error("Unknown error"));
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
   };
 
