@@ -55,9 +55,11 @@ export function CourseCombobox({
           disabled={disabled}
           className="w-full justify-between text-sm font-normal"
         >
-          {selectedCourse
-            ? `${selectedCourse.courseAbbr} - ${selectedCourse.courseName}`
-            : "Select course..."}
+          <span className="truncate text-left">
+            {selectedCourse
+              ? `${selectedCourse.courseAbbr} - ${selectedCourse.courseName}`
+              : "Select course..."}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

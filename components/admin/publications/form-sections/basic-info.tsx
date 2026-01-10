@@ -28,7 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PublicationFormData } from "@/lib/validations/publication-schema";
-import { ChevronDownIcon, FileText, Sparkles } from "lucide-react";
+import { Calendar1, ChevronDownIcon, FileText, Sparkles } from "lucide-react";
 import { ChangeEvent, useState } from "react";
 
 interface BasicInfoSectionProps {
@@ -131,7 +131,7 @@ export function BasicInfoSection({
         </div>
 
         {/* Date, Resource Type, Visibility Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Date of Publication */}
           <div className="space-y-2">
             <Label htmlFor="datePublished" className="text-sm font-semibold">
@@ -147,7 +147,7 @@ export function BasicInfoSection({
                   {selectedDate
                     ? selectedDate.toLocaleDateString()
                     : "Select date"}
-                  <ChevronDownIcon className="h-4 w-4" />
+                  <Calendar1 className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent
@@ -184,7 +184,7 @@ export function BasicInfoSection({
                 handleSelectChange("resourceType", value)
               }
             >
-              <SelectTrigger id="resourceType" className="text-sm">
+            <SelectTrigger id="resourceType" className="w-full text-sm">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -198,7 +198,7 @@ export function BasicInfoSection({
           </div>
 
           {/* Course / Program */}
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-3">
             <Label htmlFor="courseId" className="text-sm font-semibold">
               Course / Program
             </Label>
