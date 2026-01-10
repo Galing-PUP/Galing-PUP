@@ -53,7 +53,7 @@ export default function Upload() {
 
       // Show success message and redirect
       alert("Publication submitted successfully for approval!");
-      router.push("/admin/publications");
+      router.push("/admin/publication");
     } catch (error) {
       console.error(error);
       setError(

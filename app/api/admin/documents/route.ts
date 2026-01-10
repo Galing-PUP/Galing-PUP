@@ -108,6 +108,7 @@ export async function POST(req: NextRequest) {
           uploaderId: uploader.id,
           courseId,
           status: "PENDING", // All new documents are PENDING
+          submissionDate: new Date(),
         },
       });
 
