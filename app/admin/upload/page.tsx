@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PublicationForm, type PublicationFormData } from "@/components/admin/publications/publication-form";
+import {
+  PublicationForm,
+  type PublicationFormData,
+} from "@/components/admin/publications/publication-form";
 import { useRouter } from "next/navigation";
 
 // 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
@@ -27,10 +30,10 @@ export default function Upload() {
     body.append("keywords", formData.keywords.join(", ")); // Convert array to comma-separated string
     body.append("datePublished", formData.datePublished);
     body.append("resourceType", formData.resourceType);
-    
+
     // Convert authors array to JSON string for API
     body.append("authors", JSON.stringify(formData.authors));
-    
+
     body.append("courseId", formData.courseId);
     body.append("file", formData.file);
 
@@ -47,7 +50,7 @@ export default function Upload() {
 
       const data = await res.json();
       console.log("Document created:", data);
-      
+
       // Show success message and redirect
       alert("Publication submitted successfully for approval!");
       router.push("/admin/publications");

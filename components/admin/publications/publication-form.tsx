@@ -58,13 +58,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-
-export interface Author {
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  email: string;
-}
+import { AuthorSelector, type Author } from "@/components/admin/publications/author-selector";
 
 export interface PublicationFormData {
   title: string;
@@ -167,56 +161,6 @@ export function PublicationForm({
   };
 
   // Author management functions
-  const addAuthor = () => {
-    setFormData((prev) => ({
-      ...prev,
-      authors: [
-        ...prev.authors,
-        { firstName: "", middleName: "", lastName: "", email: "" },
-      ],
-    }));
-  };
-
-  const removeAuthor = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      authors: prev.authors.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateAuthor = (index: number, field: keyof Author, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      authors: prev.authors.map((author, i) =>
-        i === index ? { ...author, [field]: value } : author
-      ),
-    }));
-  };
-
-  const moveAuthor = (index: number, direction: "up" | "down") => {
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= formData.authors.length) return;
-
-    setFormData((prev) => {
-      const newAuthors = [...prev.authors];
-      const temp = newAuthors[index];
-      newAuthors[index] = newAuthors[newIndex];
-      newAuthors[newIndex] = temp;
-      return { ...prev, authors: newAuthors };
-    });
-  };
-
-  // Keyword/tag management
-  const addKeyword = (keyword: string) => {
-    const trimmed = keyword.trim();
-    if (trimmed && !formData.keywords.includes(trimmed)) {
-      setFormData((prev) => ({
-        ...prev,
-        keywords: [...prev.keywords, trimmed],
-      }));
-    }
-  };
-
   const removeKeyword = (keyword: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -528,108 +472,26 @@ export function PublicationForm({
       {/* Section 2: Authorship */}
       <Card>
         <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Section 2: Authorship</CardTitle>
-                <CardDescription className="text-xs">
-                  Manage contributors and their roles
-                </CardDescription>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Users className="h-5 w-5 text-primary" />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={addAuthor}
-              className="text-primary hover:text-primary"
-            >
-              <span className="text-lg mr-1">+</span> Add Author
-            </Button>
+            <div>
+              <CardTitle className="text-lg">Section 2: Authorship</CardTitle>
+              <CardDescription className="text-xs">
+                Select existing authors or add new contributors
+              </CardDescription>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="space-y-3">
-            {formData.authors.map((author, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg group"
-              >
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveAuthor(index, "up")}
-                    disabled={index === 0}
-                    className="text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <GripVertical className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveAuthor(index, "down")}
-                    disabled={index === formData.authors.length - 1}
-                    className="text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    <GripVertical className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
-                  <Input
-                    placeholder="First Name"
-                    value={author.firstName}
-                    onChange={(e) =>
-                      updateAuthor(index, "firstName", e.target.value)
-                    }
-                    className="text-sm"
-                    required
-                  />
-                  <Input
-                    placeholder="Middle Name"
-                    value={author.middleName || ""}
-                    onChange={(e) =>
-                      updateAuthor(index, "middleName", e.target.value)
-                    }
-                    className="text-sm"
-                  />
-                  <Input
-                    placeholder="Last Name"
-                    value={author.lastName}
-                    onChange={(e) =>
-                      updateAuthor(index, "lastName", e.target.value)
-                    }
-                    className="text-sm"
-                    required
-                  />
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={author.email}
-                    onChange={(e) =>
-                      updateAuthor(index, "email", e.target.value)
-                    }
-                    className="text-sm"
-                    required
-                  />
-                </div>
-
-                {formData.authors.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeAuthor(index)}
-                    className="text-slate-400 hover:text-red-500"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
+          <AuthorSelector
+            selectedAuthors={formData.authors}
+            onAuthorsChange={(authors) =>
+              setFormData((prev) => ({ ...prev, authors }))
+            }
+            error={errors.authors}
+          />
         </CardContent>
       </Card>
 
