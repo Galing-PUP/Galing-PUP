@@ -122,6 +122,12 @@ export async function POST(req: NextRequest) {
           resourceType: resourceTypeRaw as ResourceTypes,
           uploaderId: uploader.id,
           courseId,
+          
+          // File Metadata
+          originalFileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+
           status: "PENDING", // All new documents are PENDING
           submissionDate: new Date(),
         },

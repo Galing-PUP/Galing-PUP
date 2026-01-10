@@ -63,6 +63,9 @@ export async function GET(req: NextRequest, props: RouteParams) {
       resourceType: document.resourceType,
       courseId: String(document.courseId),
       filePath: document.filePath,
+      originalFileName: document.originalFileName,
+      fileSize: document.fileSize,
+      mimeType: document.mimeType,
       authors: document.authors.map((da: any) => ({
         firstName: da.author.firstName,
         middleName: da.author.middleName || "",

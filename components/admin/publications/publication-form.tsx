@@ -69,6 +69,10 @@ export interface PublicationFormData {
   authors: Author[];
   courseId: string;
   file: File | null;
+  // Metadata for edit mode
+  originalFileName?: string | null;
+  fileSize?: number | null;
+  submissionDate?: string | Date | null; 
 }
 
 interface PublicationFormProps {

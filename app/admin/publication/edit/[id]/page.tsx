@@ -42,6 +42,9 @@ export default function Edit() {
             resourceType: data.resourceType,
             authors: data.authors,
             courseId: data.courseId,
+            originalFileName: data.originalFileName,
+            fileSize: data.fileSize,
+            submissionDate: data.submissionDate,
           });
 
           setIsLoading(false);
@@ -185,6 +188,9 @@ export default function Edit() {
           title="Publication Edit Form"
           description="Update fields as needed"
           submitLabel="Save Changes"
+          existingFileName={initialData.originalFileName || undefined}
+          existingFileSize={initialData.fileSize || undefined}
+          existingFileDate={initialData.submissionDate ? new Date(initialData.submissionDate).toLocaleDateString() : undefined}
         />
       )}
     </div>
