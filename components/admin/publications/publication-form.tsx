@@ -44,6 +44,18 @@ import {
 } from "@/components/ui/popover";
 import { CourseCombobox } from "@/components/admin/publications/course-combobox";
 import { publicationSchema, publicationEditSchema } from "@/lib/validations/publication-schema";
+import {
+  Tags,
+  TagsContent,
+  TagsEmpty,
+  TagsGroup,
+  TagsInput,
+  TagsItem,
+  TagsList,
+  TagsTrigger,
+  TagsValue,
+} from "@/components/ui/shadcn-io/tags";
+import { CheckIcon, PlusIcon } from "lucide-react";
 
 export interface Author {
   firstName: string;
@@ -106,13 +118,13 @@ export function PublicationForm({
     file: null,
   });
 
-  const [keywordInput, setKeywordInput] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     initialData?.datePublished ? new Date(initialData.datePublished) : undefined
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [newKeyword, setNewKeyword] = useState<string>("");
 
   const resourceTypeOptions = [
     { value: "THESIS", label: "Thesis" },
@@ -197,13 +209,36 @@ export function PublicationForm({
     }));
   };
 
-  const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      if (keywordInput) {
-        addKeyword(keywordInput);
-        setKeywordInput("");
-      }
+  // Handlers for shadcn Tags component
+  const handleKeywordSelect = (value: string) => {
+    if (formData.keywords.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        keywords: prev.keywords.filter((k) => k !== value),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        keywords: [...prev.keywords, value],
+      }));
+    }
+  };
+
+  const handleKeywordRemove = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      keywords: prev.keywords.filter((k) => k !== value),
+    }));
+  };
+
+  const handleCreateKeyword = () => {
+    const trimmed = newKeyword.trim();
+    if (trimmed && !formData.keywords.includes(trimmed)) {
+      setFormData((prev) => ({
+        ...prev,
+        keywords: [...prev.keywords, trimmed],
+      }));
+      setNewKeyword("");
     }
   };
 
@@ -385,40 +420,47 @@ export function PublicationForm({
           {/* Keywords / Tags */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Keywords / Tags</Label>
-            <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-white dark:bg-slate-950 min-h-[42px]">
-              {formData.keywords.map((keyword) => (
-                <span
-                  key={keyword}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded"
-                >
-                  {keyword}
-                  <button
-                    type="button"
-                    onClick={() => removeKeyword(keyword)}
-                    className="hover:bg-primary/20 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <input
-                type="text"
-                value={keywordInput}
-                onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={handleKeywordKeyDown}
-                onBlur={() => {
-                  if (keywordInput) {
-                    addKeyword(keywordInput);
-                    setKeywordInput("");
-                  }
-                }}
-                className="flex-1 min-w-[120px] border-none focus:ring-0 p-0 text-sm bg-transparent placeholder:text-muted-foreground"
-                placeholder="Add a tag..."
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Press Enter or comma to add tags
-            </p>
+            <Tags className="w-full">
+              <TagsTrigger className="w-full justify-start min-h-[42px]">
+                {formData.keywords.map((keyword) => (
+                  <TagsValue key={keyword} onRemove={() => handleKeywordRemove(keyword)}>
+                    {keyword}
+                  </TagsValue>
+                ))}
+              </TagsTrigger>
+              <TagsContent>
+                <TagsInput
+                  onValueChange={setNewKeyword}
+                  value={newKeyword}
+                  placeholder="Search or create tag..."
+                />
+                <TagsList>
+                  <TagsEmpty>
+                    <button
+                      className="mx-auto flex cursor-pointer items-center gap-2 text-sm"
+                      onClick={handleCreateKeyword}
+                      type="button"
+                    >
+                      <PlusIcon className="text-muted-foreground" size={14} />
+                      Create new tag: {newKeyword}
+                    </button>
+                  </TagsEmpty>
+                  <TagsGroup>
+                    {formData.keywords.map((keyword) => (
+                      <TagsItem
+                        key={keyword}
+                        onSelect={handleKeywordSelect}
+                        value={keyword}
+                      >
+                        {keyword}
+                        <CheckIcon className="text-muted-foreground" size={14} />
+                      </TagsItem>
+                    ))}
+                  </TagsGroup>
+                </TagsList>
+              </TagsContent>
+            </Tags>
+            <FieldError name="keywords" />
           </div>
 
           {/* AI Summary Placeholder - Feature not yet functional */}
