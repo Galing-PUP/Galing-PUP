@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const q = searchParams.get("q")?.trim() ?? "";
     const courseName = searchParams.get("course") ?? "All Courses";
-    const year = searchParams.get("year") ?? "All Years";
+    const yearRange = searchParams.get("yearRange") ?? "Anytime";
     const documentType = searchParams.get("documentType") ?? "All Types";
     const sort = searchParams.get("sort") as
       | "Newest to Oldest"
@@ -50,12 +50,26 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    if (year !== "All Years") {
-      const yearNum = Number(year);
-      if (!Number.isNaN(yearNum)) {
-        const start = new Date(yearNum, 0, 1);
-        const end = new Date(yearNum + 1, 0, 1);
-        where.datePublished = { gte: start, lt: end };
+    // Handle year range filtering
+    if (yearRange !== "Anytime") {
+      const currentYear = new Date().getFullYear();
+      let yearsBack = 0;
+
+      switch (yearRange) {
+        case "last3years":
+          yearsBack = 3;
+          break;
+        case "last5years":
+          yearsBack = 5;
+          break;
+        case "last10years":
+          yearsBack = 10;
+          break;
+      }
+
+      if (yearsBack > 0) {
+        const startDate = new Date(currentYear - yearsBack + 1, 0, 1);
+        where.datePublished = { gte: startDate };
       }
     }
 

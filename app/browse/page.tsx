@@ -41,7 +41,7 @@ export default function BrowsePage() {
   const [searchTerm, setSearchTerm] = useState(activeSearchTerm);
   const [filters, setFilters] = useState<FilterValues>({
     course: "All Courses",
-    year: "All Years",
+    yearRange: "Anytime",
     documentType: "All Types",
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,8 +71,8 @@ export default function BrowsePage() {
         if (filters.course !== "All Courses") {
           params.set("course", filters.course);
         }
-        if (filters.year !== "All Years") {
-          params.set("year", filters.year);
+        if (filters.yearRange !== "Anytime") {
+          params.set("yearRange", filters.yearRange);
         }
         if (filters.documentType !== "All Types") {
           params.set("documentType", filters.documentType);
