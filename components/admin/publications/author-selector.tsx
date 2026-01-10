@@ -30,7 +30,7 @@ import {
   authorFormSchema,
   type AuthorFormValues,
 } from "@/lib/validations/author-schema";
-import { ArrowDown, ArrowUp, Check, ChevronsUpDown, GripVertical, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface AuthorFromDB {
@@ -72,21 +72,33 @@ export function AuthorSelector({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch available authors
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Debounced search for authors
   useEffect(() => {
-    const fetchAuthors = async () => {
-      try {
-        const response = await fetch("/api/authors");
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableAuthors(data);
+    const timer = setTimeout(() => {
+      const fetchAuthors = async () => {
+        setIsLoading(true);
+        try {
+          // If query is empty, fetch first 20 authors ascending by lastName
+          const response = await fetch(`/api/authors?q=${encodeURIComponent(searchQuery)}`);
+          if (response.ok) {
+            const data = await response.json();
+            setAvailableAuthors(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch authors:", error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Failed to fetch authors:", error);
-      }
-    };
-    fetchAuthors();
-  }, []);
+      };
+      
+      fetchAuthors();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSelectAuthor = (author: AuthorFromDB) => {
     const newAuthor: AuthorFormValues = {
@@ -208,10 +220,22 @@ export function AuthorSelector({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[400px] p-0">
-            <Command>
-              <CommandInput placeholder="Search authors..." />
+            <Command shouldFilter={false}>
+              <CommandInput 
+                placeholder="Search authors..." 
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+              />
               <CommandList>
-                <CommandEmpty>No author found.</CommandEmpty>
+                {isLoading && (
+                  <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Searching...
+                  </div>
+                )}
+                {!isLoading && availableAuthors.length === 0 && (
+                  <CommandEmpty>No author found.</CommandEmpty>
+                )}
                 <CommandGroup>
                   {availableAuthors.map((author) => (
                     <CommandItem
