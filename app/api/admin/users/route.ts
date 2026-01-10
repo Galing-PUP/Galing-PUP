@@ -16,18 +16,24 @@ export async function GET() {
             },
         });
 
-        const formattedUsers = users.map((user) => ({
-            id: user.id.toString(),
-            name: user.username,
-            fullname: user.fullname || "",
-            email: user.email,
-            role: user.role, // Now an enum, not a relation
-            status: user.status === UserStatus.APPROVED ? "Accepted" : "Pending",
-            subscriptionTier: user.tierId,
-            collegeId: user.collegeId || undefined,
-            idImagePath: user.idImagePath || undefined,
-            registrationDate: user.registrationDate.toISOString().split('T')[0], // format as YYYY-MM-DD
-        }));
+        const formattedUsers = users.map((user) => {
+            let statusDisplay = "Pending";
+            if (user.status === UserStatus.APPROVED) statusDisplay = "Accepted";
+            else if (user.status === UserStatus.DELETED) statusDisplay = "Delete";
+            
+            return {
+                id: user.id.toString(),
+                name: user.username,
+                fullname: user.fullname || "",
+                email: user.email,
+                role: user.role,
+                status: statusDisplay,
+                subscriptionTier: user.tierId,
+                collegeId: user.collegeId || undefined,
+                idImagePath: user.idImagePath || undefined,
+                registrationDate: user.registrationDate.toISOString().split('T')[0],
+            };
+        });
 
         return NextResponse.json(formattedUsers);
     } catch (error) {
@@ -148,7 +154,7 @@ export async function POST(request: Request) {
                 collegeId: collegeId,
                 idImagePath: uploadId,
                 registrationDate: new Date(),
-                status: status === "Accepted" ? UserStatus.APPROVED : UserStatus.PENDING,
+                status: status === "Accepted" ? UserStatus.APPROVED : status === "Delete" ? UserStatus.DELETED : UserStatus.PENDING,
             },
         });
 
@@ -158,7 +164,7 @@ export async function POST(request: Request) {
             name: newUser.username,
             email: newUser.email,
             role: newUser.role,
-            status: newUser.status === UserStatus.APPROVED ? "Accepted" : "Pending",
+            status: newUser.status === UserStatus.APPROVED ? "Accepted" : newUser.status === UserStatus.DELETED ? "Delete" : "Pending",
             subscriptionTier: newUser.tierId,
             registrationDate: newUser.registrationDate.toISOString().split('T')[0],
         }, { status: 201 });

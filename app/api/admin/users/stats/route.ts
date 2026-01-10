@@ -4,18 +4,22 @@ import { UserStatus } from "@/lib/generated/prisma/enums";
 
 export async function GET() {
     try {
-        const [totalUsers, pendingRequests, totalTiers] = await Promise.all([
-            prisma.user.count(),
+        const [freeUsers, premiumUsers, pendingRequests] = await Promise.all([
+            prisma.user.count({
+                where: { tierId: 1 },
+            }),
+            prisma.user.count({
+                where: { tierId: 2 },
+            }),
             prisma.user.count({
                 where: { status: UserStatus.PENDING },
             }),
-            prisma.subscriptionTier.count(),
         ]);
 
         return NextResponse.json({
-            totalUsers,
+            freeUsers,
+            premiumUsers,
             pendingRequests,
-            totalTiers,
         });
     } catch (error) {
         console.error("Error fetching user stats:", error);
