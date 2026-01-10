@@ -18,14 +18,6 @@ export async function POST(req: NextRequest) {
     const abstract = String(formData.get("abstract") ?? "").trim();
     const datePublishedStr = String(formData.get("datePublished") ?? "").trim();
     const resourceTypeRaw = String(formData.get("resourceType") ?? "").trim();
-    // const visibilityRaw = String(formData.get("visibility") ?? "").trim(); // Removed in schema? Default to public/enum? Schema says 'visibility' field exists in Document?
-    // Checking schema: `visibility` is NOT in the provided schema snippet for Document. 
-    // Wait, schema has `status DocStatus`. It does NOT have `visibility`.
-    // The previous code had `visibility`. I should check if I missed it in schema view.
-    // Looking at schema artifact: No `visibility` field in `Document` model. 
-    // It has `status` and `resourceType`. 
-    // I will assume `visibility` is removed or I should ignore it.
-
     const courseIdStr = String(formData.get("courseId") ?? "").trim();
     const file = formData.get("file") as File | null;
     
@@ -39,9 +31,6 @@ export async function POST(req: NextRequest) {
     }
 
     const keywordsRaw = String(formData.get("keywords") ?? "");
-    // Frontend sends "tag1, tag2". We need array.
-    // Wait, did I update frontend to send JSON? No, I updated frontend to send `formData.keywords.join(", ")`.
-    // So splitting by comma is correct.
     const keywords = keywordsRaw.split(",").map(k => k.trim()).filter(Boolean);
 
     if (
@@ -109,8 +98,7 @@ export async function POST(req: NextRequest) {
           resourceType: resourceTypeRaw as ResourceTypes,
           uploaderId: uploader.id,
           courseId,
-          status: "PENDING", // Default
-          // libraryId removed
+          status: "PENDING", // All new documents are PENDING
         },
       });
 
@@ -120,8 +108,7 @@ export async function POST(req: NextRequest) {
         let authorId = authorData.id;
 
         // Check if this is a "temp" ID (large number) or missing
-        // Real database IDs are unlikely to match Date.now() (trillions)
-        const isTempId = !authorId || authorId > 2147483647; // Max 32-bit int
+        const isTempId = !authorId || authorId > 2147483647;
 
         if (isTempId) {
             // Create new author
@@ -137,8 +124,6 @@ export async function POST(req: NextRequest) {
             authorId = newAuthor.id;
         } 
         // Else use existing authorId
-
-        // Create Relation
         await tx.documentAuthor.create({
             data: {
                 documentId: document.id,
