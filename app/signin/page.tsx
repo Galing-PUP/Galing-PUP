@@ -57,6 +57,7 @@ export default function SignInPage() {
         });
         toast.success("Successfully signed in with Google!");
         router.push("/");
+        router.refresh();
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in with Google");
@@ -79,13 +80,7 @@ export default function SignInPage() {
 
       // Check if user is verified
       if (!status.isVerified) {
-        if (status.roleId === 1 && status.updatedDate) {
-          toast.error(
-            "Your account is currently ON HOLD, please contact the support team"
-          );
-          setIsLoading(false);
-          return;
-        }
+
 
         toast.error(
           "User is not verified, please check your email for the code"
@@ -126,6 +121,7 @@ export default function SignInPage() {
 
       toast.success("Signed in successfully");
       router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error("Something went wrong. Please try again.");
