@@ -24,11 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dropzone,
-  DropzoneContent,
-  DropzoneEmptyState,
-} from "@/components/ui/shadcn-io/dropzone";
+
 import {
   Tags,
   TagsContent,
@@ -59,6 +55,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { AuthorSelector, type Author } from "@/components/admin/publications/author-selector";
+import FileUpload05 from "@/components/file-upload-05";
 
 export interface PublicationFormData {
   title: string;
@@ -254,13 +251,7 @@ export function PublicationForm({
     onSubmit(submitData);
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
+
 
   // Helper to display field errors
   const FieldError = ({ name }: { name: string }) => {
@@ -549,25 +540,21 @@ export function PublicationForm({
             </div>
           )}
 
-          {/* Dropzone */}
-          <Dropzone
-            src={uploadedFiles}
-            onDrop={(acceptedFiles) => {
-              setUploadedFiles(acceptedFiles);
-              setFormData((prev) => ({ ...prev, file: acceptedFiles[0] }));
+          {/* File Upload */}
+          <FileUpload05
+            value={uploadedFiles[0] || formData.file}
+            onValueChange={(file: File | null) => {
+              if (file) {
+                 setUploadedFiles([file]);
+                 setFormData((prev) => ({ ...prev, file }));
+              } else {
+                 setUploadedFiles([]);
+                 setFormData((prev) => ({ ...prev, file: null }));
+              }
             }}
-            accept={{
-              "application/pdf": [".pdf"],
-              "application/msword": [".doc"],
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                [".docx"],
-            }}
-            maxSize={50 * 1024 * 1024} // 50MB
-            className="border-2 border-dashed hover:border-primary transition-colors"
-          >
-            <DropzoneContent />
-            <DropzoneEmptyState />
-          </Dropzone>
+            accept=".pdf,.doc,.docx"
+            className="border-dashed hover:bg-muted/50"
+          />
         </CardContent>
       </Card>
 
