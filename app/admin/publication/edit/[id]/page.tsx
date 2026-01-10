@@ -74,11 +74,9 @@ export default function Edit() {
               abstract: publication.abstract,
               keywords: keywordsArray,
               datePublished: publication.datePublished,
-              resourceType: publication.resourceType,
-              visibility: publication.visibility,
+              resourceType: publication.resourceType.toUpperCase(), // Convert to match enum
               authors: authorsArray,
               courseId: "1", // Fallback for mock
-              library: publication.library,
             });
           }
 

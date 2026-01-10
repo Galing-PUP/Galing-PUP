@@ -28,7 +28,6 @@ import {
   CalendarIcon,
   FileText,
   Users,
-  GraduationCap,
   Upload,
   X,
   GripVertical,
@@ -57,10 +56,8 @@ export interface PublicationFormData {
   keywords: string[];
   datePublished: string;
   resourceType: string;
-  visibility: string;
   authors: Author[];
   courseId: string;
-  library: string;
   file: File | null;
 }
 
@@ -100,12 +97,10 @@ export function PublicationForm({
     keywords: initialData?.keywords || [],
     datePublished: initialData?.datePublished || "",
     resourceType: initialData?.resourceType || "",
-    visibility: initialData?.visibility || "public",
     authors: initialData?.authors || [
       { firstName: "", middleName: "", lastName: "", email: "" },
     ],
     courseId: initialData?.courseId || "",
-    library: initialData?.library || "",
     file: null,
   });
 
@@ -117,11 +112,11 @@ export function PublicationForm({
   );
 
   const resourceTypeOptions = [
-    { value: "thesis", label: "Thesis" },
-    { value: "capstone", label: "Capstone" },
-    { value: "article", label: "Article" },
-    { value: "dissertation", label: "Dissertation" },
-    { value: "journal", label: "Journal" },
+    { value: "THESIS", label: "Thesis" },
+    { value: "CAPSTONE", label: "Capstone" },
+    { value: "DISSERTATION", label: "Dissertation" },
+    { value: "ARTICLE", label: "Article" },
+    { value: "RESEARCH_PAPER", label: "Research Paper" },
   ];
 
   const courseOptions = courses.map((c) => ({
@@ -342,73 +337,66 @@ export function PublicationForm({
               </Select>
             </div>
 
-            {/* Visibility */}
+            {/* Course / Program */}
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Visibility</Label>
-              <div className="flex border rounded-md overflow-hidden h-10">
-                <label
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 cursor-pointer transition-colors text-sm font-medium",
-                    formData.visibility === "public"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-white dark:bg-slate-950 hover:bg-gray-50 dark:hover:bg-slate-900"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="public"
-                    checked={formData.visibility === "public"}
-                    onChange={handleInputChange}
-                    className="sr-only"
-                  />
-                  <div
-                    className={cn(
-                      "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                      formData.visibility === "public"
-                        ? "border-primary"
-                        : "border-gray-400"
-                    )}
-                  >
-                    {formData.visibility === "public" && (
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    )}
-                  </div>
-                  Public
-                </label>
-                <div className="w-px bg-gray-300 dark:bg-slate-700" />
-                <label
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 cursor-pointer transition-colors text-sm font-medium",
-                    formData.visibility === "restricted"
-                      ? "bg-primary/10 text-primary"
-                      : "bg-white dark:bg-slate-950 hover:bg-gray-50 dark:hover:bg-slate-900"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="restricted"
-                    checked={formData.visibility === "restricted"}
-                    onChange={handleInputChange}
-                    className="sr-only"
-                  />
-                  <div
-                    className={cn(
-                      "w-4 h-4 rounded-full border-2 flex items-center justify-center",
-                      formData.visibility === "restricted"
-                        ? "border-primary"
-                        : "border-gray-400"
-                    )}
-                  >
-                    {formData.visibility === "restricted" && (
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    )}
-                  </div>
-                  Restricted
-                </label>
-              </div>
+              <Label htmlFor="courseId" className="text-sm font-semibold">
+                Course / Program
+              </Label>
+              <Select
+                value={formData.courseId}
+                onValueChange={(value) => handleSelectChange("courseId", value)}
+              >
+                <SelectTrigger id="courseId" className="text-sm">
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courseOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          {/* Keywords / Tags */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">Keywords / Tags</Label>
+            <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-white dark:bg-slate-950 min-h-[42px]">
+              {formData.keywords.map((keyword) => (
+                <span
+                  key={keyword}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded"
+                >
+                  {keyword}
+                  <button
+                    type="button"
+                    onClick={() => removeKeyword(keyword)}
+                    className="hover:bg-primary/20 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                onKeyDown={handleKeywordKeyDown}
+                onBlur={() => {
+                  if (keywordInput) {
+                    addKeyword(keywordInput);
+                    setKeywordInput("");
+                  }
+                }}
+                className="flex-1 min-w-[120px] border-none focus:ring-0 p-0 text-sm bg-transparent placeholder:text-muted-foreground"
+                placeholder="Add a tag..."
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Press Enter or comma to add tags
+            </p>
           </div>
 
           {/* AI Summary Placeholder - Feature not yet functional */}
@@ -538,106 +526,7 @@ export function PublicationForm({
         </CardContent>
       </Card>
 
-      {/* Section 3: Classification */}
-      <Card>
-        <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <GraduationCap className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">
-                Section 3: Classification
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Institutional hierarchy and discoverability keywords
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Course */}
-            <div className="space-y-2">
-              <Label htmlFor="courseId" className="text-sm font-semibold">
-                Course / Program
-              </Label>
-              <Select
-                value={formData.courseId}
-                onValueChange={(value) => handleSelectChange("courseId", value)}
-              >
-                <SelectTrigger id="courseId" className="text-sm">
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courseOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Library */}
-            <div className="space-y-2">
-              <Label htmlFor="library" className="text-sm font-semibold">
-                Library
-              </Label>
-              <Input
-                id="library"
-                name="library"
-                value={formData.library}
-                onChange={handleInputChange}
-                placeholder="Enter the affiliated library"
-                className="text-sm"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Keywords / Tags */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold">Keywords / Tags</Label>
-            <div className="flex flex-wrap gap-2 p-3 border rounded-lg bg-white dark:bg-slate-950 min-h-[42px]">
-              {formData.keywords.map((keyword) => (
-                <span
-                  key={keyword}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded"
-                >
-                  {keyword}
-                  <button
-                    type="button"
-                    onClick={() => removeKeyword(keyword)}
-                    className="hover:bg-primary/20 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <input
-                type="text"
-                value={keywordInput}
-                onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={handleKeywordKeyDown}
-                onBlur={() => {
-                  if (keywordInput) {
-                    addKeyword(keywordInput);
-                    setKeywordInput("");
-                  }
-                }}
-                className="flex-1 min-w-[120px] border-none focus:ring-0 p-0 text-sm bg-transparent placeholder:text-muted-foreground"
-                placeholder="Add a tag..."
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Press Enter or comma to add tags
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Section 4: File Management */}
+      {/* Section 3: File Management */}
       <Card>
         <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center gap-3">
@@ -646,7 +535,7 @@ export function PublicationForm({
             </div>
             <div>
               <CardTitle className="text-lg">
-                Section 4: File Management
+                Section 3: File Management
               </CardTitle>
               <CardDescription className="text-xs">
                 Upload and verify the primary academic document

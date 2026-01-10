@@ -23,13 +23,11 @@ export default function Upload() {
     body.append("keywords", formData.keywords.join(", ")); // Convert array to comma-separated string
     body.append("datePublished", formData.datePublished);
     body.append("resourceType", formData.resourceType);
-    body.append("visibility", formData.visibility);
     
     // Convert authors array to JSON string for API
     body.append("authors", JSON.stringify(formData.authors));
     
     body.append("courseId", formData.courseId);
-    body.append("library", formData.library);
     body.append("file", formData.file);
 
     try {
