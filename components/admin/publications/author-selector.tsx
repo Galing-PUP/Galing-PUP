@@ -30,15 +30,8 @@ import {
   authorFormSchema,
   type AuthorFormValues,
 } from "@/lib/validations/author-schema";
-import { Check, ChevronsUpDown, GripVertical, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronsUpDown, GripVertical, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
-
-export interface Author {
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  email?: string;
-}
 
 interface AuthorFromDB {
   id: number;
@@ -50,8 +43,8 @@ interface AuthorFromDB {
 }
 
 interface AuthorSelectorProps {
-  selectedAuthors: Author[];
-  onAuthorsChange: (authors: Author[]) => void;
+  selectedAuthors: AuthorFormValues[];
+  onAuthorsChange: (authors: AuthorFormValues[]) => void;
   error?: string;
 }
 
@@ -96,7 +89,7 @@ export function AuthorSelector({
   }, []);
 
   const handleSelectAuthor = (author: AuthorFromDB) => {
-    const newAuthor: Author = {
+    const newAuthor: AuthorFormValues = {
       firstName: author.firstName,
       middleName: author.middleName || undefined,
       lastName: author.lastName,
@@ -148,7 +141,7 @@ export function AuthorSelector({
     }
 
     // Add to selected authors
-    const newAuthor: Author = {
+    const newAuthor: AuthorFormValues = {
       firstName: formData.firstName,
       middleName: formData.middleName || undefined,
       lastName: formData.lastName,
@@ -366,7 +359,7 @@ export function AuthorSelector({
                   disabled={index === 0}
                   className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                 >
-                  <GripVertical className="h-4 w-4" />
+                  <ArrowUp className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
@@ -374,7 +367,7 @@ export function AuthorSelector({
                   disabled={index === selectedAuthors.length - 1}
                   className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                 >
-                  <GripVertical className="h-4 w-4" />
+                  <ArrowDown className="h-4 w-4" />
                 </button>
               </div>
 
