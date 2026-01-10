@@ -174,35 +174,39 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
         {user ? (
-          <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
-            <div className="flex items-start justify-between">
-              <div className="space-y-3">
-                <Badge variant={getStatusBadgeVariant(formData.status)} className="gap-2">
-                  <div className={`w-2 h-2 rounded-full animate-pulse ${
-                    formData.status === 'Accepted' 
-                      ? 'bg-green-500' 
-                      : formData.status === 'Pending' 
-                      ? 'bg-yellow-500' 
-                      : 'bg-red-500'
-                  }`} />
-                  {formData.status || "Unknown"}
-                </Badge>
-                <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
-                  {formData.fullname || "User Name"}
-                </h2>
-                <div className="space-y-1.5 pl-1">
-                  <div className="flex items-center gap-2.5">
-                    <UserIcon className="w-4 h-4 text-gray-400" />
-                    <p className="text-sm font-semibold text-gray-700">@{formData.name || "username"}</p>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <p className="text-sm text-gray-600">{formData.email || "email@example.com"}</p>
+          <>
+            <DialogTitle className="sr-only">{title}</DialogTitle>
+            <DialogDescription className="sr-only">{description}</DialogDescription>
+            <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
+              <div className="flex items-start justify-between">
+                <div className="space-y-3">
+                  <Badge variant={getStatusBadgeVariant(formData.status)} className="gap-2">
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${
+                      formData.status === 'Accepted' 
+                        ? 'bg-green-500' 
+                        : formData.status === 'Pending' 
+                        ? 'bg-yellow-500' 
+                        : 'bg-red-500'
+                    }`} />
+                    {formData.status || "Unknown"}
+                  </Badge>
+                  <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
+                    {formData.fullname || "User Name"}
+                  </h2>
+                  <div className="space-y-1.5 pl-1">
+                    <div className="flex items-center gap-2.5">
+                      <UserIcon className="w-4 h-4 text-gray-400" />
+                      <p className="text-sm font-semibold text-gray-700">@{formData.name || "username"}</p>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <p className="text-sm text-gray-600">{formData.email || "email@example.com"}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         ) : (
           <DialogHeader className="p-8 pb-4 rounded-t-lg">
             <DialogTitle className="text-2xl font-bold text-gray-900">{title}</DialogTitle>
