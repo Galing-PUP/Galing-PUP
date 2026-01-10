@@ -7,7 +7,22 @@ import { prisma } from "@/lib/db";
  */
 export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get("q");
+
+    const where = query
+      ? {
+          OR: [
+            { firstName: { contains: query, mode: "insensitive" as const } },
+            { lastName: { contains: query, mode: "insensitive" as const } },
+            { email: { contains: query, mode: "insensitive" as const } },
+            { fullName: { contains: query, mode: "insensitive" as const } },
+          ],
+        }
+      : {};
+
     const authors = await prisma.author.findMany({
+      where,
       select: {
         id: true,
         firstName: true,
@@ -19,6 +34,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         lastName: "asc",
       },
+      take: 20,
     });
 
     return NextResponse.json(authors);
