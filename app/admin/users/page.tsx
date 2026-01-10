@@ -147,7 +147,7 @@ export default function UserManagementPage() {
       const formData = new FormData();
       formData.append("name", userToSave.name);
       formData.append("email", userToSave.email);
-      formData.append("role", userToSave.role);
+      formData.append("role", userToSave.role.toUpperCase());
       formData.append("status", userToSave.status);
       formData.append("fullname", userToSave.fullname || "");
       if (userToSave.subscriptionTier) formData.append("subscriptionTier", userToSave.subscriptionTier.toString());
