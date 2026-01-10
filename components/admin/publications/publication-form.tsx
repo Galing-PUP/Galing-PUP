@@ -42,6 +42,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CourseCombobox } from "@/components/admin/publications/course-combobox";
 
 export interface Author {
   firstName: string;
@@ -119,10 +120,7 @@ export function PublicationForm({
     { value: "RESEARCH_PAPER", label: "Research Paper" },
   ];
 
-  const courseOptions = courses.map((c) => ({
-    value: String(c.id),
-    label: `${c.courseAbbr} - ${c.courseName}`,
-  }));
+
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -342,21 +340,10 @@ export function PublicationForm({
               <Label htmlFor="courseId" className="text-sm font-semibold">
                 Course / Program
               </Label>
-              <Select
+              <CourseCombobox
                 value={formData.courseId}
                 onValueChange={(value) => handleSelectChange("courseId", value)}
-              >
-                <SelectTrigger id="courseId" className="text-sm">
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courseOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
