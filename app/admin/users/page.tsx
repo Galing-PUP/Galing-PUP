@@ -1,5 +1,7 @@
 "use client";
 
+import { colleges } from "@/data/collegeCourses";
+
 import { useState, useMemo, useEffect } from "react";
 import type { User, UserStatus, UserRole } from "@/types/users";
 import { UserStats, type Stats } from "@/components/admin/users/user-stats";
@@ -40,7 +42,7 @@ export default function UserManagementPage() {
     message: string;
   }>({ isOpen: false, message: "" });
 
-  const [colleges, setColleges] = useState<any[]>([]);
+
 
   // Fetch users and stats from API
   const fetchStats = async () => {
@@ -54,19 +56,6 @@ export default function UserManagementPage() {
       console.error("Error loading stats:", error);
     }
   };
-
-  const fetchColleges = async () => {
-    try {
-      const response = await fetch("/api/public/college");
-      if (response.ok) {
-        const data = await response.json();
-        setColleges(data);
-      }
-    } catch (error) {
-      console.error("Error loading colleges:", error);
-    }
-  };
-
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -82,7 +71,6 @@ export default function UserManagementPage() {
 
     fetchUsers();
     fetchStats();
-    fetchColleges();
   }, []);
 
   // Filter users based on selected statuses, roles, and search query
