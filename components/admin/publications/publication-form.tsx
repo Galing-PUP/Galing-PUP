@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthorsSection } from "@/components/admin/publications/form-sections/authors";
+import { AuthorsSection } from "@/components/admin/publications/form-sections/authors-section";
 import { BasicInfoSection } from "@/components/admin/publications/form-sections/basic-info";
 import { FileSection } from "@/components/admin/publications/form-sections/file-section";
 import { Button } from "@/components/ui/button";
