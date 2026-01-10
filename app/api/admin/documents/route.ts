@@ -196,7 +196,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (error.code === "P2002" && error.meta?.target?.includes("title")) {
+    if (
+      (error.code === "P2002" && error.meta?.target?.includes("title")) ||
+      (error.message?.includes("Unique constraint failed") &&
+        error.message?.includes("title"))
+    ) {
         return NextResponse.json(
             { error: "A document with this title already exists." },
             { status: 409 }

@@ -204,11 +204,15 @@ export async function PUT(req: NextRequest, props: RouteParams) {
     });
   } catch (error: any) {
     console.error("Error updating document:", error);
-    if (error.code === "P2002" && error.meta?.target?.includes("title")) {
-        return NextResponse.json(
-            { error: "A document with this title already exists." },
-            { status: 409 }
-        );
+    if (
+      (error.code === "P2002" && error.meta?.target?.includes("title")) ||
+      (error.message?.includes("Unique constraint failed") &&
+        error.message?.includes("title"))
+    ) {
+      return NextResponse.json(
+        { error: "A document with this title already exists." },
+        { status: 409 }
+      );
     }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to update document" },
