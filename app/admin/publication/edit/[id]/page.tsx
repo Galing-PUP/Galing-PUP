@@ -1,22 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { PublicationForm } from "@/components/admin/publications/publication-form";
 import { Button } from "@/components/ui/button";
-import {
-  PublicationForm,
-  type PublicationFormData,
-} from "@/components/admin/publications/publication-form";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { type PublicationFormData } from "@/lib/validations/publication-schema";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Edit() {
   const params = useParams();
   const router = useRouter();
   const documentId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const [initialData, setInitialData] = useState<Partial<PublicationFormData> | null>(null);
+  const [initialData, setInitialData] =
+    useState<Partial<PublicationFormData> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +26,7 @@ export default function Edit() {
       const fetchDocumentData = async () => {
         try {
           const response = await fetch(`/api/admin/documents/${documentId}`);
-          
+
           if (!response.ok) {
             throw new Error("Failed to fetch document");
           }
@@ -62,18 +61,18 @@ export default function Edit() {
 
   const handleSubmit = async (formData: PublicationFormData) => {
     setIsSubmitting(true);
-    
+
     let promiseResolve: (value: any) => void;
     let promiseReject: (reason?: any) => void;
     const submissionPromise = new Promise((resolve, reject) => {
-        promiseResolve = resolve;
-        promiseReject = reject;
+      promiseResolve = resolve;
+      promiseReject = reject;
     });
 
     toast.promise(submissionPromise, {
-        loading: 'Updating publication...',
-        success: 'Document updated successfully!',
-        error: (err: any) => `Update failed: ${err.message}`,
+      loading: "Updating publication...",
+      success: "Document updated successfully!",
+      error: (err: any) => `Update failed: ${err.message}`,
     });
 
     try {
@@ -85,7 +84,7 @@ export default function Edit() {
       body.append("resourceType", formData.resourceType);
       body.append("authors", JSON.stringify(formData.authors));
       body.append("courseId", formData.courseId);
-      
+
       if (formData.file) {
         body.append("file", formData.file);
       }
@@ -99,17 +98,18 @@ export default function Edit() {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to update document");
       }
-      
+
       promiseResolve!(null);
 
       // Slight delay for UX
       setTimeout(() => {
         router.push("/admin/publication");
       }, 1000);
-      
     } catch (error) {
       console.error("Error updating document:", error);
-      promiseReject!(error instanceof Error ? error : new Error("Unknown error"));
+      promiseReject!(
+        error instanceof Error ? error : new Error("Unknown error")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -191,7 +191,11 @@ export default function Edit() {
           submitLabel="Save Changes"
           existingFileName={initialData.originalFileName || undefined}
           existingFileSize={initialData.fileSize || undefined}
-          existingFileDate={initialData.submissionDate ? new Date(initialData.submissionDate).toLocaleDateString() : undefined}
+          existingFileDate={
+            initialData.submissionDate
+              ? new Date(initialData.submissionDate).toLocaleDateString()
+              : undefined
+          }
           existingFilePath={initialData.filePath || undefined}
         />
       )}
