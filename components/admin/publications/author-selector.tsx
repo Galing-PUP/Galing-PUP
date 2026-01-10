@@ -25,22 +25,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Author } from "@/lib/generated/prisma/browser";
 import { cn } from "@/lib/utils";
 import {
   authorFormSchema,
   type AuthorFormValues,
 } from "@/lib/validations/author-schema";
-import { ArrowDown, ArrowUp, Check, ChevronsUpDown, Loader2, Plus, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  ChevronsUpDown,
+  Loader2,
+  Plus,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-
-interface AuthorFromDB {
-  id: number;
-  firstName: string;
-  middleName: string | null;
-  lastName: string;
-  fullName: string;
-  email: string;
-}
 
 interface AuthorSelectorProps {
   selectedAuthors: AuthorFormValues[];
@@ -60,7 +60,7 @@ export function AuthorSelector({
   onAuthorsChange,
   error,
 }: AuthorSelectorProps) {
-  const [availableAuthors, setAvailableAuthors] = useState<AuthorFromDB[]>([]);
+  const [availableAuthors, setAvailableAuthors] = useState<Author[]>([]);
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState<AuthorFormValues>({
@@ -82,7 +82,9 @@ export function AuthorSelector({
         setIsLoading(true);
         try {
           // If query is empty, fetch first 20 authors ascending by lastName
-          const response = await fetch(`/api/authors?q=${encodeURIComponent(searchQuery)}`);
+          const response = await fetch(
+            `/api/authors?q=${encodeURIComponent(searchQuery)}`
+          );
           if (response.ok) {
             const data = await response.json();
             setAvailableAuthors(data);
@@ -93,19 +95,19 @@ export function AuthorSelector({
           setIsLoading(false);
         }
       };
-      
+
       fetchAuthors();
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleSelectAuthor = (author: AuthorFromDB) => {
+  const handleSelectAuthor = (author: Author) => {
     const newAuthor: AuthorFormValues = {
       firstName: author.firstName,
       middleName: author.middleName || undefined,
       lastName: author.lastName,
-      email: author.email,
+      email: author.email || undefined,
     };
 
     // Check if author already selected
@@ -187,6 +189,7 @@ export function AuthorSelector({
           id: Date.now(), // Temporary ID
           ...newAuthor,
           middleName: newAuthor.middleName || null,
+          email: newAuthor.email || null,
           fullName,
         },
       ]);
@@ -221,8 +224,8 @@ export function AuthorSelector({
           </PopoverTrigger>
           <PopoverContent className="w-[400px] p-0">
             <Command shouldFilter={false}>
-              <CommandInput 
-                placeholder="Search authors..." 
+              <CommandInput
+                placeholder="Search authors..."
                 value={searchQuery}
                 onValueChange={setSearchQuery}
               />
