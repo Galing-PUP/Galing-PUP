@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { ResourceTypes } from "@/lib/generated/prisma/enums";
+import { mkdir, writeFile } from "fs/promises";
+import { NextRequest, NextResponse } from "next/server";
+import path from "path";
 
 async function ensureUploadsDir() {
   const uploadDir = path.join(process.cwd(), "public", "uploads");
@@ -20,18 +20,24 @@ export async function POST(req: NextRequest) {
     const resourceTypeRaw = String(formData.get("resourceType") ?? "").trim();
     const courseIdStr = String(formData.get("courseId") ?? "").trim();
     const file = formData.get("file") as File | null;
-    
+
     // Parse JSON fields
     const authorsJson = String(formData.get("authors") ?? "[]");
     let authors: any[] = [];
     try {
       authors = JSON.parse(authorsJson);
     } catch (e) {
-      return NextResponse.json({ error: "Invalid authors format" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid authors format" },
+        { status: 400 }
+      );
     }
 
     const keywordsRaw = String(formData.get("keywords") ?? "");
-    const keywords = keywordsRaw.split(",").map(k => k.trim()).filter(Boolean);
+    const keywords = keywordsRaw
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean);
 
     if (
       !title ||
@@ -79,13 +85,16 @@ export async function POST(req: NextRequest) {
     // DB Transaction
     const result = await prisma.$transaction(async (tx) => {
       // 1. Get Uploader (Placeholder logic)
+      // TODO: Replace with getting the current admin or super admin user
       const uploader = await tx.user.findFirst();
       if (!uploader) throw new Error("No uploader user found");
 
       // 2. Resource Type Validation
       // Ensure the string matches the Enum
-      if (!Object.values(ResourceTypes).includes(resourceTypeRaw as ResourceTypes)) {
-          throw new Error("Invalid resource type");
+      if (
+        !Object.values(ResourceTypes).includes(resourceTypeRaw as ResourceTypes)
+      ) {
+        throw new Error("Invalid resource type");
       }
 
       // 3. Create Document
@@ -111,42 +120,44 @@ export async function POST(req: NextRequest) {
         const isTempId = !authorId || authorId > 2147483647;
 
         if (isTempId) {
-            // Create new author
-            const newAuthor = await tx.author.create({
-                data: {
-                    firstName: authorData.firstName,
-                    middleName: authorData.middleName,
-                    lastName: authorData.lastName,
-                    fullName: `${authorData.firstName} ${authorData.middleName || ""} ${authorData.lastName}`.trim(),
-                    email: authorData.email || null,
-                }
-            });
-            authorId = newAuthor.id;
-        } 
+          // Create new author
+          const newAuthor = await tx.author.create({
+            data: {
+              firstName: authorData.firstName,
+              middleName: authorData.middleName,
+              lastName: authorData.lastName,
+              fullName: `${authorData.firstName} ${
+                authorData.middleName || ""
+              } ${authorData.lastName}`.trim(),
+              email: authorData.email || null,
+            },
+          });
+          authorId = newAuthor.id;
+        }
         // Else use existing authorId
         await tx.documentAuthor.create({
-            data: {
-                documentId: document.id,
-                authorId: authorId,
-                authorOrder: i + 1,
-            }
+          data: {
+            documentId: document.id,
+            authorId: authorId,
+            authorOrder: i + 1,
+          },
         });
       }
 
       // 5. Handle Keywords (Async Upsert)
       for (const keywordText of keywords) {
-          const keyword = await tx.keyword.upsert({
-              where: { keywordText },
-              update: {},
-              create: { keywordText },
-          });
+        const keyword = await tx.keyword.upsert({
+          where: { keywordText },
+          update: {},
+          create: { keywordText },
+        });
 
-          await tx.documentKeyword.create({
-              data: {
-                  documentId: document.id,
-                  keywordId: keyword.id,
-              }
-          });
+        await tx.documentKeyword.create({
+          data: {
+            documentId: document.id,
+            keywordId: keyword.id,
+          },
+        });
       }
 
       return document;
@@ -159,9 +170,11 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error creating document:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create document" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to create document",
+      },
       { status: 500 }
     );
   }
 }
-
