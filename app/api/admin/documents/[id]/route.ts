@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import path from "path";
+import { mkdir, writeFile, unlink } from "fs/promises";
 
 type RouteParams = {
   params: Promise<{
@@ -117,14 +119,42 @@ export async function PUT(req: NextRequest, props: RouteParams) {
 
     // TODO: Handle file upload if new file provided
     // NOTE: Using local file storage for testing. Migrate to cloud storage (S3/R2) for production.
+    // 1. File Upload Logic
     let filePath = undefined;
+    let originalFileName = undefined;
+    let fileSize = undefined;
+    let mimeType = undefined;
+    let systemFilePath: string | undefined = undefined;
+    
     if (file) {
-      // File upload logic will be implemented here
-      // For now, we'll keep the existing file path
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const filename = file.name.replace(/\.[^/.]+$/, "");
+      const extension = file.name.split(".").pop();
+      const uniqueFilename = `${filename}-${uniqueSuffix}.${extension}`;
+      
+      // Ensure upload directory exists
+      const uploadDir = path.join(process.cwd(), "public/uploads");
+      try {
+        await mkdir(uploadDir, { recursive: true });
+      } catch (error) {
+        // ignore if exists
+      }
+
+      const publicFilePath = `/uploads/${uniqueFilename}`;
+      systemFilePath = path.join(uploadDir, uniqueFilename);
+      
+      await writeFile(systemFilePath, new Uint8Array(buffer));
+      
+      filePath = publicFilePath;
+      originalFileName = file.name;
+      fileSize = file.size;
+      mimeType = file.type;
     }
 
-    // Update document in transaction
+    // 2. Transaction
     const updatedDocument = await prisma.$transaction(async (tx) => {
+      // ... transaction logic ...
       // Update document
       const doc = await tx.document.update({
         where: { id: documentId },
@@ -134,7 +164,12 @@ export async function PUT(req: NextRequest, props: RouteParams) {
           datePublished: new Date(datePublished),
           resourceType: resourceType as any,
           courseId: parseInt(courseId),
-          ...(filePath ? { filePath } : {}),
+          ...(filePath ? { 
+              filePath,
+              originalFileName,
+              fileSize,
+              mimeType
+            } : {}),
         },
       });
 
@@ -207,6 +242,17 @@ export async function PUT(req: NextRequest, props: RouteParams) {
     });
   } catch (error: any) {
     console.error("Error updating document:", error);
+
+    // CLEANUP: If transaction fails and we uploaded a file, delete it
+    if (systemFilePath) {
+      try {
+        await unlink(systemFilePath);
+        console.log(`Cleaned up orphaned file: ${systemFilePath}`);
+      } catch (cleanupError) {
+        console.error("Failed to cleanup orphaned file:", cleanupError);
+      }
+    }
+
     if (
       (error.code === "P2002" && error.meta?.target?.includes("title")) ||
       (error.message?.includes("Unique constraint failed") &&
