@@ -118,8 +118,10 @@ export function PublicationForm({
     initialData?.datePublished ? new Date(initialData.datePublished) : undefined
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [newKeyword, setNewKeyword] = useState<string>("");
+  // Async keyword search state
+  const [keywordSearch, setKeywordSearch] = useState("");
   const [availableKeywords, setAvailableKeywords] = useState<string[]>([]);
+  const [isKeywordLoading, setIsKeywordLoading] = useState(false);
 
   const resourceTypeOptions = [
     { value: "THESIS", label: "Thesis" },
@@ -129,23 +131,33 @@ export function PublicationForm({
     { value: "RESEARCH_PAPER", label: "Research Paper" },
   ];
 
-  // Fetch existing keywords from database
+  // Debounced keyword search
   useEffect(() => {
-    const fetchKeywords = async () => {
-      try {
-        const response = await fetch("/api/keywords");
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableKeywords(
-            data.map((k: { keywordText: string }) => k.keywordText)
-          );
+    const timer = setTimeout(() => {
+        const fetchKeywords = async () => {
+          setIsKeywordLoading(true);
+          try {
+            const response = await fetch(`/api/keywords?q=${encodeURIComponent(keywordSearch)}`);
+            if (response.ok) {
+              const data = await response.json();
+              setAvailableKeywords(
+                data.map((k: { keywordText: string }) => k.keywordText)
+              );
+            }
+          } catch (error) {
+            console.error("Failed to fetch keywords:", error);
+          } finally {
+            setIsKeywordLoading(false);
+          }
+        };
+
+        if (keywordSearch || availableKeywords.length === 0) {
+            fetchKeywords();
         }
-      } catch (error) {
-        console.error("Failed to fetch keywords:", error);
-      }
-    };
-    fetchKeywords();
-  }, []);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [keywordSearch]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -159,7 +171,8 @@ export function PublicationForm({
   };
 
   // Author management functions
-  const removeKeyword = (keyword: string) => {
+  // Renamed to avoid confusion, though logic is similar
+  const handleKeywordRemove_Legacy = (keyword: string) => {
     setFormData((prev) => ({
       ...prev,
       keywords: prev.keywords.filter((k) => k !== keyword),
@@ -189,18 +202,18 @@ export function PublicationForm({
   };
 
   const handleCreateKeyword = () => {
-    const trimmed = newKeyword.trim();
+    const trimmed = keywordSearch.trim();
     if (trimmed && !formData.keywords.includes(trimmed)) {
       // Add to form data
       setFormData((prev) => ({
         ...prev,
         keywords: [...prev.keywords, trimmed],
       }));
-      // Add to available keywords if not already there
+      // Add to available keywords if not already there (optimistic UI)
       if (!availableKeywords.includes(trimmed)) {
         setAvailableKeywords((prev) => [...prev, trimmed].sort());
       }
-      setNewKeyword("");
+      setKeywordSearch("");
     }
   };
 
@@ -406,27 +419,29 @@ export function PublicationForm({
               </TagsTrigger>
               <TagsContent>
                 <TagsInput
-                  onValueChange={setNewKeyword}
-                  value={newKeyword}
+                  onValueChange={setKeywordSearch}
+                  value={keywordSearch}
                   placeholder="Search or create tag..."
                 />
                 <TagsList>
                   <TagsEmpty>
-                    <button
-                      className="mx-auto flex cursor-pointer items-center gap-2 text-sm"
-                      onClick={handleCreateKeyword}
-                      type="button"
-                    >
-                      <PlusIcon className="text-muted-foreground" size={14} />
-                      Create new tag: {newKeyword}
-                    </button>
+                    {isKeywordLoading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground p-2">
+                        <Sparkles className="h-4 w-4 animate-spin" /> Searching...
+                      </div>
+                    ) : (
+                      <button
+                        className="mx-auto flex cursor-pointer items-center gap-2 text-sm"
+                        onClick={handleCreateKeyword}
+                        type="button"
+                      >
+                        <PlusIcon className="text-muted-foreground" size={14} />
+                        Create new tag: {keywordSearch}
+                      </button>
+                    )}
                   </TagsEmpty>
                   <TagsGroup>
-                    {availableKeywords
-                      .filter((keyword) =>
-                        keyword.toLowerCase().includes(newKeyword.toLowerCase())
-                      )
-                      .map((keyword) => (
+                    {availableKeywords.map((keyword) => (
                         <TagsItem
                           key={keyword}
                           onSelect={handleKeywordSelect}

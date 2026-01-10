@@ -4,6 +4,7 @@ import { z } from "zod";
  * Author validation schema for creating/editing authors
  */
 export const authorFormSchema = z.object({
+  id: z.number().optional(), // Added to track existing authors
   firstName: z
     .string()
     .min(1, "First name is required")

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { ResourceTypes } from "@/lib/generated/prisma/enums";
 
 async function ensureUploadsDir() {
   const uploadDir = path.join(process.cwd(), "public", "uploads");
@@ -15,21 +16,39 @@ export async function POST(req: NextRequest) {
 
     const title = String(formData.get("title") ?? "").trim();
     const abstract = String(formData.get("abstract") ?? "").trim();
-    const keywordsRaw = String(formData.get("keywords") ?? "").trim();
     const datePublishedStr = String(formData.get("datePublished") ?? "").trim();
     const resourceTypeRaw = String(formData.get("resourceType") ?? "").trim();
-    const visibilityRaw = String(formData.get("visibility") ?? "").trim();
-    const authorsRaw = String(formData.get("authors") ?? "").trim();
+    // const visibilityRaw = String(formData.get("visibility") ?? "").trim(); // Removed in schema? Default to public/enum? Schema says 'visibility' field exists in Document?
+    // Checking schema: `visibility` is NOT in the provided schema snippet for Document. 
+    // Wait, schema has `status DocStatus`. It does NOT have `visibility`.
+    // The previous code had `visibility`. I should check if I missed it in schema view.
+    // Looking at schema artifact: No `visibility` field in `Document` model. 
+    // It has `status` and `resourceType`. 
+    // I will assume `visibility` is removed or I should ignore it.
+
     const courseIdStr = String(formData.get("courseId") ?? "").trim();
-    const libraryName = String(formData.get("library") ?? "").trim();
     const file = formData.get("file") as File | null;
+    
+    // Parse JSON fields
+    const authorsJson = String(formData.get("authors") ?? "[]");
+    let authors: any[] = [];
+    try {
+      authors = JSON.parse(authorsJson);
+    } catch (e) {
+      return NextResponse.json({ error: "Invalid authors format" }, { status: 400 });
+    }
+
+    const keywordsRaw = String(formData.get("keywords") ?? "");
+    // Frontend sends "tag1, tag2". We need array.
+    // Wait, did I update frontend to send JSON? No, I updated frontend to send `formData.keywords.join(", ")`.
+    // So splitting by comma is correct.
+    const keywords = keywordsRaw.split(",").map(k => k.trim()).filter(Boolean);
 
     if (
       !title ||
       !abstract ||
       !datePublishedStr ||
       !resourceTypeRaw ||
-      !libraryName ||
       !file ||
       !courseIdStr
     ) {
@@ -47,9 +66,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const visibility =
-      visibilityRaw.toLowerCase() === "restricted" ? "Restricted" : "Public";
-
     const courseId = Number(courseIdStr);
     if (!Number.isInteger(courseId)) {
       return NextResponse.json(
@@ -58,6 +74,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Handle File Upload First
     const uploadDir = await ensureUploadsDir();
     const fileExt = path.extname(file.name) || ".pdf";
     const fileBaseName = `${Date.now()}-${Math.random()
@@ -70,128 +87,94 @@ export async function POST(req: NextRequest) {
     const fileBytes = await file.arrayBuffer();
     await writeFile(filePathOnDisk, Buffer.from(fileBytes));
 
-    const uploader = await prisma.user.findFirst();
-    if (!uploader) {
-      return NextResponse.json(
-        { error: "No uploader user found in database" },
-        { status: 500 }
-      );
-    }
+    // DB Transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Get Uploader (Placeholder logic)
+      const uploader = await tx.user.findFirst();
+      if (!uploader) throw new Error("No uploader user found");
 
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-    });
+      // 2. Resource Type Validation
+      // Ensure the string matches the Enum
+      if (!Object.values(ResourceTypes).includes(resourceTypeRaw as ResourceTypes)) {
+          throw new Error("Invalid resource type");
+      }
 
-    if (!course) {
-      return NextResponse.json(
-        { error: "Selected course does not exist" },
-        { status: 400 }
-      );
-    }
-
-    let library = await prisma.library.findFirst({
-      where: { name: libraryName },
-    });
-
-    if (!library) {
-      library = await prisma.library.create({
+      // 3. Create Document
+      const document = await tx.document.create({
         data: {
-          name: libraryName,
+          title,
+          abstract,
+          filePath: publicFilePath,
+          datePublished,
+          resourceType: resourceTypeRaw as ResourceTypes,
+          uploaderId: uploader.id,
+          courseId,
+          status: "PENDING", // Default
+          // libraryId removed
         },
       });
-    }
 
-    let resourceType = await prisma.resourceType.findFirst({
-      where: {
-        typeName: {
-          contains: resourceTypeRaw,
-          mode: "insensitive",
-        },
-      },
-    });
+      // 4. Handle Authors (Async Upsert/Connect)
+      for (let i = 0; i < authors.length; i++) {
+        const authorData = authors[i];
+        let authorId = authorData.id;
 
-    if (!resourceType) {
-      resourceType = await prisma.resourceType.create({
-        data: {
-          typeName: resourceTypeRaw,
-        },
-      });
-    }
+        // Check if this is a "temp" ID (large number) or missing
+        // Real database IDs are unlikely to match Date.now() (trillions)
+        const isTempId = !authorId || authorId > 2147483647; // Max 32-bit int
 
-    const document = await prisma.document.create({
-      data: {
-        title,
-        abstract,
-        filePath: publicFilePath,
-        datePublished,
-        visibility,
-        uploaderId: uploader.id,
-        courseId: course.id,
-        resourceTypeId: resourceType.id,
-        libraryId: library.id,
-      },
-    });
+        if (isTempId) {
+            // Create new author
+            const newAuthor = await tx.author.create({
+                data: {
+                    firstName: authorData.firstName,
+                    middleName: authorData.middleName,
+                    lastName: authorData.lastName,
+                    fullName: `${authorData.firstName} ${authorData.middleName || ""} ${authorData.lastName}`.trim(),
+                    email: authorData.email || null,
+                }
+            });
+            authorId = newAuthor.id;
+        } 
+        // Else use existing authorId
 
-    const authorNames = authorsRaw
-      .split(",")
-      .map((a) => a.trim())
-      .filter(Boolean);
-
-    for (let index = 0; index < authorNames.length; index++) {
-      const fullName = authorNames[index];
-
-      let author = await prisma.author.findFirst({
-        where: { fullName },
-      });
-
-      if (!author) {
-        author = await prisma.author.create({
-          data: {
-            fullName,
-            email: `${fullName
-              .toLowerCase()
-              .replace(/\s+/g, ".")}@example.com`,
-          },
+        // Create Relation
+        await tx.documentAuthor.create({
+            data: {
+                documentId: document.id,
+                authorId: authorId,
+                authorOrder: i + 1,
+            }
         });
       }
 
-      await prisma.documentAuthor.create({
-        data: {
-          documentId: document.id,
-          authorId: author.id,
-          authorOrder: index + 1,
-        },
-      });
-    }
+      // 5. Handle Keywords (Async Upsert)
+      for (const keywordText of keywords) {
+          const keyword = await tx.keyword.upsert({
+              where: { keywordText },
+              update: {},
+              create: { keywordText },
+          });
 
-    const keywordTexts = keywordsRaw
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean);
+          await tx.documentKeyword.create({
+              data: {
+                  documentId: document.id,
+                  keywordId: keyword.id,
+              }
+          });
+      }
 
-    for (const keywordText of keywordTexts) {
-      const keyword = await prisma.keyword.upsert({
-        where: { keywordText },
-        create: { keywordText },
-        update: {},
-      });
-
-      await prisma.documentKeyword.create({
-        data: {
-          documentId: document.id,
-          keywordId: keyword.id,
-        },
-      });
-    }
+      return document;
+    });
 
     return NextResponse.json(
-      { id: document.id, filePath: publicFilePath },
+      { id: result.id, filePath: publicFilePath },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error creating document:", error);
     return NextResponse.json(
-      { error: "Failed to create document" },
+      { error: error instanceof Error ? error.message : "Failed to create document" },
       { status: 500 }
     );
   }

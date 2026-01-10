@@ -7,7 +7,17 @@ import { prisma } from "@/lib/db";
  */
 export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get("q");
+
+    const where = query
+      ? {
+          keywordText: { contains: query, mode: "insensitive" as const },
+        }
+      : {};
+
     const keywords = await prisma.keyword.findMany({
+      where,
       select: {
         id: true,
         keywordText: true,
@@ -15,6 +25,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         keywordText: "asc",
       },
+      take: 15,
     });
 
     return NextResponse.json(keywords);

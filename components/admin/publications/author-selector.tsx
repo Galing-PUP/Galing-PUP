@@ -104,6 +104,7 @@ export function AuthorSelector({
 
   const handleSelectAuthor = (author: Author) => {
     const newAuthor: AuthorFormValues = {
+      id: author.id, // Preserve ID for connection
       firstName: author.firstName,
       middleName: author.middleName || undefined,
       lastName: author.lastName,
@@ -237,7 +238,22 @@ export function AuthorSelector({
                   </div>
                 )}
                 {!isLoading && availableAuthors.length === 0 && (
-                  <CommandEmpty>No author found.</CommandEmpty>
+                  <CommandEmpty>
+                    No author found.{" "}
+                    <button
+                      className="text-primary underline"
+                      onClick={() => {
+                        setOpen(false);
+                        setDialogOpen(true);
+                        setFormData((prev) => ({
+                          ...prev,
+                          lastName: searchQuery,
+                        }));
+                      }}
+                    >
+                      Create new?
+                    </button>
+                  </CommandEmpty>
                 )}
                 <CommandGroup>
                   {availableAuthors.map((author) => (
@@ -256,9 +272,11 @@ export function AuthorSelector({
                       />
                       <div className="flex flex-col">
                         <span className="font-medium">{author.fullName}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {author.email}
-                        </span>
+                        {author.email && (
+                          <span className="text-xs text-muted-foreground">
+                            {author.email}
+                          </span>
+                        )}
                       </div>
                     </CommandItem>
                   ))}

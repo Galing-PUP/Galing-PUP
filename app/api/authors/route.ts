@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         lastName: "asc",
       },
-      take: 20,
+      take: 15, // Optimization: Limit results
     });
 
     return NextResponse.json(authors);
