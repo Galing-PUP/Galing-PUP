@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { CourseCombobox } from "@/components/admin/publications/course-combobox";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -13,37 +25,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dropzone,
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import {
-  CalendarIcon,
-  FileText,
-  Users,
-  Upload,
-  X,
-  GripVertical,
-  Sparkles,
-  ChevronDownIcon,
-} from "lucide-react";
-import { courses } from "@/data/collegeCourses";
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CourseCombobox } from "@/components/admin/publications/course-combobox";
-import { publicationSchema, publicationEditSchema } from "@/lib/validations/publication-schema";
 import {
   Tags,
   TagsContent,
@@ -55,7 +40,24 @@ import {
   TagsTrigger,
   TagsValue,
 } from "@/components/ui/shadcn-io/tags";
-import { CheckIcon, PlusIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import {
+  publicationEditSchema,
+  publicationSchema,
+} from "@/lib/validations/publication-schema";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  FileText,
+  GripVertical,
+  PlusIcon,
+  Sparkles,
+  Upload,
+  Users,
+  X,
+} from "lucide-react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
 export interface Author {
   firstName: string;
@@ -125,6 +127,7 @@ export function PublicationForm({
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newKeyword, setNewKeyword] = useState<string>("");
+  const [availableKeywords, setAvailableKeywords] = useState<string[]>([]);
 
   const resourceTypeOptions = [
     { value: "THESIS", label: "Thesis" },
@@ -134,10 +137,26 @@ export function PublicationForm({
     { value: "RESEARCH_PAPER", label: "Research Paper" },
   ];
 
-
+  // Fetch existing keywords from database
+  useEffect(() => {
+    const fetchKeywords = async () => {
+      try {
+        const response = await fetch("/api/keywords");
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableKeywords(
+            data.map((k: { keywordText: string }) => k.keywordText)
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch keywords:", error);
+      }
+    };
+    fetchKeywords();
+  }, []);
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -165,11 +184,7 @@ export function PublicationForm({
     }));
   };
 
-  const updateAuthor = (
-    index: number,
-    field: keyof Author,
-    value: string,
-  ) => {
+  const updateAuthor = (index: number, field: keyof Author, value: string) => {
     setFormData((prev) => ({
       ...prev,
       authors: prev.authors.map((author, i) =>
@@ -234,10 +249,15 @@ export function PublicationForm({
   const handleCreateKeyword = () => {
     const trimmed = newKeyword.trim();
     if (trimmed && !formData.keywords.includes(trimmed)) {
+      // Add to form data
       setFormData((prev) => ({
         ...prev,
         keywords: [...prev.keywords, trimmed],
       }));
+      // Add to available keywords if not already there
+      if (!availableKeywords.includes(trimmed)) {
+        setAvailableKeywords((prev) => [...prev, trimmed].sort());
+      }
       setNewKeyword("");
     }
   };
@@ -262,10 +282,13 @@ export function PublicationForm({
         fieldErrors[path] = err.message;
       });
       setErrors(fieldErrors);
-      
+
       // Scroll to first error
       const firstErrorElement = document.querySelector('[data-error="true"]');
-      firstErrorElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstErrorElement?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return;
     }
 
@@ -277,7 +300,7 @@ export function PublicationForm({
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   // Helper to display field errors
@@ -337,7 +360,10 @@ export function PublicationForm({
               onChange={handleInputChange}
               placeholder="Enter a brief summary of your research (150-300 words)"
               rows={4}
-              className={cn("text-sm resize-none", errors.abstract && "border-red-500")}
+              className={cn(
+                "text-sm resize-none",
+                errors.abstract && "border-red-500"
+              )}
               required
             />
             <FieldError name="abstract" />
@@ -363,7 +389,10 @@ export function PublicationForm({
                     <ChevronDownIcon className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                <PopoverContent
+                  className="w-auto overflow-hidden p-0"
+                  align="start"
+                >
                   <Calendar
                     mode="single"
                     selected={selectedDate}
@@ -372,7 +401,9 @@ export function PublicationForm({
                       setSelectedDate(date);
                       setFormData((prev) => ({
                         ...prev,
-                        datePublished: date ? date.toISOString().split("T")[0] : "",
+                        datePublished: date
+                          ? date.toISOString().split("T")[0]
+                          : "",
                       }));
                       setDatePickerOpen(false);
                     }}
@@ -423,7 +454,10 @@ export function PublicationForm({
             <Tags className="w-full">
               <TagsTrigger className="w-full justify-start min-h-[42px]">
                 {formData.keywords.map((keyword) => (
-                  <TagsValue key={keyword} onRemove={() => handleKeywordRemove(keyword)}>
+                  <TagsValue
+                    key={keyword}
+                    onRemove={() => handleKeywordRemove(keyword)}
+                  >
                     {keyword}
                   </TagsValue>
                 ))}
@@ -446,16 +480,25 @@ export function PublicationForm({
                     </button>
                   </TagsEmpty>
                   <TagsGroup>
-                    {formData.keywords.map((keyword) => (
-                      <TagsItem
-                        key={keyword}
-                        onSelect={handleKeywordSelect}
-                        value={keyword}
-                      >
-                        {keyword}
-                        <CheckIcon className="text-muted-foreground" size={14} />
-                      </TagsItem>
-                    ))}
+                    {availableKeywords
+                      .filter((keyword) =>
+                        keyword.toLowerCase().includes(newKeyword.toLowerCase())
+                      )
+                      .map((keyword) => (
+                        <TagsItem
+                          key={keyword}
+                          onSelect={handleKeywordSelect}
+                          value={keyword}
+                        >
+                          {keyword}
+                          {formData.keywords.includes(keyword) && (
+                            <CheckIcon
+                              className="text-muted-foreground"
+                              size={14}
+                            />
+                          )}
+                        </TagsItem>
+                      ))}
                   </TagsGroup>
                 </TagsList>
               </TagsContent>
