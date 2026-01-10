@@ -92,6 +92,8 @@ export async function GET(req: NextRequest, props: RouteParams) {
  * Update an existing document
  */
 export async function PUT(req: NextRequest, props: RouteParams) {
+  let systemFilePath: string | undefined = undefined;
+
   try {
     const { id } = await props.params;
     const documentId = Number(id);
@@ -124,7 +126,7 @@ export async function PUT(req: NextRequest, props: RouteParams) {
     let originalFileName = undefined;
     let fileSize = undefined;
     let mimeType = undefined;
-    let systemFilePath: string | undefined = undefined;
+
     
     if (file) {
       const buffer = Buffer.from(await file.arrayBuffer());
