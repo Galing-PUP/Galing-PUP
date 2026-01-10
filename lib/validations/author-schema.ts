@@ -20,9 +20,8 @@ export const authorFormSchema = z.object({
     .max(100, "Last name must be less than 100 characters"),
   
   email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Invalid email address"),
+    .email()
+    .optional(),
 });
 
 export type AuthorFormValues = z.infer<typeof authorFormSchema>;

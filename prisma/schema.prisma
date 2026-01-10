@@ -155,7 +155,7 @@ model Author {
   middleName String? @map("middle_name") @db.Text
   lastName   String  @map("last_name") @db.Text
   fullName   String  @map("full_name") @db.Text
-  email      String  @db.Text
+  email      String? @unique @db.Text
 
   documents DocumentAuthor[]
 

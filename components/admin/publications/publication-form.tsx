@@ -107,9 +107,7 @@ export function PublicationForm({
     keywords: initialData?.keywords || [],
     datePublished: initialData?.datePublished || "",
     resourceType: initialData?.resourceType || "",
-    authors: initialData?.authors || [
-      { firstName: "", middleName: "", lastName: "", email: "" },
-    ],
+    authors: initialData?.authors || [],
     courseId: initialData?.courseId || "",
     file: null,
   });

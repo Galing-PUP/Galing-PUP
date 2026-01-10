@@ -37,7 +37,7 @@ export interface Author {
   firstName: string;
   middleName?: string;
   lastName: string;
-  email: string;
+  email?: string;
 }
 
 interface AuthorFromDB {
@@ -152,7 +152,7 @@ export function AuthorSelector({
       firstName: formData.firstName,
       middleName: formData.middleName || undefined,
       lastName: formData.lastName,
-      email: formData.email,
+      email: formData.email || undefined,
     };
 
     // Check if author already exists
@@ -316,9 +316,7 @@ export function AuthorSelector({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
