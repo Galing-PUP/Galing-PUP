@@ -1,55 +1,79 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
-import { Button, GoogleIcon } from "@/components/button";
+import { GoogleIcon } from "@/components/button"; // Keep custom icon if specific
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { checkUserStatus, verifyCredentials } from "@/lib/actions";
 import { signInWithGooglePopup } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
+import {
+  signInSchema,
+  type SignInFormValues,
+} from "@/lib/validations/auth-schema";
 
 export default function SignInPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleGoogleLogin = async () => {
+  const form = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
+
+  const handleGoogleSignIn = async () => {
     try {
-      await signInWithGooglePopup("signin");
-      toast.success("Signed in successfully");
-      router.push("/");
-      router.refresh();
+      const { user, error } = await signInWithGooglePopup();
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (user) {
+        const supabase = createClient();
+        await supabase.auth.setSession({
+          access_token: user.session?.access_token || "",
+          refresh_token: user.session?.refresh_token || "",
+        });
+        toast.success("Successfully signed in with Google!");
+        router.push("/");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Authentication failed");
+      toast.error(error.message || "Failed to sign in with Google");
     }
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onSubmit = async (data: SignInFormValues) => {
+    setIsLoading(true);
+    const { email: emailOrUsername, password } = data;
 
     try {
-      // Step 1: Perform pre-login checks against the database
-      // This ensures we give specific feedback before attempting Supabase auth
-      const status = await checkUserStatus(email);
+      // 1. Check if user exists and get their status
+      const status = await checkUserStatus(emailOrUsername);
 
       if (!status.exists) {
-        toast.error("User is not found please signup");
-        setLoading(false);
-        return;
-      }
-
-      // Check if user is an admin (Role ID 3 or 4)
-      if (status.isAdmin) {
-        toast.error("Please login using the admin portal");
-        setLoading(false);
+        toast.error("User does not exist, please sign up");
+        setIsLoading(false);
         return;
       }
 
@@ -59,52 +83,58 @@ export default function SignInPage() {
           toast.error(
             "Your account is currently ON HOLD, please contact the support team"
           );
-          setLoading(false);
+          setIsLoading(false);
           return;
         }
 
         toast.error(
           "User is not verified, please check your email for the code"
         );
-        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
-        setLoading(false);
+        router.push(
+          `/verify-otp?email=${encodeURIComponent(
+            status.email || emailOrUsername
+          )}`
+        );
+        setIsLoading(false);
         return;
       }
 
-      // Step 2: Verify credentials against the database hash
-      const isValid = await verifyCredentials(email, password);
-      if (!isValid) {
-        toast.error("Invalid password please try again");
-        setLoading(false);
+      // 2. Verify password with the resolved email from status (to handle username login)
+      const validCredentials = await verifyCredentials(
+        status.email || emailOrUsername,
+        password
+      );
+
+      if (!validCredentials) {
+        toast.error("Invalid credentials");
+        setIsLoading(false);
         return;
       }
 
-      // Step 3: Attempt to sign in with Supabase
+      // 3. Sign in with Supabase
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: status.email || emailOrUsername,
         password,
       });
 
       if (error) {
         toast.error(error.message);
+        setIsLoading(false);
         return;
       }
 
       toast.success("Signed in successfully");
       router.push("/");
-      router.refresh();
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      console.error("Sign in error:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleGuestLogin = () => {
-    router.push("/");
-    router.refresh();
-  };
+
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
@@ -136,75 +166,92 @@ export default function SignInPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             <div className="flex flex-col gap-2">
-              <label
+              <Label
                 htmlFor="email"
                 className="text-sm font-medium text-neutral-700"
               >
                 Email or Username
-              </label>
-              <input
-                type="text"
+              </Label>
+              <Input
                 id="email"
-                name="email"
                 placeholder="Enter your email or username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-pup-maroon focus:outline-none focus:ring-2 focus:ring-pup-maroon/20"
+                className="rounded-lg border-neutral-300 px-4 py-6 text-base"
+                {...register("email")}
               />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
-              <label
+              <Label
                 htmlFor="password"
                 className="text-sm font-medium text-neutral-700"
               >
                 Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-pup-maroon focus:outline-none focus:ring-2 focus:ring-pup-maroon/20"
-              />
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  className="rounded-lg border-neutral-300 px-4 py-6 pr-12 text-base"
+                  {...register("password")}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-neutral-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-neutral-400" />
+                  )}
+                  <span className="sr-only">
+                    {showPassword ? "Hide password" : "Show password"}
+                  </span>
+                </Button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end">
-              <button
+              <Button
+                variant="link"
                 type="button"
-                className="text-sm font-medium text-[#7C1D1D] hover:underline"
-                onClick={() => router.push("/forgot-password")}
+                className="h-auto p-0 text-sm font-medium text-[#7C1D1D] hover:underline"
+                asChild
               >
-                Forgot Password?
-              </button>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                shape="rounded"
-                onClick={(e: any) => handleSignIn(e)}
-              >
-                Sign In
-              </Button>
-
-              <Button
-                variant="outline"
-                size="lg"
-                fullWidth
-                shape="rounded"
-                className="border-neutral-300"
-                onClick={handleGuestLogin}
-              >
-                Continue as Guest
+                <Link href="/forgot-password">Forgot Password?</Link>
               </Button>
             </div>
+
+            <Button
+              type="submit"
+              className="w-full rounded-lg bg-[#7C1D1D] py-6 text-base hover:bg-[#5a1515]"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
 
             <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
               <span className="h-px flex-1 bg-neutral-200" />
@@ -215,14 +262,14 @@ export default function SignInPage() {
             <button
               type="button"
               className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignIn}
             >
-              <GoogleIcon />
+              <GoogleIcon className="h-5 w-5" />
             </button>
-          </div>
+          </form>
         </div>
 
-        <div className="mt-auto flex justify-center">
+        <div className="mt-auto flex justify-center pt-8">
           <p className="text-sm text-neutral-500">
             Don&apos;t have an account?{" "}
             <Link

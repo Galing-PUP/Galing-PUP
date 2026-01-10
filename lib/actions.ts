@@ -64,11 +64,12 @@ export async function checkUserStatus(identifier: string) {
             role: true,
             status: true,
             updatedDate: true,
+            email: true,
         },
     });
 
     if (!user) {
-        return { exists: false, isAdmin: false, isVerified: false, roleId: RoleName.REGISTERED, updatedDate: null };
+        return { exists: false, isAdmin: false, isVerified: false, roleId: RoleName.REGISTERED, updatedDate: null, email: null };
     }
 
     // Admin roles are ADMIN and SUPERADMIN
@@ -79,7 +80,8 @@ export async function checkUserStatus(identifier: string) {
         isAdmin,
         isVerified: user.status === UserStatus.APPROVED,
         roleId: user.role,
-        updatedDate: user.updatedDate
+        updatedDate: user.updatedDate,
+        email: user.email
     };
 }
 
