@@ -37,7 +37,7 @@ import {
   TagsValue,
 } from "@/components/ui/shadcn-io/tags";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { cn, formatFileSize } from "@/lib/utils";
 import {
   publicationEditSchema,
   publicationSchema,
@@ -46,7 +46,8 @@ import {
   CheckIcon,
   ChevronDownIcon,
   FileText,
-  GripVertical,
+  Info,
+  Loader2,
   PlusIcon,
   Sparkles,
   Upload,
@@ -70,6 +71,7 @@ export interface PublicationFormData {
   originalFileName?: string | null;
   fileSize?: number | null;
   submissionDate?: string | Date | null; 
+  filePath?: string | null;
 }
 
 interface PublicationFormProps {
@@ -83,6 +85,7 @@ interface PublicationFormProps {
   existingFileName?: string;
   existingFileSize?: number;
   existingFileDate?: string;
+  existingFilePath?: string;
 }
 
 /**
@@ -101,6 +104,7 @@ export function PublicationForm({
   existingFileName,
   existingFileSize,
   existingFileDate,
+  existingFilePath,
 }: PublicationFormProps) {
   const [formData, setFormData] = useState<PublicationFormData>({
     title: initialData?.title || "",
@@ -422,7 +426,7 @@ export function PublicationForm({
                   <TagsEmpty>
                     {isKeywordLoading ? (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground p-2">
-                        <Sparkles className="h-4 w-4 animate-spin" /> Searching...
+                        <Loader2 className="h-4 w-4 animate-spin" /> Searching...
                       </div>
                     ) : (
                       <button
@@ -458,7 +462,7 @@ export function PublicationForm({
             <FieldError name="keywords" />
           </div>
 
-          {/* AI Summary Placeholder - Feature not yet functional */}
+          {/* TODO: AI Summary */}
           <div className="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/10">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -523,20 +527,55 @@ export function PublicationForm({
         <CardContent className="pt-6 space-y-6">
           {/* Existing File Display (Edit Mode) */}
           {existingFileName && (
-            <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileText className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="text-sm font-bold">{existingFileName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {existingFileSize && formatFileSize(existingFileSize)}
-                    {existingFileDate && ` • Uploaded on ${existingFileDate}`}
-                  </p>
-                </div>
+            <div className="flex flex-col gap-4">
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-md">
+                 <p className="text-xs text-yellow-600 dark:text-yellow-400 font-medium flex items-center gap-2">
+                   <Info className="h-3 w-3" />
+                   Note: Uploading a new file below will replace the current document.
+                 </p>
               </div>
-              <span className="px-3 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-wider rounded-full">
-                Current File
-              </span>
+
+               {existingFilePath ? (
+                 <a 
+                   href={existingFilePath} 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors group cursor-pointer"
+                 >
+                   <div className="flex items-center gap-3">
+                     <FileText className="h-8 w-8 text-primary group-hover:scale-110 transition-transform" />
+                     <div>
+                       <p className="text-sm font-bold flex items-center gap-2">
+                         {existingFileName}
+                         <Upload className="h-3 w-3 opacity-50" />
+                       </p>
+                       <p className="text-xs text-muted-foreground">
+                         {existingFileSize && formatFileSize(existingFileSize)}
+                         {existingFileDate && ` • Uploaded on ${existingFileDate}`}
+                       </p>
+                     </div>
+                   </div>
+                   <span className="px-3 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-wider rounded-full group-hover:bg-primary/90">
+                     View PDF
+                   </span>
+                 </a>
+               ) : (
+                <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="text-sm font-bold">{existingFileName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {existingFileSize && formatFileSize(existingFileSize)}
+                        {existingFileDate && ` • Uploaded on ${existingFileDate}`}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-wider rounded-full">
+                    Current File
+                  </span>
+                </div>
+               )}
             </div>
           )}
 
@@ -552,7 +591,7 @@ export function PublicationForm({
                  setFormData((prev) => ({ ...prev, file: null }));
               }
             }}
-            accept=".pdf,.doc,.docx"
+            accept=".pdf"
             className="border-dashed hover:bg-muted/50"
           />
         </CardContent>
