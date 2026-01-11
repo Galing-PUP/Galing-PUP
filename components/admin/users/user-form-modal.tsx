@@ -203,13 +203,15 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                     {formData.status || "Unknown"}
                   </Badge>
                   <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
-                    {formData.fullname || ""}
+                    @{formData.name || "username"}
                   </h2>
                   <div className="space-y-1.5 pl-1">
-                    <div className="flex items-center gap-2.5">
-                      <UserIcon className="w-4 h-4 text-gray-400" />
-                      <p className="text-sm font-semibold text-gray-700">@{formData.name || "username"}</p>
-                    </div>
+                    {formData.fullname && (
+                      <div className="flex items-center gap-2.5">
+                        <UserIcon className="w-4 h-4 text-gray-400" />
+                        <p className="text-sm font-semibold text-gray-700">{formData.fullname}</p>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2.5">
                       <Mail className="w-4 h-4 text-gray-400" />
                       <p className="text-sm text-gray-600">{formData.email || "email@example.com"}</p>
@@ -287,7 +289,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <Select
-                value={formData.role || "Registered"}
+                value={formData.role || ""}
                 onValueChange={value => handleInputChange('role', value)}
               >
                 <SelectTrigger id="role" className="w-full">
@@ -325,7 +327,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
               <Label htmlFor="subscription">Subscription Tier</Label>
               <Select
                 value={String(formData.subscriptionTier || 1)}
-                onValueChange={value => handleInputChange('subscriptionTier', parseInt(value))}
+                onValueChange={value => handleInputChange('subscriptionTier', Number(value))}
               >
                 <SelectTrigger id="subscription" className="w-full">
                   <SelectValue placeholder="Select tier" />
