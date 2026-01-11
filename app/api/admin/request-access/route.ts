@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { prisma } from '@/lib/db';
 import { RoleName, UserStatus } from '@/lib/generated/prisma/enums';
@@ -62,7 +63,48 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Failed to upload ID image' }, { status: 500 });
         }
 
-        // 5. Create User in Database
+        // 5. Create User in Supabase Auth
+        // We use a clean client (simulating public access) to ensure 'signUp' triggers the default email confirmation flow.
+        const supabasePublic = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
+            }
+        );
+
+        // Construct the redirect URL (assuming standard Next.js structure)
+        const origin = req.nextUrl.origin;
+        const redirectTo = `${origin}/auth/callback`;
+
+        const { data: authData, error: authError } = await supabasePublic.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: redirectTo,
+                data: {
+                    full_name: fullName,
+                    username: email,
+                },
+            },
+        });
+
+        if (authError) {
+            console.error('Supabase Auth Signup Error:', authError);
+            // Optional: Delete uploaded file if auth fails to avoid orphans
+            return NextResponse.json({ error: authError.message || 'Failed to create authentication account' }, { status: 400 });
+        }
+
+        if (!authData.user) {
+            return NextResponse.json({ error: 'Failed to create authentication account' }, { status: 500 });
+        }
+
+        const supabaseAuthId = authData.user.id;
+
+        // 6. Create User in Database
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Find college ID based on abbreviation or name from the form
@@ -89,6 +131,7 @@ export async function POST(req: NextRequest) {
                 username: email, // Using email as username by default for now, or could handle properly
                 // Note: fullname is a field we added to schema recently.
                 fullname: fullName,
+                supabaseAuthId, // Link the Supabase Auth ID
                 passwordHash: hashedPassword,
                 idNumber: idNumber,
                 collegeId: collegeId, // Can be null if not found
