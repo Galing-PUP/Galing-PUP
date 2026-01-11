@@ -9,15 +9,27 @@ import { ContentTable } from "@/components/admin/approval/content-table";
 import type { ContentItem } from "@/types/content";
 import { ViewPublicationModal } from "@/components/admin/approval/view-publication-modal";
 import { DeleteConfirmationDialog } from "@/components/admin/approval/delete-confirmation-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ContentApprovalPage() {
   const [allContentItems, setAllContentItems] = useState<ContentItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
-  const [viewingItem, setViewingItem] = useState<ContentItem | null>(null);
+  const [viewingDocumentId, setViewingDocumentId] = useState<string | null>(null);
   const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   /**
    * Fetches all documents for approval from the API
@@ -70,7 +82,7 @@ export default function ContentApprovalPage() {
         )
       );
       setSelectedItem(null);
-      setViewingItem(null);
+      setViewingDocumentId(null);
       toast.success("Document accepted successfully");
     } catch (error) {
       console.error("Error accepting document:", error);
@@ -104,7 +116,7 @@ export default function ContentApprovalPage() {
         )
       );
       setSelectedItem(null);
-      setViewingItem(null);
+      setViewingDocumentId(null);
       toast.success("Document rejected successfully");
     } catch (error) {
       console.error("Error rejecting document:", error);
@@ -144,7 +156,7 @@ export default function ContentApprovalPage() {
    * @param item - The document item to view
    */
   const handleView = (item: ContentItem) => {
-    setViewingItem(item);
+    setViewingDocumentId(item.id);
   };
 
   /**
@@ -155,10 +167,74 @@ export default function ContentApprovalPage() {
     setItemToDelete(item);
   };
 
+  /**
+   * Filters items based on the active tab
+   */
   const filteredItems = useMemo(() => {
     if (activeTab === "All") return allContentItems;
     return allContentItems.filter((item) => item.status === activeTab);
   }, [allContentItems, activeTab]);
+
+  /**
+   * Resets to page 1 when tab changes
+   */
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  /**
+   * Calculates paginated items for the current page
+   */
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredItems.slice(startIndex, endIndex);
+  }, [filteredItems, currentPage]);
+
+  /**
+   * Calculates total number of pages
+   */
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+  }, [filteredItems.length]);
+
+  /**
+   * Generates page numbers for pagination display
+   */
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("ellipsis");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push("ellipsis");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   const counts = useMemo(() => ({
     pending: allContentItems.filter(item => item.status === 'Pending').length,
@@ -169,11 +245,11 @@ export default function ContentApprovalPage() {
   return (
     <>
       {/* View Modal */}
-      {viewingItem && (
+      {viewingDocumentId && (
         <ViewPublicationModal
-          isOpen={!!viewingItem}
-          item={viewingItem}
-          onClose={() => setViewingItem(null)}
+          isOpen={!!viewingDocumentId}
+          documentId={viewingDocumentId}
+          onClose={() => setViewingDocumentId(null)}
           onAccept={handleAccept}
           onReject={handleReject}
         />
@@ -190,7 +266,6 @@ export default function ContentApprovalPage() {
       )}
 
       <div className="space-y-8">
-        <UserStats />
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <ContentManagementHeader />
           <ContentTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
@@ -205,14 +280,81 @@ export default function ContentApprovalPage() {
           ) : (
             <>
               <ContentTable
-                items={filteredItems}
+                items={paginatedItems}
                 onView={handleView}
                 onAccept={handleAccept}
                 onReject={handleReject}
                 onDeleteRequest={handleDeleteRequest}
               />
-              <div className="mt-6 text-sm text-gray-500">
-                Showing {filteredItems.length} of {allContentItems.length} total items
+              <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+                <div className="text-sm text-gray-500">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                  {Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} of{" "}
+                  {filteredItems.length} {activeTab === "All" ? "total" : activeTab.toLowerCase()}{" "}
+                  items
+                </div>
+                {totalPages > 1 && (
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage > 1) {
+                              setCurrentPage(currentPage - 1);
+                            }
+                          }}
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                      {getPageNumbers().map((page, index) => {
+                        if (page === "ellipsis") {
+                          return (
+                            <PaginationItem key={`ellipsis-${index}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(page);
+                              }}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages) {
+                              setCurrentPage(currentPage + 1);
+                            }
+                          }}
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
               </div>
             </>
           )}

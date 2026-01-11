@@ -68,6 +68,7 @@ export async function GET(req: NextRequest, props: RouteParams) {
       originalFileName: document.originalFileName,
       fileSize: document.fileSize,
       mimeType: document.mimeType,
+      submissionDate: document.submissionDate?.toISOString().split("T")[0] || "",
       authors: document.authors.map((da: any) => ({
         firstName: da.author.firstName,
         middleName: da.author.middleName || "",
@@ -75,6 +76,16 @@ export async function GET(req: NextRequest, props: RouteParams) {
         email: da.author.email,
       })),
       keywords: document.keywords.map((dk: any) => dk.keyword.keywordText),
+      course: document.course
+        ? {
+            courseName: document.course.courseName,
+            college: document.course.college
+              ? {
+                  collegeName: document.course.college.collegeName,
+                }
+              : null,
+          }
+        : null,
     };
 
     return NextResponse.json(formattedDocument);
