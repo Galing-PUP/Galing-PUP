@@ -9,8 +9,8 @@ import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, GoogleIcon } from "@/components/button";
-import { signInWithGooglePopup } from "@/lib/auth";
+import { Button, GoogleIcon, StravaIcon } from "@/components/button";
+import { signInWithGooglePopup, signInWithProviderPopup } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 import { checkUsernameAvailability, checkUserStatus, createUserInDb } from "@/lib/actions";
 
@@ -298,22 +298,35 @@ export default function SignUpPage() {
               <span className="h-px flex-1 bg-neutral-200" />
             </div>
 
-            <button
-              type="button"
-              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
-              onClick={async () => {
-                try {
-                  await signInWithGooglePopup("signup");
-                  toast.success("Account created successfully");
-                  router.push("/");
-                  router.refresh();
-                } catch (error: any) {
-                  toast.error(error.message || "Sign up failed");
-                }
-              }}
-            >
-              <GoogleIcon />
-            </button>
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+                onClick={async () => {
+                  try {
+                    await signInWithGooglePopup("signup");
+                    toast.success("Account created successfully");
+                    router.push("/");
+                    router.refresh();
+                  } catch (error: any) {
+                    toast.error(error.message || "Sign up failed");
+                  }
+                }}
+                title="Sign up with Google"
+              >
+                <GoogleIcon />
+              </button>
+              <button
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+                onClick={() => {
+                  window.location.href = '/api/auth/strava/login?intent=signup';
+                }}
+                title="Sign up with Strava"
+              >
+                <StravaIcon />
+              </button>
+            </div>
           </form>
         </div>
 

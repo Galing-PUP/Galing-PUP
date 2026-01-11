@@ -6,13 +6,14 @@ import { ArrowLeft } from "lucide-react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import { Button, GoogleIcon } from "@/components/button";
+import { Button, GoogleIcon, StravaIcon } from "@/components/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { signInWithGooglePopup } from "@/lib/auth";
+import { signInWithProviderPopup } from "@/lib/auth";
 import { checkUserStatus, verifyCredentials } from "@/lib/actions";
+import { RoleName } from "@/lib/generated/prisma/enums";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -20,9 +21,13 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = async () => {
+  const handleProviderLogin = async (provider: 'google' | 'strava') => {
     try {
-      await signInWithGooglePopup("signin");
+      if (provider === 'strava') {
+        window.location.href = '/api/auth/strava/login?intent=signin';
+        return;
+      }
+      await signInWithProviderPopup(provider, "signin");
       toast.success("Signed in successfully");
       router.push("/");
       router.refresh();
@@ -55,7 +60,7 @@ export default function SignInPage() {
 
       // Check if user is verified
       if (!status.isVerified) {
-        if (status.roleId === 1 && status.updatedDate) {
+        if (status.roleId === RoleName.REGISTERED && status.updatedDate) {
           toast.error("Your account is currently ON HOLD, please contact the support team");
           setLoading(false);
           return;
@@ -202,13 +207,24 @@ export default function SignInPage() {
               <span className="h-px flex-1 bg-neutral-200" />
             </div>
 
-            <button
-              type="button"
-              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
-              onClick={handleGoogleLogin}
-            >
-              <GoogleIcon />
-            </button>
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+                onClick={() => handleProviderLogin('google')}
+                title="Sign in with Google"
+              >
+                <GoogleIcon />
+              </button>
+              <button
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+                onClick={() => handleProviderLogin('strava')}
+                title="Sign in with Strava"
+              >
+                <StravaIcon />
+              </button>
+            </div>
           </div>
         </div>
 

@@ -9,18 +9,44 @@ export async function GET(request: NextRequest) {
     const intent = requestUrl.searchParams.get('intent')
     const isPopup = requestUrl.searchParams.get('popup') === 'true'
 
+    console.log('[Auth Callback] URL:', request.url)
+    console.log('[Auth Callback] Code:', code ? 'Present' : 'Missing')
+    console.log('[Auth Callback] Intent:', intent)
+
     const supabase = await createClient()
 
     // Step 1: Exchange the auth code for a user session
     if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (error) {
-            console.error('Auth Code Exchange Error:', error)
+            console.error('[Auth Callback] Auth Code Exchange Error:', error)
             return NextResponse.redirect(`${requestUrl.origin}/signin?error=VerificationFailed`)
+        }
+        console.log('[Auth Callback] Code exchange successful')
+    } else {
+        // Step 1.5: Handle explicit token verification (from manual flows)
+        const token = requestUrl.searchParams.get('token')
+        const type = requestUrl.searchParams.get('type')
+        const email = requestUrl.searchParams.get('email')
+
+        if (token && type && email) {
+            console.log('[Auth Callback] Verifying OTP token...')
+            const { error } = await supabase.auth.verifyOtp({
+                token,
+                type: type as any,
+                email
+            })
+            if (error) {
+                console.error('[Auth Callback] Token Verification Error:', error)
+                const errorMessage = encodeURIComponent(error.message || 'Unknown error');
+                return NextResponse.redirect(`${requestUrl.origin}/signin?error=VerificationFailed&message=${errorMessage}`)
+            }
+            console.log('[Auth Callback] Token verification successful')
         }
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    console.log('[Auth Callback] User found:', user?.email, 'Error:', userError)
 
     if (!user) {
         if (isPopup) {
