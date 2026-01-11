@@ -314,7 +314,7 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
 
     const existing = await prisma.document.findUnique({
       where: { id: documentId },
-      select: { id: true },
+      select: { id: true, status: true },
     });
 
     if (!existing) {
@@ -324,25 +324,42 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
       );
     }
 
-    await prisma.$transaction([
-      prisma.documentKeyword.deleteMany({
-        where: { documentId },
-      }),
-      prisma.documentAuthor.deleteMany({
-        where: { documentId },
-      }),
-      prisma.userBookmark.deleteMany({
-        where: { documentId },
-      }),
-      prisma.activityLog.deleteMany({
-        where: { documentId },
-      }),
-      prisma.document.delete({
-        where: { id: documentId },
-      }),
-    ]);
+    // Check if this is a permanent delete (from approval page) or soft delete (from publication page)
+    const url = new URL(req.url);
+    const permanent = url.searchParams.get("permanent") === "true";
 
-    return NextResponse.json({ success: true });
+    if (permanent) {
+      // Permanent delete - actually remove from database (only from approval page)
+      await prisma.$transaction([
+        prisma.documentKeyword.deleteMany({
+          where: { documentId },
+        }),
+        prisma.documentAuthor.deleteMany({
+          where: { documentId },
+        }),
+        prisma.userBookmark.deleteMany({
+          where: { documentId },
+        }),
+        prisma.activityLog.deleteMany({
+          where: { documentId },
+        }),
+        prisma.document.delete({
+          where: { id: documentId },
+        }),
+      ]);
+
+      return NextResponse.json({ success: true, permanent: true });
+    } else {
+      // Soft delete - set status to DELETED (from publication page)
+      await prisma.document.update({
+        where: { id: documentId },
+        data: {
+          status: DocStatus.DELETED,
+        },
+      });
+
+      return NextResponse.json({ success: true, permanent: false });
+    }
   } catch (error) {
     console.error("Error deleting document:", error);
     return NextResponse.json(

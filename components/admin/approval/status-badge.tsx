@@ -10,6 +10,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     Flagged: "bg-red-600 text-white",
     Accepted: "bg-green-600 text-white",
     Rejected: "bg-yellow-600 text-white",
+    Deleted: "bg-gray-600 text-white",
   };
 
   return (

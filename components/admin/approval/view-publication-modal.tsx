@@ -22,7 +22,8 @@ interface ViewPublicationModalProps {
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onRestore?: (id: string) => void;
-  documentStatus?: "Pending" | "Accepted" | "Rejected";
+  onDeleteRequest?: (id: string) => void;
+  documentStatus?: "Pending" | "Accepted" | "Rejected" | "Deleted";
 }
 
 interface DocumentDetails {
@@ -36,7 +37,7 @@ interface DocumentDetails {
   originalFileName: string;
   fileSize: number | null;
   mimeType: string | null;
-  status?: "Pending" | "Accepted" | "Rejected";
+  status?: "Pending" | "Accepted" | "Rejected" | "Deleted";
   authors: Array<{
     firstName: string;
     middleName: string;
@@ -60,7 +61,7 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, onReject, onRestore, documentStatus }: ViewPublicationModalProps) {
+export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, onReject, onRestore, onDeleteRequest, documentStatus }: ViewPublicationModalProps) {
   const [document, setDocument] = useState<DocumentDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +69,7 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
   /**
    * Gets the current document status, preferring the prop over the fetched document
    */
-  const getCurrentStatus = (): "Pending" | "Accepted" | "Rejected" | undefined => {
+  const getCurrentStatus = (): "Pending" | "Accepted" | "Rejected" | "Deleted" | undefined => {
     return documentStatus || document?.status;
   };
 

@@ -26,7 +26,7 @@ export default function ContentApprovalPage() {
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [viewingDocumentId, setViewingDocumentId] = useState<string | null>(null);
-  const [viewingDocumentStatus, setViewingDocumentStatus] = useState<"Pending" | "Accepted" | "Rejected" | null>(null);
+  const [viewingDocumentStatus, setViewingDocumentStatus] = useState<"Pending" | "Accepted" | "Rejected" | "Deleted" | null>(null);
   const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -159,12 +159,12 @@ export default function ContentApprovalPage() {
   };
 
   /**
-   * Handles deleting a document permanently
-   * @param itemId - The ID of the document to delete
+   * Handles permanently deleting a document (only for super admin in approval page)
+   * @param itemId - The ID of the document to permanently delete
    */
   const handleDelete = async (itemId: string) => {
     try {
-      const res = await fetch(`/api/admin/documents/${itemId}`, {
+      const res = await fetch(`/api/admin/documents/${itemId}?permanent=true`, {
         method: "DELETE",
       });
 
@@ -178,7 +178,7 @@ export default function ContentApprovalPage() {
         prevItems.filter((item) => item.id !== itemId)
       );
       setItemToDelete(null);
-      toast.success("Document deleted successfully");
+      toast.success("Document permanently deleted successfully");
     } catch (error) {
       console.error("Error deleting document:", error);
       toast.error("There was an error deleting this document. Please try again.");
@@ -206,7 +206,6 @@ export default function ContentApprovalPage() {
    * Filters items based on the active tab
    */
   const filteredItems = useMemo(() => {
-    if (activeTab === "All") return allContentItems;
     return allContentItems.filter((item) => item.status === activeTab);
   }, [allContentItems, activeTab]);
 
@@ -274,7 +273,7 @@ export default function ContentApprovalPage() {
   const counts = useMemo(() => ({
     pending: allContentItems.filter(item => item.status === 'Pending').length,
     rejected: allContentItems.filter(item => item.status === 'Rejected').length,
-    accepted: allContentItems.filter(item => item.status === 'Accepted').length,
+    deleted: allContentItems.filter(item => item.status === 'Deleted').length,
   }), [allContentItems]);
 
   return (
@@ -291,6 +290,12 @@ export default function ContentApprovalPage() {
           onAccept={handleAccept}
           onReject={handleReject}
           onRestore={handleRestore}
+          onDeleteRequest={(id) => {
+            const item = allContentItems.find(i => i.id === id);
+            if (item) {
+              setItemToDelete(item);
+            }
+          }}
           documentStatus={viewingDocumentStatus || undefined}
         />
       )}
@@ -331,7 +336,7 @@ export default function ContentApprovalPage() {
                 <div className="text-sm text-gray-500">
                   Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
                   {Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)} of{" "}
-                  {filteredItems.length} {activeTab === "All" ? "total" : activeTab.toLowerCase()}{" "}
+                  {filteredItems.length} {activeTab.toLowerCase()}{" "}
                   items
                 </div>
                 {totalPages > 1 && (

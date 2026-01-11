@@ -46,7 +46,17 @@ export function ContentTable({ items, onView, onAccept, onReject, onRestore, onD
                   <button title="View Details" onClick={() => onView(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
                     <Eye className="h-5 w-5" />
                   </button>
-                  {item.status === 'Rejected' ? (
+                  {item.status === 'Deleted' ? (
+                    <>
+                      <button 
+                        title="Permanently Delete" 
+                        onClick={() => onDeleteRequest(item)} 
+                        className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  ) : item.status === 'Rejected' ? (
                     <>
                       {onRestore && (
                         <button

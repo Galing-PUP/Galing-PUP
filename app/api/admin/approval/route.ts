@@ -12,11 +12,6 @@ import type { ContentItem } from "@/types/content";
 export async function GET() {
   try {
     const documents = await prisma.document.findMany({
-      where: {
-        status: {
-          not: DocStatus.DELETED, // Exclude deleted documents
-        },
-      },
       include: {
         authors: {
           include: {
@@ -54,6 +49,8 @@ export async function GET() {
           return "Accepted";
         case DocStatus.REJECTED:
           return "Rejected";
+        case DocStatus.DELETED:
+          return "Deleted";
         default:
           return "Pending";
       }
