@@ -314,7 +314,7 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
 
     const existing = await prisma.document.findUnique({
       where: { id: documentId },
-      select: { id: true, status: true },
+      select: { id: true, status: true, filePath: true },
     });
 
     if (!existing) {
@@ -329,7 +329,15 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
     const permanent = url.searchParams.get("permanent") === "true";
 
     if (permanent) {
-      // Permanent delete - actually remove from database (only from approval page)
+      // Permanent delete - actually remove from database and filesystem (only from approval page)
+      let filePathToDelete: string | undefined = undefined;
+
+      // Get the file path before deleting from database
+      if (existing.filePath && existing.filePath.startsWith("/uploads/")) {
+        filePathToDelete = path.join(process.cwd(), "public", existing.filePath);
+      }
+
+      // Delete from database first
       await prisma.$transaction([
         prisma.documentKeyword.deleteMany({
           where: { documentId },
@@ -347,6 +355,17 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
           where: { id: documentId },
         }),
       ]);
+
+      // Delete the physical file from filesystem
+      if (filePathToDelete) {
+        try {
+          await unlink(filePathToDelete);
+          console.log(`Deleted file: ${filePathToDelete}`);
+        } catch (fileError) {
+          // Log error but don't fail the request since DB deletion already succeeded
+          console.error(`Failed to delete file ${filePathToDelete}:`, fileError);
+        }
+      }
 
       return NextResponse.json({ success: true, permanent: true });
     } else {
