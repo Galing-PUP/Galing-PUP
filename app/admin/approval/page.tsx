@@ -26,6 +26,7 @@ export default function ContentApprovalPage() {
   const [activeTab, setActiveTab] = useState<TabStatus>("Pending");
   const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [viewingDocumentId, setViewingDocumentId] = useState<string | null>(null);
+  const [viewingDocumentStatus, setViewingDocumentStatus] = useState<"Pending" | "Accepted" | "Rejected" | null>(null);
   const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +126,39 @@ export default function ContentApprovalPage() {
   };
 
   /**
+   * Handles restoring a rejected document by updating its status to "Pending"
+   * @param itemId - The ID of the document to restore
+   */
+  const handleRestore = async (itemId: string) => {
+    try {
+      const res = await fetch(`/api/admin/documents/${itemId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "Pending" }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to restore document");
+      }
+
+      // Update local state
+      setAllContentItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === itemId ? { ...item, status: "Pending" } : item
+        )
+      );
+      setViewingDocumentStatus("Pending");
+      toast.success("Document restored to pending successfully");
+    } catch (error) {
+      console.error("Error restoring document:", error);
+      toast.error("There was an error restoring this document. Please try again.");
+    }
+  };
+
+  /**
    * Handles deleting a document permanently
    * @param itemId - The ID of the document to delete
    */
@@ -157,6 +191,7 @@ export default function ContentApprovalPage() {
    */
   const handleView = (item: ContentItem) => {
     setViewingDocumentId(item.id);
+    setViewingDocumentStatus(item.status);
   };
 
   /**
@@ -249,9 +284,14 @@ export default function ContentApprovalPage() {
         <ViewPublicationModal
           isOpen={!!viewingDocumentId}
           documentId={viewingDocumentId}
-          onClose={() => setViewingDocumentId(null)}
+          onClose={() => {
+            setViewingDocumentId(null);
+            setViewingDocumentStatus(null);
+          }}
           onAccept={handleAccept}
           onReject={handleReject}
+          onRestore={handleRestore}
+          documentStatus={viewingDocumentStatus || undefined}
         />
       )}
 
@@ -284,6 +324,7 @@ export default function ContentApprovalPage() {
                 onView={handleView}
                 onAccept={handleAccept}
                 onReject={handleReject}
+                onRestore={handleRestore}
                 onDeleteRequest={handleDeleteRequest}
               />
               <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">

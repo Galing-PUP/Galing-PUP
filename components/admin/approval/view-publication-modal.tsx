@@ -21,6 +21,8 @@ interface ViewPublicationModalProps {
   onClose: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
+  onRestore?: (id: string) => void;
+  documentStatus?: "Pending" | "Accepted" | "Rejected";
 }
 
 interface DocumentDetails {
@@ -34,6 +36,7 @@ interface DocumentDetails {
   originalFileName: string;
   fileSize: number | null;
   mimeType: string | null;
+  status?: "Pending" | "Accepted" | "Rejected";
   authors: Array<{
     firstName: string;
     middleName: string;
@@ -57,10 +60,17 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, onReject }: ViewPublicationModalProps) {
+export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, onReject, onRestore, documentStatus }: ViewPublicationModalProps) {
   const [document, setDocument] = useState<DocumentDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Gets the current document status, preferring the prop over the fetched document
+   */
+  const getCurrentStatus = (): "Pending" | "Accepted" | "Rejected" | undefined => {
+    return documentStatus || document?.status;
+  };
 
   /**
    * Fetches document details from the API when modal opens
@@ -73,13 +83,15 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
         try {
           const res = await fetch(`/api/admin/documents/${documentId}`);
           if (!res.ok) {
-            throw new Error("Failed to fetch document details");
+            const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+            throw new Error(errorData.error || `Failed to fetch document details (${res.status})`);
           }
           const data = await res.json();
           setDocument(data);
         } catch (e) {
           console.error("Error fetching document:", e);
-          setError("Failed to load document details. Please try again.");
+          const errorMessage = e instanceof Error ? e.message : "Failed to load document details. Please try again.";
+          setError(errorMessage);
         } finally {
           setLoading(false);
         }
@@ -287,22 +299,47 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
           <DialogClose asChild>
             <Button variant="outline" shape="rounded">Close</Button>
           </DialogClose>
-          <Button
-            onClick={() => onReject(documentId)}
-            variant="secondary"
-            shape="rounded"
-            disabled={loading}
-          >
-            Reject
-          </Button>
-          <Button
-            onClick={() => onAccept(documentId)}
-            variant="primary"
-            shape="rounded"
-            disabled={loading}
-          >
-            Accept
-          </Button>
+          {getCurrentStatus() === "Rejected" ? (
+            <>
+              {onRestore && (
+                <Button
+                  onClick={() => onRestore(documentId)}
+                  variant="secondary"
+                  shape="rounded"
+                  disabled={loading}
+                >
+                  Restore
+                </Button>
+              )}
+              <Button
+                onClick={() => onAccept(documentId)}
+                variant="primary"
+                shape="rounded"
+                disabled={loading}
+              >
+                Accept
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => onReject(documentId)}
+                variant="secondary"
+                shape="rounded"
+                disabled={loading}
+              >
+                Reject
+              </Button>
+              <Button
+                onClick={() => onAccept(documentId)}
+                variant="primary"
+                shape="rounded"
+                disabled={loading}
+              >
+                Accept
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

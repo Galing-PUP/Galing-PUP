@@ -1,5 +1,5 @@
 import type { ContentItem } from "@/types/content";
-import { Eye, Check, X, Trash2 } from "lucide-react";
+import { Eye, Check, X, Trash2, RotateCcw } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import { ResourceTypeBadge } from "./resource-type-badge";
 
@@ -8,10 +8,11 @@ type ContentTableProps = {
   onView: (item: ContentItem) => void;
   onAccept: (itemId: string) => void;
   onReject: (itemId: string) => void;
+  onRestore?: (itemId: string) => void;
   onDeleteRequest: (item: ContentItem) => void;
 };
 
-export function ContentTable({ items, onView, onAccept, onReject, onDeleteRequest }: ContentTableProps) {
+export function ContentTable({ items, onView, onAccept, onReject, onRestore, onDeleteRequest }: ContentTableProps) {
   return (
     <div className="mt-4 flow-root">
       <div className="-mx-6 -my-2 overflow-x-auto">
@@ -45,25 +46,51 @@ export function ContentTable({ items, onView, onAccept, onReject, onDeleteReques
                   <button title="View Details" onClick={() => onView(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
                     <Eye className="h-5 w-5" />
                   </button>
-                  <button
-                    title="Accept"
-                    onClick={() => onAccept(item.id)}
-                    disabled={item.status === 'Accepted'}
-                    className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
-                  >
-                    <Check className="h-5 w-5" />
-                  </button>
-                  <button
-                    title="Reject"
-                    onClick={() => onReject(item.id)}
-                    disabled={item.status === 'Rejected'}
-                    className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                  <button title="Delete" onClick={() => onDeleteRequest(item)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                  {item.status === 'Rejected' ? (
+                    <>
+                      {onRestore && (
+                        <button
+                          title="Restore to Pending"
+                          onClick={() => onRestore(item.id)}
+                          className="rounded-full p-2 text-purple-600 hover:bg-purple-100 transition-colors"
+                        >
+                          <RotateCcw className="h-5 w-5" />
+                        </button>
+                      )}
+                      <button
+                        title="Accept"
+                        onClick={() => onAccept(item.id)}
+                        className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors"
+                      >
+                        <Check className="h-5 w-5" />
+                      </button>
+                      <button title="Delete" onClick={() => onDeleteRequest(item)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        title="Accept"
+                        onClick={() => onAccept(item.id)}
+                        disabled={item.status === 'Accepted'}
+                        className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
+                      >
+                        <Check className="h-5 w-5" />
+                      </button>
+                      <button
+                        title="Reject"
+                        onClick={() => onReject(item.id)}
+                        disabled={item.status === 'Rejected'}
+                        className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                      <button title="Delete" onClick={() => onDeleteRequest(item)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { DocStatus } from "@/lib/generated/prisma/enums";
 import path from "path";
 import { mkdir, writeFile, unlink } from "fs/promises";
 
@@ -56,6 +57,21 @@ export async function GET(req: NextRequest, props: RouteParams) {
       );
     }
 
+    /**
+     * Maps database DocStatus enum to ContentItem status
+     */
+    const mapStatus = (status: any): "Pending" | "Accepted" | "Rejected" => {
+      switch (status) {
+        case DocStatus.APPROVED:
+          return "Accepted";
+        case DocStatus.REJECTED:
+          return "Rejected";
+        case DocStatus.PENDING:
+        default:
+          return "Pending";
+      }
+    };
+
     // Transform to match form structure
     const formattedDocument = {
       id: document.id,
@@ -68,6 +84,7 @@ export async function GET(req: NextRequest, props: RouteParams) {
       originalFileName: document.originalFileName,
       fileSize: document.fileSize,
       mimeType: document.mimeType,
+      status: mapStatus(document.status),
       submissionDate: document.submissionDate?.toISOString().split("T")[0] || "",
       authors: document.authors.map((da: any) => ({
         firstName: da.author.firstName,
