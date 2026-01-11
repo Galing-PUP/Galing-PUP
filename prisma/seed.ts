@@ -178,6 +178,9 @@ async function main() {
       title: faker.lorem.sentence(),
       abstract: faker.lorem.paragraph({ min: 4, max: 7 }),
       filePath: faker.system.commonFileName("pdf"),
+      originalFileName: faker.system.commonFileName("pdf"),
+      fileSize: faker.number.int({ min: 1024, max: 10 * 1024 * 1024 }), // 1KB to 10MB
+      mimeType: "application/pdf",
       datePublished,
       submissionDate,
       status: faker.helpers.arrayElement(Object.values(DocStatus)),

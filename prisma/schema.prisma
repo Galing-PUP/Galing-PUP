@@ -92,6 +92,11 @@ model Document {
   downloadsCount Int           @default(0) @map("downloads_count")
   citationCount  Int           @default(0) @map("citation_count")
   aiSummary      String?       @map("ai_summary") @db.Text
+  
+  // File Metadata
+  originalFileName String?     @map("original_file_name") @db.Text
+  fileSize         Int?        @map("file_size")
+  mimeType         String?     @map("mime_type") @db.Text
 
   // Foreign Keys
   uploaderId Int @map("uploader_id")
@@ -155,7 +160,7 @@ model Author {
   middleName String? @map("middle_name") @db.Text
   lastName   String  @map("last_name") @db.Text
   fullName   String  @map("full_name") @db.Text
-  email      String  @db.Text
+  email      String? @unique @db.Text
 
   documents DocumentAuthor[]
 

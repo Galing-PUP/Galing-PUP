@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { colleges } from "@/data/collegeCourses";
 
 import sideIllustration from "@/assets/Graphics/side-img-staff-registration.png";
 
@@ -24,22 +25,7 @@ export default function RequestAccessPage() {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("No file chosen");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [colleges, setColleges] = useState<any[]>([]);
 
-  useEffect(() => {
-    const fetchColleges = async () => {
-      try {
-        const response = await fetch("/api/public/college");
-        if (response.ok) {
-          const data = await response.json();
-          setColleges(data);
-        }
-      } catch (error) {
-        console.error("Error loading colleges:", error);
-      }
-    };
-    fetchColleges();
-  }, []);
 
   // State for password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
