@@ -48,12 +48,12 @@ enum RoleName {
   REGISTERED
   ADMIN
   SUPERADMIN
+  OWNER
 }
 
 enum UserStatus {
   PENDING
   APPROVED
-  DELETED
 }
 
 model SubscriptionTier {
