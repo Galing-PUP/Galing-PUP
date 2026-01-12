@@ -41,7 +41,20 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
   // Initialize formData based on whether we're editing or creating
   const getInitialFormData = () => {
     if (user) {
-      return user;
+      // Normalize role to TitleCase to match Select options
+      const normalizedRole = (role: string) => {
+        const r = role.toUpperCase();
+        if (r === "ADMIN") return "Admin";
+        if (r === "SUPERADMIN") return "Superadmin";
+        if (r === "REGISTERED") return "Registered";
+        if (r === "VIEWER") return "Viewer";
+        return role; // Fallback
+      };
+
+      return {
+        ...user,
+        role: normalizedRole(user.role as string) as any
+      };
     }
     return {
       role: "Registered",
@@ -181,17 +194,16 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
                   <Badge variant={getStatusBadgeVariant(formData.status)} className="gap-2">
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${
-                      formData.status === 'Accepted' 
-                        ? 'bg-green-500' 
-                        : formData.status === 'Pending' 
-                        ? 'bg-yellow-500' 
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${formData.status === 'Accepted'
+                      ? 'bg-green-500'
+                      : formData.status === 'Pending'
+                        ? 'bg-yellow-500'
                         : 'bg-red-500'
-                    }`} />
+                      }`} />
                     {formData.status || "Unknown"}
                   </Badge>
                   <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
-                    {formData.fullname || "User Name"}
+                    {formData.fullname || ""}
                   </h2>
                   <div className="space-y-1.5 pl-1">
                     <div className="flex items-center gap-2.5">

@@ -1,4 +1,3 @@
-import { colleges } from "@/data/collegeCourses";
 import { prisma } from "@/lib/db";
 import { RoleName, UserStatus } from "@/lib/generated/prisma/enums";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -52,12 +51,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. File Upload to Supabase
+    // 4. Create User in Supabase Auth
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: false, // Requires admin approval, not email verification
+      user_metadata: {
+        full_name: fullName,
+        username: email,
+      },
+    });
+
+    if (authError) {
+      console.error("Supabase Auth Creation Error:", authError);
+      return NextResponse.json(
+        { error: authError.message || "Failed to create authentication account" },
+        { status: 500 }
+      );
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: "Failed to create authentication account" },
+        { status: 500 }
+      );
+    }
+
+    const supabaseAuthId = authData.user.id;
+
+    // 5. File Upload to Supabase
     const fileExt = file.name.split(".").pop();
-    const fileName = `${Date.now()}_${idNumber.replace(
-      /\s+/g,
-      "_"
-    )}.${fileExt}`;
+    const fileName = `${Date.now()}_${idNumber.replace(/\s+/g, "_")}.${fileExt}`;
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from(ID_UPLOAD_BUCKET)
       .upload(fileName, file, {
@@ -73,28 +97,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Create User in Database
+    // 6. Create User in Database
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Find college ID based on abbreviation from the form
-    let collegeId: number | null = null;
-    if (college) {
-      const staticCollege = colleges.find((c) => c.collegeAbbr === college);
-      if (staticCollege) {
-        collegeId = staticCollege.id;
-      } else {
-        console.warn(`College with abbr ${college} not found in static data.`);
-      }
-    }
 
     const newUser = await prisma.user.create({
       data: {
         email,
         username: email,
         fullname: fullName,
+        supabaseAuthId, // Link to Supabase Auth user
         passwordHash: hashedPassword,
         idNumber: idNumber,
-        collegeId: collegeId,
+        collegeId: college,
         role: RoleName.ADMIN,
         tierId: 2, // admins usually have paid tier
         registrationDate: new Date(),
