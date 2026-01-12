@@ -1,6 +1,6 @@
 "use client";
 
-export type TabStatus = "Pending" | "Rejected" | "Accepted" | "All";
+export type TabStatus = "Pending" | "Rejected" | "Deleted";
 
 interface ContentTabsProps {
   activeTab: TabStatus;
@@ -8,7 +8,7 @@ interface ContentTabsProps {
   counts: {
     pending: number;
     rejected: number;
-    accepted: number;
+    deleted: number;
   };
 }
 
@@ -46,24 +46,15 @@ export function ContentTabs({ activeTab, onTabChange, counts }: ContentTabsProps
       </button>
 
       <button
-        onClick={() => onTabChange("Accepted")}
+        onClick={() => onTabChange("Deleted")}
         className={`flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${getTabStyle(
-          "Accepted"
+          "Deleted"
         )}`}
       >
-        Accepted
-         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-600 text-xs text-white">
-          {counts.accepted}
+        Deleted
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-600 text-xs text-white">
+          {counts.deleted}
         </span>
-      </button>
-
-      <button
-        onClick={() => onTabChange("All")}
-        className={`rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${getTabStyle(
-          "All"
-        )}`}
-      >
-        All Content
       </button>
     </div>
   );
