@@ -1,12 +1,14 @@
 "use client";
 
 import { colleges } from "@/data/collegeCourses";
+import { getCurrentUser } from "@/lib/actions";
+import { createClient } from "@/lib/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useId, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -32,6 +34,21 @@ export default function RequestAccessPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const id = useId();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const user = await getCurrentUser();
+        if (user) {
+          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
+          router.replace(isAdmin ? "/admin/publication" : "/");
+        }
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const form = useForm<RequestAccessFormValues>({
     resolver: zodResolver(requestAccessSchema),

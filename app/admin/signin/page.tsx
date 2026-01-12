@@ -7,7 +7,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import { checkUserStatus, verifyCredentials } from "@/lib/actions";
+import { checkUserStatus, verifyCredentials, getCurrentUser } from "@/lib/actions";
+import { RoleName } from "@/lib/generated/prisma/enums";
+import { useEffect } from "react";
 
 import starLogo from "@/assets/Logo/star-logo-yellow.png";
 import sideIllustration from "@/assets/Graphics/side-img-staff-signin.png";
@@ -18,6 +20,21 @@ export default function AdminSignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const user = await getCurrentUser();
+        if (user) {
+          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
+          router.replace(isAdmin ? "/admin/publication" : "/");
+        }
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
