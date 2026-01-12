@@ -76,17 +76,11 @@ export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: Regis
     );
   };
 
-  const getStatusBadgeVariant = (status?: string) => {
-    switch (status) {
-      case 'Accepted':
-        return 'default';
-      case 'Pending':
-        return 'secondary';
-      case 'Delete':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
+  const getRoleBadgeVariant = (role?: string) => {
+    const r = role?.toUpperCase();
+    if (r === 'REGISTERED') return 'default';
+    if (r === 'VIEWER') return 'secondary';
+    return 'outline';
   };
 
   const title = "Edit User Information";
@@ -103,15 +97,13 @@ export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: Regis
         <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <Badge variant={getStatusBadgeVariant(formData.status)} className="gap-2">
-                <div className={`w-2 h-2 rounded-full animate-pulse ${
-                  formData.status === 'Accepted'
+              <Badge variant={getRoleBadgeVariant(formData.role)} className="gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  formData.role?.toUpperCase() === 'REGISTERED'
                     ? 'bg-green-500'
-                    : formData.status === 'Pending'
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500'
+                    : 'bg-blue-500'
                 }`} />
-                {formData.status || "Unknown"}
+                {formData.role || "User"}
               </Badge>
               <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
                 {formData.name || "Username"}
