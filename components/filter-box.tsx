@@ -17,13 +17,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { FilterX } from "lucide-react";
 import { ResourceTypes } from "@/lib/generated/prisma/enums";
 import { formatResourceType } from "@/lib/utils/format";
 
 export type FilterValues = {
   course: string;
-  year: string;
+  yearRange: "Anytime" | "last3years" | "last5years" | "last10years";
   documentType: ResourceTypes | "All Types";
 };
 
@@ -41,7 +42,7 @@ type FilterBoxProps = {
 
 const DEFAULT_FILTERS: FilterValues = {
   course: "All Courses",
-  year: "All Years",
+  yearRange: "Anytime",
   documentType: "All Types",
 };
 
@@ -68,7 +69,7 @@ export function FilterBox({
   };
 
   const activeFilterCount = Object.values(filters).filter(
-    (value) => !value.startsWith("All")
+    (value) => !value.startsWith("All") && value !== "Anytime"
   ).length;
 
   // Sidebar variant: static card with filters always visible (used on browse page)
@@ -90,6 +91,43 @@ export function FilterBox({
           </div>
 
           <div className="h-px w-full bg-pup-maroon/10" />
+
+          {/* Year Range Filter */}
+          <div className="space-y-3">
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">
+              Publication Date
+            </Label>
+            <RadioGroup
+              value={filters.yearRange}
+              onValueChange={(value) => handleValueChange("yearRange", value as FilterValues["yearRange"])}
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Anytime" id="Anytime" />
+                <Label htmlFor="Anytime" className="text-sm font-normal cursor-pointer">
+                  Anytime
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="last3years" id="last3years" />
+                <Label htmlFor="last3years" className="text-sm font-normal cursor-pointer">
+                  Last 3 Years
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="last5years" id="last5years" />
+                <Label htmlFor="last5years" className="text-sm font-normal cursor-pointer">
+                  Last 5 Years
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="last10years" id="last10years" />
+                <Label htmlFor="last10years" className="text-sm font-normal cursor-pointer">
+                  Last 10 Years
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
 
           {/* Course Filter */}
           <div className="space-y-2">
@@ -114,35 +152,6 @@ export function FilterBox({
                 {courseOptions.map((course) => (
                   <SelectItem key={course} value={course}>
                     {course}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Year Filter */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="year-filter"
-              className="text-xs font-semibold uppercase text-muted-foreground"
-            >
-              Year
-            </Label>
-            <Select
-              value={filters.year}
-              onValueChange={(value) => handleValueChange("year", value)}
-            >
-              <SelectTrigger
-                id="year-filter"
-                className="w-full h-9 rounded-lg border-pup-maroon/20 text-xs"
-              >
-                <SelectValue placeholder="Select Year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Years">All Years</SelectItem>
-                {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -246,29 +255,40 @@ export function FilterBox({
               </div>
 
               {/* Year Filter */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="year-filter"
-                  className="text-xs font-semibold uppercase text-muted-foreground"
-                >
-                  Year
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold uppercase text-muted-foreground">
+                  Publication Date
                 </Label>
-                <Select
-                  value={filters.year}
-                  onValueChange={(value) => handleValueChange("year", value)}
+                <RadioGroup
+                  value={filters.yearRange}
+                  onValueChange={(value) => handleValueChange("yearRange", value as FilterValues["yearRange"])}
+                  className="space-y-2"
                 >
-                  <SelectTrigger id="year-filter" className="w-full">
-                    <SelectValue placeholder="Select Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All Years">All Years</SelectItem>
-                    {[2025, 2024, 2023, 2022, 2021, 2020].map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Anytime" id="Anytime-pill" />
+                    <Label htmlFor="anytime-pill" className="text-sm font-normal cursor-pointer">
+                      Anytime
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="last3years" id="last3years-pill" />
+                    <Label htmlFor="last3years-pill" className="text-sm font-normal cursor-pointer">
+                      Last 3 Years
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="last5years" id="last5years-pill" />
+                    <Label htmlFor="last5years-pill" className="text-sm font-normal cursor-pointer">
+                      Last 5 Years
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="last10years" id="last10years-pill" />
+                    <Label htmlFor="last10years-pill" className="text-sm font-normal cursor-pointer">
+                      Last 10 Years
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
               {/* Document Type Filter */}
