@@ -135,7 +135,7 @@ export function Sidebar({ role }: { role?: RoleName }) {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const filteredItems = useMemo(() => {
-    if (role === RoleName.SUPERADMIN) {
+    if (role === RoleName.SUPERADMIN || role === RoleName.OWNER) {
       return NAV_ITEMS;
     }
     return NAV_ITEMS.filter(

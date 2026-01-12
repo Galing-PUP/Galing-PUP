@@ -24,11 +24,16 @@ export async function DELETE(
         // 1. Fetch user to check existence and get Supabase Auth ID
         const user = await prisma.user.findUnique({
             where: { id },
-            select: { supabaseAuthId: true },
+            select: { supabaseAuthId: true, role: true },
         });
 
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // 1.5 Prevent deletion of OWNER account
+        if (user.role === RoleName.OWNER) {
+            return NextResponse.json({ error: "Cannot delete Owner account" }, { status: 403 });
         }
 
         // 2. Delete from Supabase Auth if ID exists

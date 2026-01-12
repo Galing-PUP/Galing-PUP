@@ -34,7 +34,7 @@ export function AdminLayoutShell({
             return;
         }
 
-        const isAdmin = user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN;
+        const isAdmin = user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN || user.role === RoleName.OWNER;
 
         if (!isAdmin) {
             toast.error("Access denied. Admin privileges required.");
@@ -47,13 +47,13 @@ export function AdminLayoutShell({
     }
 
     // General Admin Check
-    const isAdmin = user && (user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN);
+    const isAdmin = user && (user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN || user.role === RoleName.OWNER);
     if (!user || !isAdmin) {
         return null; // Handling via useEffect redirect, returning null to prevent flash
     }
 
     // Specific Route Protection for Non-Superadmins
-    const isSuperAdmin = user.role === RoleName.SUPERADMIN;
+    const isSuperAdmin = user.role === RoleName.SUPERADMIN || user.role === RoleName.OWNER;
     // Check if the current path matches any of the restricted paths
     // Using startsWith to cover sub-routes (e.g., /admin/users/123)
     const isRestrictedPath = pathname.startsWith("/admin/users") || pathname.startsWith("/admin/approval");

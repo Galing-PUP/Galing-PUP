@@ -28,7 +28,7 @@ export default function AdminSignInPage() {
       if (session) {
         const user = await getCurrentUser();
         if (user) {
-          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
+          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN" || user.role === "OWNER";
           router.replace(isAdmin ? "/admin/publication" : "/");
         }
       }
@@ -57,11 +57,28 @@ export default function AdminSignInPage() {
         password,
       });
 
+      // Step 2.1: If Supabase fails, check if we have a valid local password hash
+      // This handles cases where seeds/owner scripts set the DB password but Supabase sync might be off or delayed
       if (error) {
+        const validLocal = await verifyCredentials(email, password);
+        if (validLocal && status.isAdmin) {
+          // If local is valid, we might need to manually sign them in or just warn them they need to reset
+          // But for now, let's treat it as a specific error we can inform them about
+          // Or, if we want to allow login, we can't because Supabase handles the session. 
+          // So we just tell them to use the password from the .env if they are Owner? 
+          // Actually, if local is valid but Supabase failed, it means they are desynced.
+          // We can't log them in without Supabase session.
+          toast.error("Password valid in database but login failed. Please run 'db:owner' to sync credentials.");
+          setLoading(false);
+          return;
+        }
+
         toast.error("Invalid password please try again");
         setLoading(false);
         return;
       }
+
+
 
       // Step 3: Check if user is allowed to login here (Role 3 or 4)
       if (!status.isAdmin) {

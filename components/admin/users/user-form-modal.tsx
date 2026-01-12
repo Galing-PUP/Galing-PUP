@@ -60,7 +60,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
       role: "Registered",
       status: "Pending",
       subscriptionTier: 1,
-      subscriptionTier: 1,
       name: "",
       email: "",
       collegeId: undefined,
@@ -87,7 +86,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
 
   const handleSave = () => {
     const userToSave: User = {
-      id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
       id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
       name: formData.name || "",
       email: formData.email || "",
