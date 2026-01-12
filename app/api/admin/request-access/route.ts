@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
 
     const rawData = {
-      fullName: formData.get("fullName"),
+      username: formData.get("username"),
       college: formData.get("college"),
       email: formData.get("email"),
       idNumber: formData.get("idNumber"),
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const validatedData = requestAccessSchema.parse(rawData);
 
     const {
-      fullName,
+      username,
       college,
       email,
       idNumber,
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       password,
       email_confirm: false, // Requires admin approval, not email verification
       user_metadata: {
-        full_name: fullName,
+        full_name: username,
         username: email,
       },
     });
@@ -104,8 +104,7 @@ export async function POST(req: NextRequest) {
     const newUser = await prisma.user.create({
       data: {
         email,
-        username: email,
-        fullname: fullName,
+        username: username, // Store full name in username field
         supabaseAuthId, // Link to Supabase Auth user
         passwordHash: hashedPassword,
         idNumber: idNumber,

@@ -36,7 +36,7 @@ export default function RequestAccessPage() {
   const form = useForm<RequestAccessFormValues>({
     resolver: zodResolver(requestAccessSchema),
     defaultValues: {
-      fullName: "",
+      username: "",
       college: 0,
       email: "",
       idNumber: "",
@@ -69,7 +69,7 @@ export default function RequestAccessPage() {
 
     try {
       const submissionData = new FormData();
-      submissionData.append("fullName", data.fullName);
+      submissionData.append("username", data.username);
       submissionData.append("college", data.college.toString());
       submissionData.append("email", data.email);
       submissionData.append("idNumber", data.idNumber);
@@ -152,15 +152,15 @@ export default function RequestAccessPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Full Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="username">Full Name</Label>
                 <Input
-                  id="fullName"
+                  id="username"
                   placeholder="Enter your full name"
-                  {...register("fullName")}
+                  {...register("username")}
                 />
-                {errors.fullName && (
+                {errors.username && (
                   <p className="text-sm text-red-500">
-                    {errors.fullName.message}
+                    {errors.username.message}
                   </p>
                 )}
               </div>

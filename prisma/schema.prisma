@@ -15,7 +15,6 @@ model User {
   id               Int       @id @default(autoincrement()) @map("user_id")
   // supabase OAuth link
   supabaseAuthId   String?   @unique @map("supabase_uid") @db.Uuid
-  fullname         String?   @db.Text
   username         String?   @unique @db.Text
   role             RoleName  @default(REGISTERED)
   email            String    @unique @db.Text
