@@ -37,7 +37,7 @@ export default function RequestAccessPage() {
     resolver: zodResolver(requestAccessSchema),
     defaultValues: {
       fullName: "",
-      college: "",
+      college: 0,
       email: "",
       idNumber: "",
       password: "",
@@ -70,7 +70,7 @@ export default function RequestAccessPage() {
     try {
       const submissionData = new FormData();
       submissionData.append("fullName", data.fullName);
-      submissionData.append("college", data.college);
+      submissionData.append("college", data.college.toString());
       submissionData.append("email", data.email);
       submissionData.append("idNumber", data.idNumber);
       submissionData.append("password", data.password);
@@ -170,7 +170,7 @@ export default function RequestAccessPage() {
                 <Label htmlFor="college">College</Label>
                 <Select
                   onValueChange={(value) =>
-                    setValue("college", value, { shouldValidate: true })
+                    setValue("college", parseInt(value, 10), { shouldValidate: true })
                   }
                 >
                   <SelectTrigger id="college" className="w-full">
@@ -178,7 +178,7 @@ export default function RequestAccessPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {colleges.map((college) => (
-                      <SelectItem key={college.id} value={college.collegeAbbr}>
+                      <SelectItem key={college.id} value={college.id.toString()}>
                         {college.collegeName} ({college.collegeAbbr})
                       </SelectItem>
                     ))}

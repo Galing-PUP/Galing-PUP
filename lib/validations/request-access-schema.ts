@@ -6,7 +6,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 export const requestAccessSchema = z
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
-    college: z.string().min(1, "Please select a college"),
+    college: z.number().positive("Please select a college"),
     email: z.string().email("Please enter a valid email address"),
     idNumber: z.string().min(1, "ID Number is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
