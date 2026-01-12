@@ -8,27 +8,44 @@ datasource db {
 }
 
 model User {
-  id               Int              @id @default(autoincrement()) @map("user_id")
-  username         String?          @unique
-  email            String           @unique
-  passwordHash     String?          @map("password_hash")
-  registrationDate DateTime         @map("registration_date") @db.Date
-  tierId           Int              @map("tier_id")
-  supabaseAuthId   String?          @unique @map("supabase_uid") @db.Uuid
-  collegeId        Int?             @map("college_id")
-  idNumber         String?          @map("id_number")
-  updatedDate      DateTime?        @map("updated_date") @db.Date
-  idImagePath      String?          @map("id_image")
-  role             RoleName         @default(REGISTERED)
-  status           UserStatus       @default(PENDING) @map("status")
-  submissionDate   DateTime?        @map("submission_date") @db.Date
-  activityLogs     ActivityLog[]
-  uploadedDocs     Document[]       @relation("UserUploads")
-  bookmarks        UserBookmark[]
+  id               Int       @id @default(autoincrement()) @map("user_id")
+  // supabase OAuth link
+  supabaseAuthId   String?   @unique @map("supabase_uid") @db.Uuid
+  username         String?   @unique @db.Text
+  role             RoleName  @default(REGISTERED)
+  email            String    @unique @db.Text
+  passwordHash     String?   @map("password_hash") @db.Text
+  registrationDate DateTime  @map("registration_date") @db.Date
+  updatedDate      DateTime? @map("updated_date") @db.Date
+  submissionDate   DateTime? @map("submission_date") @db.Date
+
+  // Verification
+  status      UserStatus @default(PENDING) @map("status")
+  idNumber    String?    @map("id_number") @db.Text
+  idImagePath String?    @map("id_image") @db.Text
+
+  // Foreign Keys (CamelCase in Code -> Snake_case in DB)
+  tierId    Int  @map("tier_id")
+  collegeId Int? @map("college_id")
+
+  // Relations
+  subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
   college          College?         @relation(fields: [collegeId], references: [id])
   subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
 
   @@map("users")
+}
+
+enum RoleName {
+  REGISTERED
+  ADMIN
+  SUPERADMIN
+  OWNER
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
 }
 
 model SubscriptionTier {

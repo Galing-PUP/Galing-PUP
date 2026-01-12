@@ -25,20 +25,41 @@ export const signInWithGooglePopup = async (intent: 'signin' | 'signup' = 'signi
             `width=${width},height=${height},left=${left},top=${top}`
         )
 
-        return new Promise<void>((resolve, reject) => {
-            const messageHandler = (event: MessageEvent) => {
+        return new Promise<{ user: any; error: any }>((resolve, reject) => {
+            const messageHandler = async (event: MessageEvent) => {
                 if (event.origin !== window.location.origin) return
 
                 if (event.data.type === 'OAUTH_SUCCESS') {
                     window.removeEventListener('message', messageHandler)
-                    resolve()
+                    
+                    // Fetch the session to return it
+                    const { data: { session }, error } = await supabase.auth.getSession()
+                    
+                    if (session && session.user) {
+                        // Return user with session attached to match calling code expectation
+                        resolve({ 
+                            user: { ...session.user, session }, 
+                            error: null 
+                        })
+                    } else {
+                        resolve({ 
+                            user: null, 
+                            error: error || new Error('No session retrieved after successful OAuth') 
+                        })
+                    }
+
                 } else if (event.data.type === 'OAUTH_ERROR') {
                     window.removeEventListener('message', messageHandler)
-                    reject(new Error(event.data.message || 'Authentication failed'))
+                    resolve({ 
+                        user: null, 
+                        error: new Error(event.data.message || 'Authentication failed') 
+                    })
                 }
             }
 
             window.addEventListener('message', messageHandler)
         })
     }
+
+    return { user: null, error: new Error('Failed to create OAuth URL') }
 }
