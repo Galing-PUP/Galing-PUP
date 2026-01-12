@@ -20,11 +20,10 @@ export async function GET() {
             let statusDisplay = "Pending";
             if (user.status === UserStatus.APPROVED) statusDisplay = "Accepted";
             else if (user.status === UserStatus.DELETED) statusDisplay = "Delete";
-            
+
             return {
                 id: user.id.toString(),
                 name: user.username,
-                fullname: user.fullname || "",
                 email: user.email,
                 role: user.role,
                 status: statusDisplay,
@@ -59,7 +58,6 @@ export async function POST(request: Request) {
         const status = formData.get("status") as string;
         const subscriptionTier = formData.get("subscriptionTier");
         const password = formData.get("password") as string;
-        const fullname = formData.get("fullname") as string;
         const collegeId = formData.get("collegeId") ? parseInt(formData.get("collegeId") as string) : undefined;
         const file = formData.get("idImage") as File | null;
 
@@ -145,7 +143,6 @@ export async function POST(request: Request) {
         const newUser = await prisma.user.create({
             data: {
                 username: name,
-                fullname: fullname || "",
                 email: email,
                 passwordHash: passwordHash,
                 supabaseAuthId: authData.user.id,

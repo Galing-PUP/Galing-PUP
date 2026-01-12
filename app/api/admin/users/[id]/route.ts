@@ -123,7 +123,6 @@ export async function PATCH(
 
         const formData = await request.formData();
         const name = formData.get("name") as string;
-        const fullname = formData.get("fullname") as string;
         const collegeId = formData.get("collegeId") ? parseInt(formData.get("collegeId") as string) : undefined;
         const email = formData.get("email") as string;
         const role = formData.get("role") as string;
@@ -139,7 +138,6 @@ export async function PATCH(
 
         const updateData: any = {
             username: name,
-            fullname: fullname,
             email: email,
             collegeId: collegeId,
             role: roleEnum,
@@ -222,7 +220,6 @@ export async function PATCH(
         return NextResponse.json({
             id: updatedUser.id.toString(),
             name: updatedUser.username,
-            fullname: updatedUser.fullname,
             email: updatedUser.email,
             role: updatedUser.role,
             status: updatedUser.status === UserStatus.APPROVED ? "Accepted" : updatedUser.status === UserStatus.DELETED ? "Delete" : "Pending",

@@ -28,6 +28,7 @@ export async function getCurrentUser() {
         username: userWithTier.username,
         tierName: userWithTier.subscriptionTier.tierName,
         email: userWithTier.email,
+        role: userWithTier.role,
     };
 }
 

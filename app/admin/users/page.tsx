@@ -137,7 +137,6 @@ export default function UserManagementPage() {
       formData.append("email", userToSave.email);
       formData.append("role", userToSave.role.toUpperCase());
       formData.append("status", userToSave.status);
-      formData.append("fullname", userToSave.fullname || "");
       if (userToSave.subscriptionTier) formData.append("subscriptionTier", userToSave.subscriptionTier.toString());
       if (userToSave.collegeId) formData.append("collegeId", userToSave.collegeId.toString());
       if (userToSave.password) formData.append("password", userToSave.password);

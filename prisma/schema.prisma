@@ -31,21 +31,11 @@ model User {
   // Relations
   subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
   college          College?         @relation(fields: [collegeId], references: [id])
-  subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
+  documents        Document[]       @relation("UserUploads")
+  userBookmarks    UserBookmark[]
+  activityLogs     ActivityLog[]
 
   @@map("users")
-}
-
-enum RoleName {
-  REGISTERED
-  ADMIN
-  SUPERADMIN
-  OWNER
-}
-
-enum UserStatus {
-  PENDING
-  APPROVED
 }
 
 model SubscriptionTier {
@@ -178,6 +168,7 @@ enum RoleName {
   REGISTERED
   ADMIN
   SUPERADMIN
+  OWNER
 }
 
 enum UserStatus {

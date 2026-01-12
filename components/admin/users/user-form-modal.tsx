@@ -60,7 +60,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
       role: "Registered",
       status: "Pending",
       subscriptionTier: 1,
-      fullname: "",
+      subscriptionTier: 1,
       name: "",
       email: "",
       collegeId: undefined,
@@ -88,8 +88,8 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
   const handleSave = () => {
     const userToSave: User = {
       id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
+      id: formData.id || `#${Math.floor(Math.random() * 1000)}`,
       name: formData.name || "",
-      fullname: formData.fullname || "",
       email: formData.email || "",
       role: formData.role || "Registered",
       status: formData.status || "Pending",
@@ -139,7 +139,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
       // For new users, check if REQUIRED fields are filled and valid
       // College and ID Upload are OPTIONAL
       return !!(
-        formData.fullname?.trim() &&
         formData.name?.trim() &&
         formData.email?.trim() &&
         !emailError &&
@@ -151,7 +150,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
     return (
       !!selectedFile ||
       formData.name !== initialData.name ||
-      formData.fullname !== initialData.fullname ||
       formData.email !== initialData.email ||
       formData.role !== initialData.role ||
       formData.status !== initialData.status ||
@@ -203,7 +201,7 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
                     {formData.status || "Unknown"}
                   </Badge>
                   <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
-                    {formData.fullname || ""}
+                    {formData.name || ""}
                   </h2>
                   <div className="space-y-1.5 pl-1">
                     <div className="flex items-center gap-2.5">
@@ -232,15 +230,6 @@ export function UserFormModal({ isOpen, onClose, onSave, user, colleges }: UserF
             <>
               {/* Row 1: Full Name and Username */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="fullname">Full Name</Label>
-                  <Input
-                    id="fullname"
-                    value={formData.fullname || ""}
-                    onChange={e => handleInputChange('fullname', e.target.value)}
-                    placeholder="Juan D. Dela Cruz"
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
                   <Input
