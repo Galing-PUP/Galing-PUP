@@ -47,7 +47,7 @@ export default function AdminSignInPage() {
       }
 
       // Step 3: Check if user is allowed to login here (Role 3 or 4)
-      if (status.roleId !== 3 && status.roleId !== 4) {
+      if (!status.isAdmin) {
         await supabase.auth.signOut(); // Security: Sign out if role is invalid
         toast.error("User is not set to login here");
         setLoading(false);
