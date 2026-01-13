@@ -41,40 +41,47 @@ model User {
 
 model SubscriptionTier {
   id                 Int      @id @default(autoincrement()) @map("tier_id")
+  tierName           TierName @default(FREE) @map("tier_name")
   dailyDownloadLimit Int?     @map("daily_download_limit")
   dailyCitationLimit Int?     @map("daily_citation_limit")
   maxBookmarks       Int?     @map("max_bookmarks")
   hasAds             Boolean  @map("has_ads")
   hasAiInsights      Boolean  @map("has_ai_insights")
-  tierName           TierName @default(FREE) @map("tier_name")
   users              User[]
 
   @@map("subscription_tiers")
 }
 
 model Document {
-  id               Int               @id @default(autoincrement()) @map("document_id")
-  title            String            @unique
-  abstract         String
-  filePath         String            @map("file_path")
-  datePublished    DateTime?         @map("date_published") @db.Date
-  downloadsCount   Int               @default(0) @map("downloads_count")
-  citationCount    Int               @default(0) @map("citation_count")
-  aiSummary        String?           @map("ai_summary")
-  uploaderId       Int               @map("uploader_id")
-  courseId         Int               @map("course_id")
-  resourceType     ResourceTypes     @default(THESIS) @map("resource_type")
-  status           DocStatus         @default(PENDING)
-  submissionDate   DateTime?         @map("submission_date") @db.Date
-  fileSize         Int?              @map("file_size")
-  mimeType         String?           @map("mime_type")
-  originalFileName String?           @map("original_file_name")
-  activityLogs     ActivityLog[]
-  authors          DocumentAuthor[]
-  keywords         DocumentKeyword[]
-  course           Course            @relation(fields: [courseId], references: [id])
-  uploader         User              @relation("UserUploads", fields: [uploaderId], references: [id])
-  bookmarks        UserBookmark[]
+  id             Int           @id @default(autoincrement()) @map("document_id")
+  title          String        @unique @db.Text
+  abstract       String        @db.Text
+  filePath       String        @map("file_path") @db.Text
+  submissionDate DateTime?     @map("submission_date") @db.Date
+  datePublished  DateTime?     @map("date_published") @db.Date
+  status         DocStatus     @default(PENDING)
+  resourceType   ResourceTypes @default(THESIS) @map("resource_type")
+  downloadsCount Int           @default(0) @map("downloads_count")
+  citationCount  Int           @default(0) @map("citation_count")
+  aiSummary      String?       @map("ai_summary") @db.Text
+
+  // File Metadata
+  originalFileName String? @map("original_file_name") @db.Text
+  fileSize         Int?    @map("file_size")
+  mimeType         String? @map("mime_type") @db.Text
+
+  // Foreign Keys
+  uploaderId Int @map("uploader_id")
+  courseId   Int @map("course_id")
+
+  // Relations
+  uploader User   @relation("UserUploads", fields: [uploaderId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
+
+  bookmarks    UserBookmark[]
+  authors      DocumentAuthor[]
+  keywords     DocumentKeyword[]
+  activityLogs ActivityLog[]
 
   @@index([title])
   @@map("documents")
