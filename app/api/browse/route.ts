@@ -11,6 +11,7 @@ type SearchResult = {
   field: string;
   date: string;
   abstract: string;
+  resourceType: string | null;
   pdfUrl?: string;
 };
 
@@ -111,6 +112,7 @@ export async function GET(req: NextRequest) {
         title: true,
         abstract: true,
         datePublished: true,
+        resourceType: true,
         authors: {
           select: {
             author: {
@@ -157,6 +159,7 @@ export async function GET(req: NextRequest) {
             })
           : "Unknown",
         abstract: doc.abstract,
+        resourceType: doc.resourceType ?? null,
         pdfUrl: undefined,
       };
     });
