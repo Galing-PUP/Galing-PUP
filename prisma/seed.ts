@@ -145,6 +145,31 @@ async function main() {
     fakeUsers.push(fakeUser);
   }
 
+  // ROOT/OWNER User (from Environment Variables)
+  const ownerEmail = process.env.OWNER_EMAIL;
+  const ownerPassword = process.env.OWNER_PASSWORD;
+
+  if (ownerEmail && ownerPassword) {
+    console.log("Seeding Owner Account...");
+    const owner: UserCreateManyInput = {
+      collegeId: null, // Owner has global access
+      supabaseAuthId: null,
+      username: "System Owner", // Or get from env if preferred
+      role: RoleName.OWNER,
+      email: ownerEmail.toLowerCase(),
+      passwordHash: ownerPassword,
+      registrationDate: new Date(),
+      updatedDate: null,
+      status: UserStatus.APPROVED,
+      idNumber: faker.string.numeric(12),
+      idImagePath: faker.system.commonFileName("png"),
+      tierId: 2, // Owner gets PAID/Highest tier
+    };
+    fakeUsers.push(owner);
+  } else {
+    console.warn("⚠️ OWNER_EMAIL or OWNER_PASSWORD not found in .env. Skipping Owner seed.");
+  }
+
   const createdUsers = await prisma.user.createManyAndReturn({
     data: fakeUsers,
     skipDuplicates: true,
@@ -169,7 +194,7 @@ async function main() {
     const datePublished = faker.date.past({ years: 10 });
     // Published date should be after submission (between submission and now)
     const submissionDate = faker.date.between({ from: datePublished, to: new Date() });
-    
+
     const fakeDoc: DocumentCreateManyInput = {
       title: faker.lorem.sentence(),
       abstract: faker.lorem.paragraph({ min: 4, max: 7 }),

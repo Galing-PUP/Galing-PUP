@@ -130,24 +130,24 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleSaveUser = async (userToSave: User) => {
+  const handleSaveUser = async (userToSave: User, file?: File | null) => {
     try {
+      // Prepare FormData (used for both Create and Edit to support file upload)
+      const formData = new FormData();
+      formData.append("name", userToSave.name);
+      formData.append("email", userToSave.email);
+      formData.append("role", userToSave.role.toUpperCase());
+      formData.append("status", userToSave.status);
+      if (userToSave.subscriptionTier) formData.append("subscriptionTier", userToSave.subscriptionTier.toString());
+      if (userToSave.collegeId) formData.append("collegeId", userToSave.collegeId.toString());
+      if (userToSave.password) formData.append("password", userToSave.password);
+      if (file) formData.append("idImage", file);
+
       if (modalState.user) {
         // Edit existing user
         const response = await fetch(`/api/admin/users/${userToSave.id}`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: userToSave.name,
-            email: userToSave.email,
-            role: userToSave.role.toUpperCase(),
-            status: userToSave.status,
-            fullname: userToSave.fullname,
-            subscriptionTier: userToSave.subscriptionTier,
-            collegeId: userToSave.collegeId,
-          }),
+          body: formData,
         });
 
         if (!response.ok) {

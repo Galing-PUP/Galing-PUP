@@ -14,6 +14,8 @@ import { toast } from "sonner";
 
 
 
+import { RoleName } from "@/lib/generated/prisma/enums";
+
 type NavItem = {
   label: string;
   href: string;
@@ -126,23 +128,32 @@ function NavLink({
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ role }: { role?: RoleName }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
+  const filteredItems = useMemo(() => {
+    if (role === RoleName.SUPERADMIN || role === RoleName.OWNER) {
+      return NAV_ITEMS;
+    }
+    return NAV_ITEMS.filter(
+      (item) => item.label === "Submit Publication" || item.label === "Published Works"
+    );
+  }, [role]);
+
   // Pre-calculate active status for all nav items
   const activeLookup = useMemo(() => {
     const map = new Map<string, boolean>();
-    NAV_ITEMS.forEach((item) => {
+    filteredItems.forEach((item) => {
       map.set(
         item.href,
         item.exact ? pathname === item.href : pathname.startsWith(item.href)
       );
     });
     return map;
-  }, [pathname]);
+  }, [pathname, filteredItems]);
 
 
   /**
@@ -152,22 +163,22 @@ export function Sidebar() {
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      
+
       // Show toast notification
       toast.loading("Signing out...", { id: "signout" });
-      
+
       // Perform sign out
       await signOut();
-      
+
       // Update toast to success
       toast.success("Signed out successfully", { id: "signout" });
-      
+
       // Add a small delay for smooth transition before refreshing
       await new Promise((resolve) => setTimeout(resolve, 800));
-      
+
       // Refresh the router to update the page
       router.refresh();
-      
+
       // Redirect to home page after refresh
       router.push("/");
     } catch (error) {
@@ -196,7 +207,7 @@ export function Sidebar() {
             }`}
           priority
         />
-        {isExpanded && (
+        {isExpanded && role === RoleName.SUPERADMIN && (
           <p className="text-sm font-bold tracking-widest text-pup-gold-light/80">
             SUPER ADMIN
           </p>
@@ -205,7 +216,7 @@ export function Sidebar() {
 
       {/* Main Navigation */}
       <nav className="flex-1 space-y-6">
-        {NAV_ITEMS.map((item) => (
+        {filteredItems.map((item) => (
           <NavLink
             key={item.href}
             item={item}
@@ -216,9 +227,9 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Action Section */}
-      <NavLink 
-        item={SIGN_OUT_ITEM} 
-        isExpanded={isExpanded} 
+      <NavLink
+        item={SIGN_OUT_ITEM}
+        isExpanded={isExpanded}
         onClick={handleSignOut}
         isLoading={isSigningOut}
       />
