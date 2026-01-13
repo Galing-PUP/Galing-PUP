@@ -6,6 +6,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import LogoDefault from "@/assets/Logo/logo-default.png";
 import { SignInModal } from "@/components/SignInModal";
+import { UserPreferencesModal } from "@/components/user-preferences-modal";
 import { getCurrentUser, signOut } from "@/lib/actions";
 import { User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,6 +72,7 @@ export function Header({
   const pathname = usePathname();
   const router = useRouter();
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(initialUser);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -178,6 +180,18 @@ export function Header({
         isOpen={isSignInModalOpen}
         onClose={() => setIsSignInModalOpen(false)}
       />
+      {user && (
+        <UserPreferencesModal
+          isOpen={isPreferencesOpen}
+          onClose={() => setIsPreferencesOpen(false)}
+          initialUsername={user.username}
+          onUsernameUpdated={(nextUsername) => {
+            setUser((prev) =>
+              prev ? { ...prev, username: nextUsername } : prev,
+            );
+          }}
+        />
+      )}
       <header
         className={`w-full border-b border-neutral-200 bg-white ${className}`}
       >
@@ -250,7 +264,7 @@ export function Header({
                     <button
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => {
-                        // TODO: Navigate to user preferences
+                        setIsPreferencesOpen(true);
                         setIsDropdownOpen(false);
                       }}
                     >
