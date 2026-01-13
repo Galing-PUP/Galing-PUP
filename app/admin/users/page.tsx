@@ -1,6 +1,7 @@
 "use client";
 
 import { colleges } from "@/data/collegeCourses";
+import { getCurrentUser } from "@/lib/actions";
 
 import { useState, useMemo, useEffect } from "react";
 import type { User, UserStatus, UserRole } from "@/types/users";
@@ -28,6 +29,7 @@ import { toast } from "sonner";
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ role: string } | null>(null);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
@@ -62,6 +64,17 @@ export default function UserManagementPage() {
   };
 
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser({ role: user.role });
+        }
+      } catch (error) {
+        console.error("Error loading current user:", error);
+      }
+    };
+
     const fetchUsers = async () => {
       try {
         const response = await fetch("/api/admin/users");
@@ -73,6 +86,7 @@ export default function UserManagementPage() {
       }
     };
 
+    fetchCurrentUser();
     fetchUsers();
     fetchStats();
   }, []);
@@ -221,7 +235,10 @@ export default function UserManagementPage() {
       <UserStats stats={stats} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <UserManagementHeader onAddNewUser={() => setAddUserModalOpen(true)} />
+        <UserManagementHeader 
+          onAddNewUser={() => setAddUserModalOpen(true)}
+          showAddButton={currentUser?.role === "OWNER"}
+        />
         <UserToolbar
           selectedStatuses={selectedStatuses}
           selectedRoles={selectedRoles}
