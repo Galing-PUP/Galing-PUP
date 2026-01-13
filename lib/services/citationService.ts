@@ -203,14 +203,20 @@ function mapResourceTypeToCSLType(
 
 /**
  * Checks if user has reached their daily citation limit
+ * Only counts unique documents - re-citing the same document doesn't count against quota
  * @param userId - The user's ID
- * @returns Object with limit check result
+ * @param documentId - The document ID being cited (to check if it's a re-citation)
+ * @returns Object with limit check result and usage stats
  * @throws Error if user not found or limit reached
  */
-export async function checkCitationLimit(userId: number): Promise<{
+export async function checkCitationLimit(
+  userId: number,
+  documentId: number
+): Promise<{
   allowed: boolean;
   limit: number;
   used: number;
+  isRecitation: boolean;
 }> {
   // Fetch user with subscription tier
   const user = await prisma.user.findUnique({
@@ -228,8 +234,8 @@ export async function checkCitationLimit(userId: number): Promise<{
   const startOfToday = new Date();
   startOfToday.setUTCHours(0, 0, 0, 0);
 
-  // Count citation activities today
-  const citationCount = await prisma.activityLog.count({
+  // Get all unique document IDs cited by this user today
+  const citedDocuments = await prisma.activityLog.findMany({
     where: {
       userId: userId,
       activityType: 'CITATION_GENERATED',
@@ -237,21 +243,47 @@ export async function checkCitationLimit(userId: number): Promise<{
         gte: startOfToday,
       },
     },
+    select: {
+      documentId: true,
+    },
+    distinct: ['documentId'],
   });
 
+  // Extract unique document IDs (filter out nulls)
+  const uniqueDocumentIds = citedDocuments
+    .map((log) => log.documentId)
+    .filter((id): id is number => id !== null);
+
+  const uniqueCount = uniqueDocumentIds.length;
   const limit = user.subscriptionTier.dailyCitationLimit;
-  const allowed = citationCount < limit;
+
+  // Check if current document was already cited today (re-citation)
+  const isRecitation = uniqueDocumentIds.includes(documentId);
+
+  // If it's a re-citation, always allow
+  if (isRecitation) {
+    return {
+      allowed: true,
+      limit,
+      used: uniqueCount,
+      isRecitation: true,
+    };
+  }
+
+  // If it's a new document, check if limit reached
+  const allowed = uniqueCount < limit;
 
   if (!allowed) {
     throw new Error(
-      `Daily citation limit reached. You can generate ${limit} citations per day with your current tier.`
+      `Daily citation limit reached. You can generate ${limit} unique citations per day with your current tier.`
     );
   }
 
   return {
     allowed,
     limit,
-    used: citationCount,
+    used: uniqueCount,
+    isRecitation: false,
   };
 }
 
@@ -277,12 +309,21 @@ export async function logCitationActivity(
  * Generates citations for a document in multiple academic formats
  * Also increments the citation counter for the document
  * @param documentId - The ID of the document to generate citations for
- * @returns Object containing citations and updated citation count
+ * @param userId - The user's ID (for usage stats)
+ * @returns Object containing citations, updated citation count, and usage stats
  * @throws Error if document is not found
  */
-export async function generateCitations(documentId: number): Promise<{
+export async function generateCitations(
+  documentId: number,
+  userId: number
+): Promise<{
   citations: CitationFormats;
   citationCount: number;
+  usage: {
+    used: number;
+    limit: number;
+    reset: string;
+  };
 }> {
   // Fetch document with all necessary relations
   const document = await prisma.document.findUnique({
@@ -374,7 +415,50 @@ export async function generateCitations(documentId: number): Promise<{
     },
   });
 
-  // Return citations and updated count
+  // Get usage stats for this user
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      subscriptionTier: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Get start of today (UTC)
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+
+  // Get unique documents cited today
+  const citedDocuments = await prisma.activityLog.findMany({
+    where: {
+      userId: userId,
+      activityType: 'CITATION_GENERATED',
+      createdAt: {
+        gte: startOfToday,
+      },
+    },
+    select: {
+      documentId: true,
+    },
+    distinct: ['documentId'],
+  });
+
+  const uniqueDocumentIds = citedDocuments
+    .map((log) => log.documentId)
+    .filter((id): id is number => id !== null);
+
+  // Check if current document is already in the list (before logging)
+  const wasAlreadyCited = uniqueDocumentIds.includes(documentId);
+  const uniqueCount = wasAlreadyCited ? uniqueDocumentIds.length : uniqueDocumentIds.length + 1;
+
+  // Calculate next midnight (reset time)
+  const nextMidnight = new Date();
+  nextMidnight.setUTCHours(24, 0, 0, 0);
+
+  // Return citations, count, and usage stats
   return {
     citations: {
       apa,
@@ -385,6 +469,12 @@ export async function generateCitations(documentId: number): Promise<{
       bibtex,
     },
     citationCount: updatedDocument.citationCount,
+    usage: {
+      used: uniqueCount,
+      limit: user.subscriptionTier.dailyCitationLimit,
+      reset: nextMidnight.toISOString(),
+    },
   };
 }
+
 

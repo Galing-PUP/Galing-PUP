@@ -45,6 +45,11 @@ export function CitationModal({
   const [error, setError] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<CitationFormat>("apa");
   const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null);
+  const [usage, setUsage] = useState<{
+    used: number;
+    limit: number;
+    reset: string;
+  } | null>(null);
 
   // Citation format display names
   const formatLabels: Record<CitationFormat, string> = {
@@ -73,6 +78,10 @@ export function CitationModal({
 
       if (result.success && result.data) {
         setCitations(result.data);
+        // Set usage stats if available
+        if (result.usage) {
+          setUsage(result.usage);
+        }
         // Refresh server components to update citation count
         router.refresh();
       } else {
@@ -255,6 +264,39 @@ export function CitationModal({
                 )}
               </div>
             </div>
+
+            {/* Usage Stats Footer */}
+            {usage && (
+              <div className="border-t pt-4 mt-4">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Daily Quota:</span>
+                    <span className="font-semibold text-pup-maroon">
+                      {usage.used} / {usage.limit}
+                    </span>
+                  </div>
+                  <div className="text-gray-500 text-xs">
+                    Resets at {new Date(usage.reset).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      timeZoneName: 'short'
+                    })}
+                  </div>
+                </div>
+                {/* Progress bar */}
+                <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-pup-maroon transition-all duration-300"
+                    style={{ width: `${(usage.used / usage.limit) * 100}%` }}
+                  />
+                </div>
+                {usage.used >= usage.limit && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    ℹ️ You've reached your daily limit for new citations. You can still re-generate citations for documents you've already cited today.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </DialogContent>

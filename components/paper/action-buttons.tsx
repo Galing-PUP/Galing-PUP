@@ -148,6 +148,11 @@ export function ActionButtons({
   };
 
   const handleGenerateCitationClick = () => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast.error("Please sign in to generate citations");
+      return;
+    }
     setIsCitationModalOpen(true);
   };
 

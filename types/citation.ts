@@ -58,6 +58,12 @@ export interface CitationServiceResponse {
   success: boolean;
   data?: CitationFormats;
   citationCount?: number;
+  usage?: {
+    used: number;
+    limit: number;
+    reset: string;
+  };
   error?: string;
 }
+
 

@@ -61,7 +61,7 @@ export async function GET(
 
     // 3. Rate Limiting Pre-Check
     try {
-      await checkCitationLimit(userId);
+      await checkCitationLimit(userId, documentId);
     } catch (limitError) {
       // Handle limit reached error
       if (limitError instanceof Error && limitError.message.includes('limit reached')) {
@@ -77,7 +77,7 @@ export async function GET(
     }
 
     // 4. Generate Citations
-    const { citations, citationCount } = await generateCitations(documentId);
+    const { citations, citationCount, usage } = await generateCitations(documentId, userId);
 
     // 5. Activity Logging (Post-Action)
     try {
@@ -92,6 +92,7 @@ export async function GET(
       success: true,
       data: citations,
       citationCount: citationCount,
+      usage: usage,
     });
   } catch (error) {
     // Handle document not found
