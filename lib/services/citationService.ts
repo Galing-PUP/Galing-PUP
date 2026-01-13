@@ -2,7 +2,7 @@
  * Citation Service - Hybrid Approach
  * 
  * Uses manual string formatting for human-readable citations (APA, MLA, IEEE, ACM, Chicago)
- * Uses citation-js only for BibTeX generation (which works reliably)
+ * Uses citation-js only for BibTeX generation
  */
 
 import { Cite } from '@citation-js/core';
@@ -171,12 +171,12 @@ function generateChicagoCitation(data: CitationData): string {
 }
 
 /**
- * Maps Prisma ResourceTypes enum to CSL genre strings
+ * Maps Prisma ResourceTypes enum to human-readable genre strings
  */
 function mapResourceTypeToGenre(resourceType: ResourceTypes): string {
   const genreMap: Record<ResourceTypes, string> = {
-    THESIS: "Master's thesis",
-    DISSERTATION: 'PhD dissertation',
+    THESIS: 'Thesis',
+    DISSERTATION: 'Dissertation',
     CAPSTONE: 'Capstone project',
     ARTICLE: 'Journal article',
     RESEARCH_PAPER: 'Research paper',
@@ -259,7 +259,7 @@ export async function generateCitations(documentId: number): Promise<CitationFor
   const acm = generateACMCitation(citationData);
   const chicago = generateChicagoCitation(citationData);
 
-  // Generate BibTeX using citation-js (this works reliably)
+  // Generate BibTeX using citation-js
   const cslAuthors: CSLPerson[] = authors.map((author) => ({
     family: author.lastName,
     given: author.middleName
