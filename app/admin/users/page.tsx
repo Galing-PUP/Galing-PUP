@@ -9,7 +9,8 @@ import { UserManagementHeader } from "@/components/admin/users/user-management-h
 import { UserToolbar } from "@/components/admin/users/user-toolbar";
 import { UsersTable } from "@/components/admin/users/users-table";
 import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
-import { UserFormModal } from "@/components/admin/users/user-form-modal";
+import { AdminUserFormModal } from "@/components/admin/users/admin-user-form-modal";
+import { RegisteredUserFormModal } from "@/components/admin/users/registered-user-form-modal";
 
 import {
   AlertDialog,
@@ -165,29 +166,6 @@ export default function UserManagementPage() {
         setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
         fetchStats(); // Update stats in case status changed
         toast.success(`Updated user: ${updatedUser.name}`);
-      } else {
-        // Add new user
-        const response = await fetch("/api/admin/users", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          if (response.status === 409) {
-            setDuplicateWarning({
-              isOpen: true,
-              message: errorData.error || "User already exists",
-            });
-            return;
-          }
-          throw new Error(errorData.error || "Failed to create user");
-        }
-
-        const newUser = await response.json();
-        setUsers((prev) => [newUser, ...prev]);
-        fetchStats(); // Update stats
-        toast.success(`Added new user: ${newUser.name}`);
       }
       setModalState({ isOpen: false, user: null });
     } catch (error: any) {
@@ -225,7 +203,7 @@ export default function UserManagementPage() {
       <UserStats stats={stats} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <UserManagementHeader onAddNewUser={() => setModalState({ isOpen: true, user: null })} />
+        <UserManagementHeader onAddNewUser={() => toast.info("Add new user functionality coming soon")} />
         <UserToolbar
           selectedStatuses={selectedStatuses}
           selectedRoles={selectedRoles}
@@ -256,13 +234,22 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      <UserFormModal
-        isOpen={modalState.isOpen}
-        onClose={() => setModalState({ isOpen: false, user: null })}
-        onSave={handleSaveUser}
-        user={modalState.user}
-        colleges={colleges}
-      />
+      {modalState.user && (modalState.user.role === "Admin" || modalState.user.role === "Superadmin" || modalState.user.role === "ADMIN" || modalState.user.role === "SUPERADMIN") ? (
+        <AdminUserFormModal
+          isOpen={modalState.isOpen}
+          onClose={() => setModalState({ isOpen: false, user: null })}
+          onSave={handleSaveUser}
+          user={modalState.user}
+          colleges={colleges}
+        />
+      ) : (
+        <RegisteredUserFormModal
+          isOpen={modalState.isOpen}
+          onClose={() => setModalState({ isOpen: false, user: null })}
+          onSave={handleSaveUser}
+          user={modalState.user}
+        />
+      )}
 
       <AlertDialog
         open={!!deletingUser}

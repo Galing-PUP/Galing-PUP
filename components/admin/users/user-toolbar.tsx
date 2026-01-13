@@ -21,7 +21,6 @@ const roleOptions = [
   { label: "Super Admin", value: "Superadmin" as UserRole },
   { label: "Admin", value: "Admin" as UserRole },
   { label: "Registered", value: "Registered" as UserRole },
-  { label: "Viewer", value: "Viewer" as UserRole },
 ];
 
 export function UserToolbar({
