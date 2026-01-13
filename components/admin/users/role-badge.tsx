@@ -13,8 +13,14 @@ export function RoleBadge({ role }: RoleBadgeProps) {
   const normalizedRole = role?.toString().toLowerCase();
   
   const getStyle = () => {
-    if (normalizedRole === "superadmin" || normalizedRole === "admin") {
+    if (normalizedRole === "owner") {
       return "bg-pup-maroon text-white";
+    }
+    if (normalizedRole === "superadmin") {
+      return "bg-pup-gold-dark text-black";
+    }
+    if (normalizedRole === "admin") {
+      return "bg-pup-gold-light text-gray-900";
     }
     if (normalizedRole === "registered") {
       return "bg-gray-200 text-gray-700";
@@ -23,6 +29,9 @@ export function RoleBadge({ role }: RoleBadgeProps) {
   };
 
   const getLabel = () => {
+    if (normalizedRole === "owner") {
+      return "Owner";
+    }
     if (normalizedRole === "superadmin") {
       return "Super Admin";
     }
