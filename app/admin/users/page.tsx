@@ -11,6 +11,7 @@ import { UsersTable } from "@/components/admin/users/users-table";
 import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
 import { AdminUserFormModal } from "@/components/admin/users/admin-user-form-modal";
 import { RegisteredUserFormModal } from "@/components/admin/users/registered-user-form-modal";
+import { AddUserModal } from "@/components/admin/users/add-user-modal";
 
 import {
   AlertDialog,
@@ -37,6 +38,8 @@ export default function UserManagementPage() {
     isOpen: boolean;
     user: User | null;
   }>({ isOpen: false, user: null });
+
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
 
   const [duplicateWarning, setDuplicateWarning] = useState<{
     isOpen: boolean;
@@ -73,6 +76,21 @@ export default function UserManagementPage() {
     fetchUsers();
     fetchStats();
   }, []);
+
+  /**
+   * Refetches users and stats after adding a new user
+   */
+  const handleUserAdded = async () => {
+    try {
+      const response = await fetch("/api/admin/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      const data = await response.json();
+      setUsers(data);
+      await fetchStats();
+    } catch (error) {
+      console.error("Error reloading users:", error);
+    }
+  };
 
   // Filter users based on selected statuses, roles, and search query
   const filteredUsers = useMemo(() => {
@@ -203,7 +221,7 @@ export default function UserManagementPage() {
       <UserStats stats={stats} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <UserManagementHeader onAddNewUser={() => toast.info("Add new user functionality coming soon")} />
+        <UserManagementHeader onAddNewUser={() => setAddUserModalOpen(true)} />
         <UserToolbar
           selectedStatuses={selectedStatuses}
           selectedRoles={selectedRoles}
@@ -250,6 +268,12 @@ export default function UserManagementPage() {
           user={modalState.user}
         />
       )}
+
+      <AddUserModal
+        isOpen={addUserModalOpen}
+        onClose={() => setAddUserModalOpen(false)}
+        onUserAdded={handleUserAdded}
+      />
 
       <AlertDialog
         open={!!deletingUser}
