@@ -2,15 +2,11 @@
 
 /**
  * CitationModal Component
- * 
+ *
  * A robust modal dialog for generating and copying academic citations in multiple formats.
  * Fetches citation data from the Citation API and provides copy-to-clipboard functionality.
  */
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Copy, Check, Loader2, Quote } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,8 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
 import type { CitationFormats } from "@/types/citation";
+import { Check, Copy, Download, Loader2, Quote } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type CitationFormat = "apa" | "mla" | "ieee" | "acm" | "chicago" | "bibtex";
 
@@ -137,6 +137,38 @@ export function CitationModal({
   };
 
   /**
+   * Downloads BibTeX citation as a .bib file
+   */
+  const handleDownloadBib = () => {
+    if (!citations) return;
+
+    const bibtexContent = citations.bibtex;
+
+    try {
+      // Create a Blob with the BibTeX content
+      const blob = new Blob([bibtexContent], { type: "application/x-bibtex" });
+
+      // Create a temporary anchor element
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `citation-${documentId}.bib`;
+
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("BibTeX file downloaded");
+    } catch (err) {
+      toast.error("Failed to download BibTeX file");
+    }
+  };
+
+  /**
    * Handles modal close and resets state
    */
   const handleClose = () => {
@@ -150,7 +182,7 @@ export function CitationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Quote className="h-5 w-5 text-pup-maroon" />
@@ -228,23 +260,37 @@ export function CitationModal({
                 <label className="block text-sm font-medium text-gray-700">
                   Preview
                 </label>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(selectedFormat)}
-                  className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-pup-maroon hover:bg-pup-maroon/10 transition-colors"
-                >
-                  {copiedFormat === selectedFormat ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      Copy
-                    </>
+                <div className="flex items-center gap-2">
+                  {/* Download button - only visible for BibTeX */}
+                  {selectedFormat === "bibtex" && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadBib}
+                      className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-pup-maroon hover:bg-pup-maroon/10 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download .bib
+                    </button>
                   )}
-                </button>
+                  {/* Copy button */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(selectedFormat)}
+                    className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-pup-maroon hover:bg-pup-maroon/10 transition-colors"
+                  >
+                    {copiedFormat === selectedFormat ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                 <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
@@ -286,16 +332,19 @@ export function CitationModal({
               <div className="border-t pt-4 mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-700">Daily Quota:</span>
+                    <span className="font-medium text-gray-700">
+                      Daily Quota:
+                    </span>
                     <span className="font-semibold text-pup-maroon">
                       {usage.used} / {usage.limit}
                     </span>
                   </div>
                   <div className="text-gray-500 text-xs">
-                    Resets at {new Date(usage.reset).toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      timeZoneName: 'short'
+                    Resets at{" "}
+                    {new Date(usage.reset).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZoneName: "short",
                     })}
                   </div>
                 </div>
@@ -308,11 +357,22 @@ export function CitationModal({
                 </div>
                 {usage.used >= usage.limit && (
                   <p className="mt-2 text-xs text-amber-600">
-                    ℹ️ You've reached your daily limit for new citations. You can still re-generate citations for documents you've already cited today.
+                    ℹ️ You've reached your daily limit for new citations. You
+                    can still re-generate citations for documents you've already
+                    cited today.
                   </p>
                 )}
               </div>
             )}
+
+            {/* Correctness Disclaimer */}
+            <div className="border-t pt-3 mt-4">
+              <p className="text-xs text-gray-500 text-center">
+                <span className="font-medium">Note:</span> Citations are
+                generated automatically. Please verify format against your
+                institution's guidelines.
+              </p>
+            </div>
           </div>
         )}
       </DialogContent>
