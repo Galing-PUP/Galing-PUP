@@ -29,20 +29,21 @@ model User {
   collegeId Int? @map("college_id")
 
   // Relations
-  subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
-  college          College?         @relation(fields: [collegeId], references: [id])
-  documents        Document[]       @relation("UserUploads")
-  userBookmarks    UserBookmark[]
-  activityLogs     ActivityLog[]
+  subscriptionTier    SubscriptionTier     @relation(fields: [tierId], references: [id])
+  college             College?             @relation(fields: [collegeId], references: [id])
+  documents           Document[]           @relation("UserUploads")
+  userBookmarks       UserBookmark[]
+  activityLogs        ActivityLog[]
+  paymentTransactions PaymentTransaction[]
 
   @@map("users")
 }
 
 model SubscriptionTier {
   id                 Int      @id @default(autoincrement()) @map("tier_id")
-  dailyDownloadLimit Int      @map("daily_download_limit")
-  dailyCitationLimit Int      @map("daily_citation_limit")
-  maxBookmarks       Int      @map("max_bookmarks")
+  dailyDownloadLimit Int?     @map("daily_download_limit")
+  dailyCitationLimit Int?     @map("daily_citation_limit")
+  maxBookmarks       Int?     @map("max_bookmarks")
   hasAds             Boolean  @map("has_ads")
   hasAiInsights      Boolean  @map("has_ai_insights")
   tierName           TierName @default(FREE) @map("tier_name")
@@ -164,6 +165,22 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
+model PaymentTransaction {
+  id          Int           @id @default(autoincrement()) @map("transaction_id")
+  referenceId String        @unique @map("reference_id")
+  sessionId   String        @unique @map("session_id")
+  userId      Int           @map("user_id")
+  amount      Int
+  currency    String        @default("PHP")
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("payment_transactions")
+}
+
 enum RoleName {
   REGISTERED
   ADMIN
@@ -195,4 +212,11 @@ enum ResourceTypes {
   DISSERTATION
   ARTICLE
   RESEARCH_PAPER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
 }
