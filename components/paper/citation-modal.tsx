@@ -70,6 +70,7 @@ export function CitationModal({
     setIsLoading(true);
     setError(null);
     setIsLimitError(false);
+    let limitReached = false;
 
     try {
       const response = await fetch(`/api/citations/${documentId}`);
@@ -79,6 +80,7 @@ export function CitationModal({
         // Check if it's a rate limit error (429 or 403)
         if (response.status === 429 || response.status === 403) {
           setIsLimitError(true);
+          limitReached = true;
         }
         throw new Error(result.error || "Failed to generate citations");
       }
@@ -98,7 +100,11 @@ export function CitationModal({
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load citations";
       setError(errorMessage);
-      toast.error(errorMessage);
+      
+      // Only show toast if it's NOT a limit error
+      if (!limitReached) {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
