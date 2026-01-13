@@ -1,8 +1,9 @@
 /**
- * Citation Service - Hybrid Approach
+ * Citation Service - Hybrid Approach with Rate Limiting
  * 
  * Uses manual string formatting for human-readable citations (APA, MLA, IEEE, ACM, Chicago)
  * Uses citation-js only for BibTeX generation
+ * Includes rate limiting based on subscription tier
  */
 
 import { Cite } from '@citation-js/core';
@@ -198,6 +199,78 @@ function mapResourceTypeToCSLType(
     RESEARCH_PAPER: 'paper-conference',
   };
   return typeMap[resourceType] || 'report';
+}
+
+/**
+ * Checks if user has reached their daily citation limit
+ * @param userId - The user's ID
+ * @returns Object with limit check result
+ * @throws Error if user not found or limit reached
+ */
+export async function checkCitationLimit(userId: number): Promise<{
+  allowed: boolean;
+  limit: number;
+  used: number;
+}> {
+  // Fetch user with subscription tier
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      subscriptionTier: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Get start of today (UTC)
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+
+  // Count citation activities today
+  const citationCount = await prisma.activityLog.count({
+    where: {
+      userId: userId,
+      activityType: 'CITATION_GENERATED',
+      createdAt: {
+        gte: startOfToday,
+      },
+    },
+  });
+
+  const limit = user.subscriptionTier.dailyCitationLimit;
+  const allowed = citationCount < limit;
+
+  if (!allowed) {
+    throw new Error(
+      `Daily citation limit reached. You can generate ${limit} citations per day with your current tier.`
+    );
+  }
+
+  return {
+    allowed,
+    limit,
+    used: citationCount,
+  };
+}
+
+/**
+ * Logs citation generation activity
+ * @param userId - The user's ID
+ * @param documentId - The document ID
+ */
+export async function logCitationActivity(
+  userId: number,
+  documentId: number
+): Promise<void> {
+  await prisma.activityLog.create({
+    data: {
+      userId,
+      documentId,
+      activityType: 'CITATION_GENERATED',
+    },
+  });
 }
 
 /**

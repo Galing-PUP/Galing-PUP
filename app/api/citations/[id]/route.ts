@@ -3,10 +3,16 @@
  * GET /api/citations/[id]
  * 
  * Generates academic citations for a document in multiple formats
+ * Requires authentication and enforces daily citation limits
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateCitations } from '@/lib/services/citationService';
+import { getAuthenticatedUserId } from '@/lib/auth/server';
+import {
+  generateCitations,
+  checkCitationLimit,
+  logCitationActivity,
+} from '@/lib/services/citationService';
 import type { CitationServiceResponse } from '@/types/citation';
 
 type RouteParams = {
@@ -26,10 +32,23 @@ export async function GET(
   context: RouteParams
 ): Promise<NextResponse<CitationServiceResponse>> {
   try {
+    // 1. Authentication Check
+    const userId = await getAuthenticatedUserId();
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized. Please sign in to generate citations.',
+        },
+        { status: 401 }
+      );
+    }
+
+    // 2. Validate document ID
     const { id: idParam } = await context.params;
     const documentId = Number(idParam);
 
-    // Validate document ID
     if (Number.isNaN(documentId) || documentId <= 0) {
       return NextResponse.json(
         {
@@ -40,9 +59,35 @@ export async function GET(
       );
     }
 
-    // Generate citations
+    // 3. Rate Limiting Pre-Check
+    try {
+      await checkCitationLimit(userId);
+    } catch (limitError) {
+      // Handle limit reached error
+      if (limitError instanceof Error && limitError.message.includes('limit reached')) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: limitError.message,
+          },
+          { status: 429 } // 429 Too Many Requests
+        );
+      }
+      throw limitError; // Re-throw if it's a different error
+    }
+
+    // 4. Generate Citations
     const citations = await generateCitations(documentId);
 
+    // 5. Activity Logging (Post-Action)
+    try {
+      await logCitationActivity(userId, documentId);
+    } catch (logError) {
+      // Log the error but don't fail the request
+      console.error('Failed to log citation activity:', logError);
+    }
+
+    // 6. Return Success Response
     return NextResponse.json({
       success: true,
       data: citations,
