@@ -49,7 +49,7 @@ export function CitationModal({
   const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null);
   const [usage, setUsage] = useState<{
     used: number;
-    limit: number;
+    limit: number | null;
     reset: string;
   } | null>(null);
 
@@ -336,7 +336,7 @@ export function CitationModal({
                       Daily Quota:
                     </span>
                     <span className="font-semibold text-pup-maroon">
-                      {usage.used} / {usage.limit}
+                      {usage.used} / {usage.limit === null ? "Unlimited" : usage.limit}
                     </span>
                   </div>
                   <div className="text-gray-500 text-xs">
@@ -348,14 +348,16 @@ export function CitationModal({
                     })}
                   </div>
                 </div>
-                {/* Progress bar */}
-                <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-pup-maroon transition-all duration-300"
-                    style={{ width: `${(usage.used / usage.limit) * 100}%` }}
-                  />
-                </div>
-                {usage.used >= usage.limit && (
+                {/* Progress bar - only show if limit is not null */}
+                {usage.limit !== null && (
+                  <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-pup-maroon transition-all duration-300"
+                      style={{ width: `${(usage.used / usage.limit) * 100}%` }}
+                    />
+                  </div>
+                )}
+                {usage.limit !== null && usage.used >= usage.limit && (
                   <p className="mt-2 text-xs text-amber-600">
                     ℹ️ You've reached your daily limit for new citations. You
                     can still re-generate citations for documents you've already

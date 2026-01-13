@@ -221,7 +221,7 @@ export async function checkCitationLimit(
   documentId: number
 ): Promise<{
   allowed: boolean;
-  limit: number;
+  limit: number | null;
   used: number;
   isRecitation: boolean;
 }> {
@@ -277,6 +277,16 @@ export async function checkCitationLimit(
     };
   }
 
+  // If limit is null, it's unlimited - always allow
+  if (limit === null) {
+    return {
+      allowed: true,
+      limit: null,
+      used: uniqueCount,
+      isRecitation: false,
+    };
+  }
+
   // If it's a new document, check if limit reached
   const allowed = uniqueCount < limit;
 
@@ -328,7 +338,7 @@ export async function generateCitations(
   citationCount: number;
   usage: {
     used: number;
-    limit: number;
+    limit: number | null;
     reset: string;
   };
 }> {

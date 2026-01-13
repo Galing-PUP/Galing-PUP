@@ -66,7 +66,7 @@ export interface CitationServiceResponse {
   citationCount?: number;
   usage?: {
     used: number;
-    limit: number;
+    limit: number | null;
     reset: string;
   };
   error?: string;
