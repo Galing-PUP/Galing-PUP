@@ -2,7 +2,16 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  Search,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  LayoutGrid,
+  List as ListIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import SortDropdown from "@/components/sort-dropdown";
@@ -60,6 +69,7 @@ export default function AdminPublicationsPage() {
     documentType: "All Types",
   });
   const [sortBy, setSortBy] = useState<AdminSortOption>("Newest to Oldest");
+  const [viewMode, setViewMode] = useState<"card" | "list">("card");
 
   // Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -266,7 +276,7 @@ export default function AdminPublicationsPage() {
           />
         </div>
 
-        {/* Filters & Sort */}
+        {/* Filters, Sort & View Toggle */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <SortDropdown
@@ -358,17 +368,47 @@ export default function AdminPublicationsPage() {
               </SelectContent>
             </Select>
           </div>
-          
-          <div className="hidden md:flex items-center gap-2 text-xs md:ml-auto text-gray-600">
-            <span className="inline-flex items-center justify-center rounded-full bg-pup-gold-light/70 px-3 py-1 text-[11px] font-semibold text-pup-maroon">
-              {filteredData.length}
-            </span>
-            <span className="text-[11px] uppercase tracking-[0.18em] text-pup-maroon">
-              results
-            </span>
-            <span className="text-[11px] text-gray-500">
-              • Page {currentPage} of {Math.max(totalPages, 1)}
-            </span>
+
+          <div className="flex items-center justify-between gap-3 md:justify-end text-xs md:ml-auto text-gray-600">
+            <div className="hidden md:flex items-center gap-2">
+              <span className="inline-flex items-center justify-center rounded-full bg-pup-gold-light/70 px-3 py-1 text-[11px] font-semibold text-pup-maroon">
+                {filteredData.length}
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-pup-maroon">
+                results
+              </span>
+              <span className="text-[11px] text-gray-500">
+                • Page {currentPage} of {Math.max(totalPages, 1)}
+              </span>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="inline-flex items-center gap-1 rounded-full border border-pup-maroon/20 bg-white px-1 py-1">
+              <button
+                type="button"
+                onClick={() => setViewMode("card")}
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
+                  viewMode === "card"
+                    ? "bg-pup-maroon text-white shadow-sm"
+                    : "text-pup-maroon hover:bg-pup-gold-light/60"
+                }`}
+                aria-label="Card view"
+              >
+                <LayoutGrid size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
+                  viewMode === "list"
+                    ? "bg-pup-maroon text-white shadow-sm"
+                    : "text-pup-maroon hover:bg-pup-gold-light/60"
+                }`}
+                aria-label="List view"
+              >
+                <ListIcon size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -385,58 +425,108 @@ export default function AdminPublicationsPage() {
               {error}
             </div>
           ) : currentData.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {currentData.map((pub) => {
-                const yearStr = pub.date.split(" ").pop(); // Simple extraction
-                return (
-                  <div
-                    key={pub.id}
-                    className="group flex h-full flex-col justify-between rounded-2xl border border-pup-maroon/10 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
-                            {pub.title}
-                          </h3>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
-                            By {pub.author}
-                          </p>
-                          <p className="line-clamp-3 text-sm text-gray-700">
-                            {pub.abstract || "No abstract provided."}
+            <>
+              {viewMode === "card" ? (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {currentData.map((pub) => {
+                    const yearStr = pub.date.split(" ").pop(); // Simple extraction
+                    return (
+                      <div
+                        key={pub.id}
+                        className="group flex h-full flex-col justify-between rounded-2xl border border-pup-maroon/10 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
+                                {pub.title}
+                              </h3>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
+                                By {pub.author}
+                              </p>
+                              <p className="line-clamp-3 text-sm text-gray-700">
+                                {pub.abstract || "No abstract provided."}
+                              </p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
+                              {yearStr}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between gap-3 pt-4 border-t border-pup-maroon/5">
+                          <span className="inline-flex max-w-[70%] items-center rounded-full bg-pup-gold-light/80 px-4 py-1 text-xs font-semibold text-pup-maroon shadow-sm">
+                            {pub.field || "Uncategorized"}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleEdit(pub.id)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                              aria-label="Edit publication"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(pub)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                              aria-label="Delete publication"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {currentData.map((pub) => {
+                    const yearStr = pub.date.split(" ").pop(); // Simple extraction
+                    return (
+                      <div
+                        key={pub.id}
+                        className="group flex items-center justify-between gap-4 rounded-2xl border border-pup-maroon/10 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-pup-maroon">
+                              {pub.title}
+                            </h3>
+                            <span className="inline-flex items-center rounded-full bg-pup-maroon/10 px-2 py-0.5 text-[10px] font-semibold text-pup-maroon">
+                              {yearStr}
+                            </span>
+                          </div>
+                          <p className="truncate text-xs text-gray-600">
+                            By <span className="font-medium">{pub.author}</span> •{" "}
+                            <span className="text-gray-500">
+                              {pub.field || "Uncategorized"}
+                            </span>
                           </p>
                         </div>
-                        <span className="shrink-0 rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
-                          {yearStr}
-                        </span>
-                      </div>
-                    </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3 pt-4 border-t border-pup-maroon/5">
-                      <span className="inline-flex max-w-[70%] items-center rounded-full bg-pup-gold-light/80 px-4 py-1 text-xs font-semibold text-pup-maroon shadow-sm">
-                        {pub.field || "Uncategorized"}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => handleEdit(pub.id)}
-                          className="flex h-10 w-10 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
-                          aria-label="Edit publication"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(pub)}
-                          className="flex h-10 w-10 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
-                          aria-label="Delete publication"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleEdit(pub.id)}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                            aria-label="Edit publication"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(pub)}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                            aria-label="Delete publication"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-pup-maroon/20 bg-pup-gold-light/10 text-center">
               <span className="text-lg font-semibold text-gray-800">No publications found</span>
