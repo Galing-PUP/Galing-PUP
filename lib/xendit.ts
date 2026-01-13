@@ -23,7 +23,7 @@ export interface CreateSessionRequest {
  * Xendit Payment Session response
  */
 export interface CreateSessionResponse {
-  id: string; // Session ID (e.g., ps-xyz...)
+  payment_session_id: string; // Session ID (e.g., ps-xyz...)
   reference_id: string;
   status: string;
   payment_link_url: string;
@@ -37,7 +37,7 @@ export interface CreateSessionResponse {
  * Xendit Session Status response
  */
 export interface SessionStatusResponse {
-  id: string;
+  payment_session_id: string;
   reference_id: string;
   status: "PENDING" | "PAID" | "COMPLETED" | "FAILED" | "CANCELLED";
   amount: number;

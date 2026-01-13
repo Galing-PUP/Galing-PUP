@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { createPaymentSession } from "@/lib/xendit";
 
-const PREMIUM_TIER_AMOUNT = 299000; // ₱299 in centavos
+const PREMIUM_TIER_AMOUNT = 29900; // ₱299 in centavos (smallest currency unit)
 const PREMIUM_TIER_ID = 2;
 
 /**
@@ -45,7 +45,13 @@ export async function POST(request: NextRequest) {
     const referenceId = `upgrade_${dbUser.id}_${Date.now()}`;
 
     // 5. Create Xendit payment session
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Note: Xendit requires HTTPS URLs. For localhost, we use a placeholder HTTPS URL
+    // since we're using the "Verify on Return" pattern and manually handling redirects
+    const appUrl = process.env.APP_URL || "https://meinard.dev";
+    console.log("APP_URL from env:", process.env.APP_URL);
+    console.log("Using appUrl:", appUrl);
+    console.log("Success URL:", `${appUrl}/pricing/success?ref=${referenceId}`);
+    
     const sessionResponse = await createPaymentSession({
       reference_id: referenceId,
       session_type: "PAY",
@@ -56,12 +62,14 @@ export async function POST(request: NextRequest) {
       success_return_url: `${appUrl}/pricing/success?ref=${referenceId}`,
       cancel_return_url: `${appUrl}/pricing`,
     });
+    
+    console.log("Xendit session response:", JSON.stringify(sessionResponse, null, 2));
 
     // 6. Save transaction record in database
     await prisma.paymentTransaction.create({
       data: {
         referenceId: referenceId,
-        sessionId: sessionResponse.id,
+        sessionId: sessionResponse.payment_session_id,
         userId: dbUser.id,
         amount: PREMIUM_TIER_AMOUNT,
         currency: "PHP",
