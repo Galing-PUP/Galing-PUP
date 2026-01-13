@@ -402,18 +402,44 @@ export async function generateCitations(
   const cite = new Cite(cslData);
   const bibtex = cite.format('bibtex');
 
-  // Increment citation count atomically
-  const updatedDocument = await prisma.document.update({
-    where: { id: documentId },
-    data: {
-      citationCount: {
-        increment: 1,
-      },
-    },
-    select: {
-      citationCount: true,
+  // Check if this user has EVER cited this document before (all-time)
+  const existingCitation = await prisma.activityLog.findFirst({
+    where: {
+      userId: userId,
+      documentId: documentId,
+      activityType: 'CITATION_GENERATED',
     },
   });
+
+  // Only increment citation count if this is the user's first time citing this document
+  let updatedDocument;
+  if (!existingCitation) {
+    // First-time citation: increment the counter
+    updatedDocument = await prisma.document.update({
+      where: { id: documentId },
+      data: {
+        citationCount: {
+          increment: 1,
+        },
+      },
+      select: {
+        citationCount: true,
+      },
+    });
+  } else {
+    // Re-citation: just fetch the current count without incrementing
+    updatedDocument = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: {
+        citationCount: true,
+      },
+    });
+  }
+
+  if (!updatedDocument) {
+    throw new Error('Failed to fetch document citation count');
+  }
+
 
   // Get usage stats for this user
   const user = await prisma.user.findUnique({
