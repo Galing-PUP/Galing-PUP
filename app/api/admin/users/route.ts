@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: password,
-            email_confirm: status === "Accepted", // Auto-confirm if status is Accepted
+            email_confirm: true, // Auto-confirm so they can "login" (but will be blocked by app status)
             user_metadata: { username: name }
         });
 
