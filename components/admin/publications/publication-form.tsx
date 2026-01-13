@@ -23,6 +23,8 @@ interface PublicationFormProps {
   existingFileSize?: number;
   existingFileDate?: string;
   existingFilePath?: string;
+  documentId?: number;
+  documentToken?: string;
 }
 
 /**
@@ -42,6 +44,8 @@ export function PublicationForm({
   existingFileSize,
   existingFileDate,
   existingFilePath,
+  documentId,
+  documentToken,
 }: PublicationFormProps) {
   const [formData, setFormData] = useState<PublicationFormData>({
     title: initialData?.title || "",
@@ -116,6 +120,8 @@ export function PublicationForm({
         existingFileSize={existingFileSize}
         existingFileDate={existingFileDate}
         existingFilePath={existingFilePath}
+        documentId={documentId}
+        documentToken={documentToken}
       />
 
       {/* Action Buttons */}

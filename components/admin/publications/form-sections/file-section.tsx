@@ -21,6 +21,8 @@ interface FileSectionProps {
   existingFileSize?: number;
   existingFileDate?: string;
   existingFilePath?: string;
+  documentId?: number;
+  documentToken?: string;
 }
 
 export function FileSection({
@@ -32,6 +34,8 @@ export function FileSection({
   existingFileSize,
   existingFileDate,
   existingFilePath,
+  documentId,
+  documentToken,
 }: FileSectionProps) {
   return (
     <Card>
@@ -64,7 +68,7 @@ export function FileSection({
 
             {existingFilePath ? (
               <a
-                href={existingFilePath}
+                href={documentToken ? `/api/pdf/${encodeURIComponent(documentToken)}` : existingFilePath}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors group cursor-pointer"
