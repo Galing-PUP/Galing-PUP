@@ -1,6 +1,8 @@
 /**
- * Citation Service
- * Generates academic citations in multiple formats using citation-js
+ * Citation Service - Hybrid Approach
+ * 
+ * Uses manual string formatting for human-readable citations (APA, MLA, IEEE, ACM, Chicago)
+ * Uses citation-js only for BibTeX generation (which works reliably)
  */
 
 import { Cite } from '@citation-js/core';
@@ -11,11 +13,167 @@ import { ResourceTypes } from '@/lib/generated/prisma/enums';
 import type { CSLData, CSLPerson, CitationFormats } from '@/types/citation';
 
 /**
- * Maps Prisma ResourceTypes enum to CSL genre strings
- * @param resourceType - The resource type from Prisma enum
- * @returns CSL-compatible genre string
+ * Author information for citation formatting
  */
-function mapResourceTypeToCSLGenre(resourceType: ResourceTypes): string {
+interface AuthorInfo {
+  firstName: string;
+  middleName?: string | null;
+  lastName: string;
+}
+
+/**
+ * Citation data extracted from document
+ */
+interface CitationData {
+  authors: AuthorInfo[];
+  year: number;
+  title: string;
+  genre: string;
+  containerTitle: string;
+  publisher: string;
+}
+
+/**
+ * Formats authors for APA style
+ * Format: "Last, F., Last, F., & Last, F."
+ */
+function formatAuthorsAPA(authors: AuthorInfo[]): string {
+  if (authors.length === 0) return 'Unknown Author';
+  
+  const formatted = authors.map((author) => {
+    const firstInitial = author.firstName.charAt(0);
+    const middleInitial = author.middleName ? ` ${author.middleName.charAt(0)}.` : '';
+    return `${author.lastName}, ${firstInitial}.${middleInitial}`;
+  });
+  
+  if (formatted.length === 1) return formatted[0];
+  if (formatted.length === 2) return `${formatted[0]}, & ${formatted[1]}`;
+  
+  const lastAuthor = formatted[formatted.length - 1];
+  const otherAuthors = formatted.slice(0, -1).join(', ');
+  return `${otherAuthors}, & ${lastAuthor}`;
+}
+
+/**
+ * Formats authors for MLA style
+ * Format: "Last, First, and First Last"
+ */
+function formatAuthorsMLA(authors: AuthorInfo[]): string {
+  if (authors.length === 0) return 'Unknown Author';
+  
+  const formatted = authors.map((author, index) => {
+    const middleName = author.middleName ? ` ${author.middleName}` : '';
+    if (index === 0) {
+      // First author: Last, First Middle
+      return `${author.lastName}, ${author.firstName}${middleName}`;
+    } else {
+      // Other authors: First Middle Last
+      return `${author.firstName}${middleName} ${author.lastName}`;
+    }
+  });
+  
+  if (formatted.length === 1) return formatted[0];
+  if (formatted.length === 2) return `${formatted[0]}, and ${formatted[1]}`;
+  
+  const lastAuthor = formatted[formatted.length - 1];
+  const otherAuthors = formatted.slice(0, -1).join(', ');
+  return `${otherAuthors}, and ${lastAuthor}`;
+}
+
+/**
+ * Formats authors for IEEE style
+ * Format: "F. Last, F. Last, and F. Last"
+ */
+function formatAuthorsIEEE(authors: AuthorInfo[]): string {
+  if (authors.length === 0) return 'Unknown Author';
+  
+  const formatted = authors.map((author) => {
+    const firstInitial = author.firstName.charAt(0);
+    const middleInitial = author.middleName ? ` ${author.middleName.charAt(0)}.` : '';
+    return `${firstInitial}.${middleInitial} ${author.lastName}`;
+  });
+  
+  if (formatted.length === 1) return formatted[0];
+  if (formatted.length === 2) return `${formatted[0]} and ${formatted[1]}`;
+  
+  const lastAuthor = formatted[formatted.length - 1];
+  const otherAuthors = formatted.slice(0, -1).join(', ');
+  return `${otherAuthors}, and ${lastAuthor}`;
+}
+
+/**
+ * Formats authors for ACM style
+ * Format: "First Last, First Last, and First Last"
+ */
+function formatAuthorsACM(authors: AuthorInfo[]): string {
+  if (authors.length === 0) return 'Unknown Author';
+  
+  const formatted = authors.map((author) => {
+    const middleName = author.middleName ? ` ${author.middleName}` : '';
+    return `${author.firstName}${middleName} ${author.lastName}`;
+  });
+  
+  if (formatted.length === 1) return formatted[0];
+  if (formatted.length === 2) return `${formatted[0]} and ${formatted[1]}`;
+  
+  const lastAuthor = formatted[formatted.length - 1];
+  const otherAuthors = formatted.slice(0, -1).join(', ');
+  return `${otherAuthors}, and ${lastAuthor}`;
+}
+
+/**
+ * Formats authors for Chicago style
+ * Format: "Last, First, and First Last"
+ */
+function formatAuthorsChicago(authors: AuthorInfo[]): string {
+  // Chicago author-date style is similar to MLA
+  return formatAuthorsMLA(authors);
+}
+
+/**
+ * Generates APA citation
+ */
+function generateAPACitation(data: CitationData): string {
+  const authors = formatAuthorsAPA(data.authors);
+  return `${authors} (${data.year}). ${data.title} [${data.genre}]. ${data.publisher}.`;
+}
+
+/**
+ * Generates MLA citation
+ */
+function generateMLACitation(data: CitationData): string {
+  const authors = formatAuthorsMLA(data.authors);
+  return `${authors}. "${data.title}." ${data.year}. ${data.genre}. ${data.publisher}.`;
+}
+
+/**
+ * Generates IEEE citation
+ */
+function generateIEEECitation(data: CitationData): string {
+  const authors = formatAuthorsIEEE(data.authors);
+  return `${authors}, "${data.title}," ${data.genre}, ${data.publisher}, ${data.year}.`;
+}
+
+/**
+ * Generates ACM citation
+ */
+function generateACMCitation(data: CitationData): string {
+  const authors = formatAuthorsACM(data.authors);
+  return `${authors}. ${data.year}. ${data.title}. ${data.genre}. ${data.publisher}.`;
+}
+
+/**
+ * Generates Chicago citation (author-date style)
+ */
+function generateChicagoCitation(data: CitationData): string {
+  const authors = formatAuthorsChicago(data.authors);
+  return `${authors}. ${data.year}. "${data.title}." ${data.genre}. ${data.publisher}.`;
+}
+
+/**
+ * Maps Prisma ResourceTypes enum to CSL genre strings
+ */
+function mapResourceTypeToGenre(resourceType: ResourceTypes): string {
   const genreMap: Record<ResourceTypes, string> = {
     THESIS: "Master's thesis",
     DISSERTATION: 'PhD dissertation',
@@ -23,14 +181,11 @@ function mapResourceTypeToCSLGenre(resourceType: ResourceTypes): string {
     ARTICLE: 'Journal article',
     RESEARCH_PAPER: 'Research paper',
   };
-
   return genreMap[resourceType] || 'Research paper';
 }
 
 /**
- * Maps Prisma ResourceTypes enum to CSL type
- * @param resourceType - The resource type from Prisma enum
- * @returns CSL-compatible type string
+ * Maps Prisma ResourceTypes enum to CSL type for BibTeX
  */
 function mapResourceTypeToCSLType(
   resourceType: ResourceTypes
@@ -42,7 +197,6 @@ function mapResourceTypeToCSLType(
     ARTICLE: 'article',
     RESEARCH_PAPER: 'paper-conference',
   };
-
   return typeMap[resourceType] || 'report';
 }
 
@@ -50,7 +204,7 @@ function mapResourceTypeToCSLType(
  * Generates citations for a document in multiple academic formats
  * @param documentId - The ID of the document to generate citations for
  * @returns Object containing citations in all supported formats
- * @throws Error if document is not found or citation generation fails
+ * @throws Error if document is not found
  */
 export async function generateCitations(documentId: number): Promise<CitationFormats> {
   // Fetch document with all necessary relations
@@ -77,68 +231,66 @@ export async function generateCitations(documentId: number): Promise<CitationFor
     throw new Error(`Document with ID ${documentId} not found`);
   }
 
-  // Extract publication year (fallback to submission date if published date is null)
+  // Extract publication year
   const publicationDate = document.datePublished || document.submissionDate;
   const publicationYear = publicationDate ? publicationDate.getFullYear() : new Date().getFullYear();
 
-  // Map authors to CSL format
-  const authors: CSLPerson[] = document.authors.map((docAuthor) => {
-    const author = docAuthor.author;
-    return {
-      family: author.lastName,
-      given: author.middleName
-        ? `${author.firstName} ${author.middleName}`
-        : author.firstName,
-    };
-  });
+  // Extract author information
+  const authors: AuthorInfo[] = document.authors.map((docAuthor) => ({
+    firstName: docAuthor.author.firstName,
+    middleName: docAuthor.author.middleName,
+    lastName: docAuthor.author.lastName,
+  }));
 
-  // Build CSL-JSON data object
+  // Prepare citation data
+  const citationData: CitationData = {
+    authors,
+    year: publicationYear,
+    title: document.title,
+    genre: mapResourceTypeToGenre(document.resourceType),
+    containerTitle: document.course.courseName,
+    publisher: document.course.college?.collegeName || 'Polytechnic University of the Philippines',
+  };
+
+  // Generate human-readable citations manually
+  const apa = generateAPACitation(citationData);
+  const mla = generateMLACitation(citationData);
+  const ieee = generateIEEECitation(citationData);
+  const acm = generateACMCitation(citationData);
+  const chicago = generateChicagoCitation(citationData);
+
+  // Generate BibTeX using citation-js (this works reliably)
+  const cslAuthors: CSLPerson[] = authors.map((author) => ({
+    family: author.lastName,
+    given: author.middleName
+      ? `${author.firstName} ${author.middleName}`
+      : author.firstName,
+  }));
+
   const cslData: CSLData = {
     id: `document-${documentId}`,
     type: mapResourceTypeToCSLType(document.resourceType),
     title: document.title,
-    author: authors,
+    author: cslAuthors,
     issued: {
       'date-parts': [[publicationYear]],
     },
-    publisher: document.course.college?.collegeName || 'Polytechnic University of the Philippines',
-    'container-title': document.course.courseName,
-    genre: mapResourceTypeToCSLGenre(document.resourceType),
+    publisher: citationData.publisher,
+    'container-title': citationData.containerTitle,
+    genre: citationData.genre,
     abstract: document.abstract,
   };
 
-  // Initialize citation-js with the CSL data
   const cite = new Cite(cslData);
+  const bibtex = cite.format('bibtex');
 
-  // Generate citations in all supported formats
-  const citations: CitationFormats = {
-    apa: cite.format('bibliography', {
-      format: 'text',
-      template: 'apa',
-      lang: 'en-US',
-    }),
-    mla: cite.format('bibliography', {
-      format: 'text',
-      template: 'modern-language-association',
-      lang: 'en-US',
-    }),
-    ieee: cite.format('bibliography', {
-      format: 'text',
-      template: 'ieee',
-      lang: 'en-US',
-    }),
-    acm: cite.format('bibliography', {
-      format: 'text',
-      template: 'acm-siggraph',
-      lang: 'en-US',
-    }),
-    chicago: cite.format('bibliography', {
-      format: 'text',
-      template: 'chicago-author-date',
-      lang: 'en-US',
-    }),
-    bibtex: cite.format('bibtex'),
+  // Return all citation formats
+  return {
+    apa,
+    mla,
+    ieee,
+    acm,
+    chicago,
+    bibtex,
   };
-
-  return citations;
 }

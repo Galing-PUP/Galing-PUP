@@ -8,6 +8,17 @@ declare module '@citation-js/core' {
     constructor(data: any);
     format(format: string, options?: any): string;
   }
+
+  export const plugins: {
+    config: {
+      get(pluginName: string): {
+        templates: {
+          has(templateName: string): boolean;
+          add(templateName: string, templateData: string): void;
+        };
+      };
+    };
+  };
 }
 
 declare module '@citation-js/plugin-csl' {}
