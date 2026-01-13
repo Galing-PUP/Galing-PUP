@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { getAuthenticatedUserId } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { getAuthenticatedUserId } from "@/lib/auth/server";
-import { hash, compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server";
 
 type PreferencesPayload = {
   username?: string;
@@ -11,7 +11,7 @@ type PreferencesPayload = {
 
 /**
  * Check if a username is available.
- * 
+ *
  * @param request - The incoming GET request with username query parameter.
  * @returns JSON response indicating if the username is available.
  */
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (!username || username.trim().length === 0) {
       return NextResponse.json(
         { error: "Username parameter is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     console.error("Error checking username availability:", error);
     return NextResponse.json(
       { error: "Failed to check username availability" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -81,23 +81,20 @@ export async function PATCH(request: Request) {
     if (!username && !newPassword) {
       return NextResponse.json(
         { error: "No changes provided" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const dbUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { 
+      select: {
         supabaseAuthId: true,
         passwordHash: true, // Fetch current password hash for comparison
       },
     });
 
     if (!dbUser) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const updateData: {
@@ -116,7 +113,7 @@ export async function PATCH(request: Request) {
 
     if (typeof username === "string" && username.trim().length > 0) {
       const trimmedUsername = username.trim();
-      
+
       // Check if username is already taken by another user
       const existingUser = await prisma.user.findFirst({
         where: {
@@ -129,7 +126,7 @@ export async function PATCH(request: Request) {
       if (existingUser) {
         return NextResponse.json(
           { error: "Username is already taken" },
-          { status: 409 },
+          { status: 409 }
         );
       }
 
@@ -143,8 +140,10 @@ export async function PATCH(request: Request) {
         const isSamePassword = await compare(newPassword, dbUser.passwordHash);
         if (isSamePassword) {
           return NextResponse.json(
-            { error: "New password cannot be the same as your current password" },
-            { status: 400 },
+            {
+              error: "New password cannot be the same as your current password",
+            },
+            { status: 400 }
           );
         }
       }
@@ -155,40 +154,73 @@ export async function PATCH(request: Request) {
     }
 
     // Update Supabase Auth if we have an auth ID and something to update
-    if (dbUser.supabaseAuthId && (authUpdatePayload.password || authUpdatePayload.user_metadata)) {
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-        dbUser.supabaseAuthId,
-        authUpdatePayload,
-      );
+    if (
+      dbUser.supabaseAuthId &&
+      (authUpdatePayload.password || authUpdatePayload.user_metadata)
+    ) {
+      const { error: authError } =
+        await supabaseAdmin.auth.admin.updateUserById(
+          dbUser.supabaseAuthId,
+          authUpdatePayload
+        );
 
       if (authError) {
         console.error("Failed to update Supabase Auth user:", authError);
         return NextResponse.json(
           { error: "Failed to update authentication profile" },
-          { status: 500 },
+          { status: 500 }
         );
       }
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-      select: {
-        username: true,
-        email: true,
-      },
+    // Use transaction to ensure atomicity between user update and activity logs
+    const result = await prisma.$transaction(async (tx) => {
+      // Update user
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          username: true,
+          email: true,
+        },
+      });
+
+      // Prepare activity logs to create
+      const activityLogs = [];
+
+      if (authUpdatePayload.password) {
+        activityLogs.push({
+          userId,
+          activityType: "PASSWORD_CHANGED",
+        });
+      }
+
+      if (updateData.username) {
+        activityLogs.push({
+          userId,
+          activityType: "USERNAME_CHANGED",
+        });
+      }
+
+      // Create all activity logs in a single operation if any exist
+      if (activityLogs.length > 0) {
+        await tx.activityLog.createMany({
+          data: activityLogs,
+        });
+      }
+
+      return updatedUser;
     });
 
     return NextResponse.json({
-      username: updatedUser.username,
-      email: updatedUser.email,
+      username: result.username,
+      email: result.email,
     });
   } catch (error) {
     console.error("Error updating user preferences:", error);
     return NextResponse.json(
       { error: "Failed to update preferences" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
-
