@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { createPaymentSession } from "@/lib/xendit";
 
-const PREMIUM_TIER_AMOUNT = 29900; // ₱299 in centavos (smallest currency unit)
+const PREMIUM_TIER_AMOUNT = 299;
 const PREMIUM_TIER_ID = 2;
 
 /**
