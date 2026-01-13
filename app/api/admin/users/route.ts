@@ -11,6 +11,11 @@ import { hash } from "bcryptjs";
 export async function GET() {
     try {
         const users = await prisma.user.findMany({
+            where: {
+                role: {
+                    not: RoleName.OWNER,
+                },
+            },
             orderBy: {
                 id: "asc",
             },
@@ -20,11 +25,10 @@ export async function GET() {
             let statusDisplay = "Pending";
             if (user.status === UserStatus.APPROVED) statusDisplay = "Accepted";
             else if (user.status === UserStatus.DELETED) statusDisplay = "Delete";
-            
+
             return {
                 id: user.id.toString(),
                 name: user.username,
-                fullname: user.fullname || "",
                 email: user.email,
                 role: user.role,
                 status: statusDisplay,
@@ -59,7 +63,6 @@ export async function POST(request: Request) {
         const status = formData.get("status") as string;
         const subscriptionTier = formData.get("subscriptionTier");
         const password = formData.get("password") as string;
-        const fullname = formData.get("fullname") as string;
         const collegeId = formData.get("collegeId") ? parseInt(formData.get("collegeId") as string) : undefined;
         const file = formData.get("idImage") as File | null;
 
@@ -98,7 +101,7 @@ export async function POST(request: Request) {
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: password,
-            email_confirm: status === "Accepted", // Auto-confirm if status is Accepted
+            email_confirm: true, // Auto-confirm so they can "login" (but will be blocked by app status)
             user_metadata: { username: name }
         });
 
@@ -145,7 +148,6 @@ export async function POST(request: Request) {
         const newUser = await prisma.user.create({
             data: {
                 username: name,
-                fullname: fullname || "",
                 email: email,
                 passwordHash: passwordHash,
                 supabaseAuthId: authData.user.id,

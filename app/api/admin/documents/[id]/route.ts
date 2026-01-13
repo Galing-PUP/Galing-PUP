@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { DocStatus } from "@/lib/generated/prisma/enums";
 import path from "path";
 import { mkdir, writeFile, unlink } from "fs/promises";
 
@@ -56,6 +57,21 @@ export async function GET(req: NextRequest, props: RouteParams) {
       );
     }
 
+    /**
+     * Maps database DocStatus enum to ContentItem status
+     */
+    const mapStatus = (status: any): "Pending" | "Accepted" | "Rejected" => {
+      switch (status) {
+        case DocStatus.APPROVED:
+          return "Accepted";
+        case DocStatus.REJECTED:
+          return "Rejected";
+        case DocStatus.PENDING:
+        default:
+          return "Pending";
+      }
+    };
+
     // Transform to match form structure
     const formattedDocument = {
       id: document.id,
@@ -68,6 +84,8 @@ export async function GET(req: NextRequest, props: RouteParams) {
       originalFileName: document.originalFileName,
       fileSize: document.fileSize,
       mimeType: document.mimeType,
+      status: mapStatus(document.status),
+      submissionDate: document.submissionDate?.toISOString().split("T")[0] || "",
       authors: document.authors.map((da: any) => ({
         firstName: da.author.firstName,
         middleName: da.author.middleName || "",
@@ -75,6 +93,16 @@ export async function GET(req: NextRequest, props: RouteParams) {
         email: da.author.email,
       })),
       keywords: document.keywords.map((dk: any) => dk.keyword.keywordText),
+      course: document.course
+        ? {
+            courseName: document.course.courseName,
+            college: document.course.college
+              ? {
+                  collegeName: document.course.college.collegeName,
+                }
+              : null,
+          }
+        : null,
     };
 
     return NextResponse.json(formattedDocument);
@@ -286,7 +314,7 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
 
     const existing = await prisma.document.findUnique({
       where: { id: documentId },
-      select: { id: true },
+      select: { id: true, status: true, filePath: true },
     });
 
     if (!existing) {
@@ -296,25 +324,61 @@ export async function DELETE(req: NextRequest, props: RouteParams) {
       );
     }
 
-    await prisma.$transaction([
-      prisma.documentKeyword.deleteMany({
-        where: { documentId },
-      }),
-      prisma.documentAuthor.deleteMany({
-        where: { documentId },
-      }),
-      prisma.userBookmark.deleteMany({
-        where: { documentId },
-      }),
-      prisma.activityLog.deleteMany({
-        where: { documentId },
-      }),
-      prisma.document.delete({
-        where: { id: documentId },
-      }),
-    ]);
+    // Check if this is a permanent delete (from approval page) or soft delete (from publication page)
+    const url = new URL(req.url);
+    const permanent = url.searchParams.get("permanent") === "true";
 
-    return NextResponse.json({ success: true });
+    if (permanent) {
+      // Permanent delete - actually remove from database and filesystem (only from approval page)
+      let filePathToDelete: string | undefined = undefined;
+
+      // Get the file path before deleting from database
+      if (existing.filePath && existing.filePath.startsWith("/uploads/")) {
+        filePathToDelete = path.join(process.cwd(), "public", existing.filePath);
+      }
+
+      // Delete from database first
+      await prisma.$transaction([
+        prisma.documentKeyword.deleteMany({
+          where: { documentId },
+        }),
+        prisma.documentAuthor.deleteMany({
+          where: { documentId },
+        }),
+        prisma.userBookmark.deleteMany({
+          where: { documentId },
+        }),
+        prisma.activityLog.deleteMany({
+          where: { documentId },
+        }),
+        prisma.document.delete({
+          where: { id: documentId },
+        }),
+      ]);
+
+      // Delete the physical file from filesystem
+      if (filePathToDelete) {
+        try {
+          await unlink(filePathToDelete);
+          console.log(`Deleted file: ${filePathToDelete}`);
+        } catch (fileError) {
+          // Log error but don't fail the request since DB deletion already succeeded
+          console.error(`Failed to delete file ${filePathToDelete}:`, fileError);
+        }
+      }
+
+      return NextResponse.json({ success: true, permanent: true });
+    } else {
+      // Soft delete - set status to DELETED (from publication page)
+      await prisma.document.update({
+        where: { id: documentId },
+        data: {
+          status: DocStatus.DELETED,
+        },
+      });
+
+      return NextResponse.json({ success: true, permanent: false });
+    }
   } catch (error) {
     console.error("Error deleting document:", error);
     return NextResponse.json(

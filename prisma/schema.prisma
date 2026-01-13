@@ -7,10 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------------------
-// USER MANAGEMENT
-// ---------------------------------------------------------
-
 model User {
   id               Int       @id @default(autoincrement()) @map("user_id")
   // supabase OAuth link
@@ -35,25 +31,11 @@ model User {
   // Relations
   subscriptionTier SubscriptionTier @relation(fields: [tierId], references: [id])
   college          College?         @relation(fields: [collegeId], references: [id])
+  documents        Document[]       @relation("UserUploads")
+  userBookmarks    UserBookmark[]
+  activityLogs     ActivityLog[]
 
-  bookmarks    UserBookmark[]
-  uploadedDocs Document[]     @relation("UserUploads")
-  activityLogs ActivityLog[]
-
-  // Map to plural table name
   @@map("users")
-}
-
-enum RoleName {
-  REGISTERED
-  ADMIN
-  SUPERADMIN
-  OWNER
-}
-
-enum UserStatus {
-  PENDING
-  APPROVED
 }
 
 model SubscriptionTier {
@@ -64,20 +46,10 @@ model SubscriptionTier {
   maxBookmarks       Int?     @map("max_bookmarks")
   hasAds             Boolean  @map("has_ads")
   hasAiInsights      Boolean  @map("has_ai_insights")
-
-  users User[]
+  users              User[]
 
   @@map("subscription_tiers")
 }
-
-enum TierName {
-  FREE
-  PAID
-}
-
-// ---------------------------------------------------------
-// DOCUMENT MANAGEMENT
-// ---------------------------------------------------------
 
 model Document {
   id             Int           @id @default(autoincrement()) @map("document_id")
@@ -114,6 +86,109 @@ model Document {
   @@map("documents")
 }
 
+model UserBookmark {
+  userId         Int      @map("user_id")
+  documentId     Int      @map("document_id")
+  dateBookmarked DateTime @default(now()) @map("date_bookmarked")
+  document       Document @relation(fields: [documentId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, documentId])
+  @@map("user_bookmarks")
+}
+
+model DocumentAuthor {
+  documentId  Int      @map("document_id")
+  authorId    Int      @map("author_id")
+  authorOrder Int      @map("author_order")
+  author      Author   @relation(fields: [authorId], references: [id])
+  document    Document @relation(fields: [documentId], references: [id])
+
+  @@id([documentId, authorId])
+  @@map("document_authors")
+}
+
+model Author {
+  id         Int              @id @default(autoincrement()) @map("author_id")
+  fullName   String           @map("full_name")
+  email      String?          @unique
+  firstName  String           @map("first_name")
+  lastName   String           @map("last_name")
+  middleName String?          @map("middle_name")
+  documents  DocumentAuthor[]
+
+  @@map("authors")
+}
+
+model DocumentKeyword {
+  documentId Int      @map("document_id")
+  keywordId  Int      @map("keyword_id")
+  document   Document @relation(fields: [documentId], references: [id])
+  keyword    Keyword  @relation(fields: [keywordId], references: [id])
+
+  @@id([documentId, keywordId])
+  @@map("document_keywords")
+}
+
+model Keyword {
+  id          Int               @id @default(autoincrement()) @map("keyword_id")
+  keywordText String            @unique @map("keyword_text")
+  documents   DocumentKeyword[]
+
+  @@map("keywords")
+}
+
+model Course {
+  id         Int        @id @default(autoincrement()) @map("course_id")
+  courseName String     @map("course_name")
+  courseAbbr String     @map("course_abbr")
+  collegeId  Int        @map("college_id")
+  college    College    @relation(fields: [collegeId], references: [id])
+  documents  Document[]
+
+  @@map("courses")
+}
+
+model College {
+  id          Int      @id @default(autoincrement()) @map("college_id")
+  collegeName String   @unique @map("college_name")
+  collegeAbbr String   @unique @map("college_abbr")
+  courses     Course[]
+  users       User[]
+
+  @@map("colleges")
+}
+
+model ActivityLog {
+  id           BigInt    @id @default(autoincrement()) @map("log_id")
+  userId       Int       @map("user_id")
+  documentId   Int?      @map("document_id")
+  activityType String    @map("activity_type")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  document     Document? @relation(fields: [documentId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+
+  @@map("activity_logs")
+}
+
+enum RoleName {
+  REGISTERED
+  ADMIN
+  SUPERADMIN
+  OWNER
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  DELETED
+}
+
+enum TierName {
+  FREE
+  PAID
+}
+
 enum DocStatus {
   PENDING
   APPROVED
@@ -127,105 +202,4 @@ enum ResourceTypes {
   DISSERTATION
   ARTICLE
   RESEARCH_PAPER
-}
-
-model UserBookmark {
-  userId         Int      @map("user_id")
-  documentId     Int      @map("document_id")
-  dateBookmarked DateTime @default(now()) @map("date_bookmarked")
-
-  user     User     @relation(fields: [userId], references: [id])
-  document Document @relation(fields: [documentId], references: [id])
-
-  @@id([userId, documentId])
-  @@map("user_bookmarks")
-}
-
-model DocumentAuthor {
-  documentId  Int @map("document_id")
-  authorId    Int @map("author_id")
-  authorOrder Int @map("author_order")
-
-  document Document @relation(fields: [documentId], references: [id])
-  author   Author   @relation(fields: [authorId], references: [id])
-
-  @@id([documentId, authorId])
-  @@map("document_authors")
-}
-
-model Author {
-  id         Int     @id @default(autoincrement()) @map("author_id")
-  firstName  String  @map("first_name") @db.Text
-  middleName String? @map("middle_name") @db.Text
-  lastName   String  @map("last_name") @db.Text
-  fullName   String  @map("full_name") @db.Text
-  email      String? @unique @db.Text
-
-  documents DocumentAuthor[]
-
-  @@map("authors")
-}
-
-model DocumentKeyword {
-  documentId Int @map("document_id")
-  keywordId  Int @map("keyword_id")
-
-  document Document @relation(fields: [documentId], references: [id])
-  keyword  Keyword  @relation(fields: [keywordId], references: [id])
-
-  @@id([documentId, keywordId])
-  @@map("document_keywords")
-}
-
-model Keyword {
-  id          Int    @id @default(autoincrement()) @map("keyword_id")
-  keywordText String @unique @map("keyword_text") @db.Text
-
-  documents DocumentKeyword[]
-
-  @@map("keywords")
-}
-
-// ---------------------------------------------------------
-// ACADEMIC & INSTITUTIONAL
-// ---------------------------------------------------------
-
-model Course {
-  id         Int    @id @default(autoincrement()) @map("course_id")
-  courseName String @map("course_name") @db.Text
-  courseAbbr String @map("course_abbr") @db.Text
-  collegeId  Int    @map("college_id")
-
-  college   College    @relation(fields: [collegeId], references: [id])
-  documents Document[]
-
-  @@map("courses")
-}
-
-model College {
-  id          Int    @id @default(autoincrement()) @map("college_id")
-  collegeName String @unique @map("college_name") @db.Text
-  collegeAbbr String @unique @map("college_abbr") @db.Text
-
-  courses Course[]
-  users   User[]
-
-  @@map("colleges")
-}
-
-// ---------------------------------------------------------
-// LOGGING
-// ---------------------------------------------------------
-
-model ActivityLog {
-  id           BigInt   @id @default(autoincrement()) @map("log_id")
-  userId       Int      @map("user_id")
-  documentId   Int?     @map("document_id")
-  activityType String   @map("activity_type") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  user     User      @relation(fields: [userId], references: [id])
-  document Document? @relation(fields: [documentId], references: [id])
-
-  @@map("activity_logs")
 }

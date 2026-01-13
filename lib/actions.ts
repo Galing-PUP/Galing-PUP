@@ -28,6 +28,7 @@ export async function getCurrentUser() {
         username: userWithTier.username,
         tierName: userWithTier.subscriptionTier.tierName,
         email: userWithTier.email,
+        role: userWithTier.role,
     };
 }
 
@@ -72,8 +73,8 @@ export async function checkUserStatus(identifier: string) {
         return { exists: false, isAdmin: false, isVerified: false, roleId: RoleName.REGISTERED, updatedDate: null, email: null };
     }
 
-    // Admin roles are ADMIN and SUPERADMIN
-    const isAdmin = user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN;
+    // Admin roles are ADMIN, SUPERADMIN and OWNER
+    const isAdmin = user.role === RoleName.ADMIN || user.role === RoleName.SUPERADMIN || user.role === RoleName.OWNER;
 
     return {
         exists: true,
