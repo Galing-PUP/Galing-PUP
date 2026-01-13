@@ -19,6 +19,7 @@ import {
   checkUsernameAvailability,
   checkUserStatus,
   createUserInDb,
+  getCurrentUser,
 } from "@/lib/actions";
 import { signInWithGooglePopup } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
@@ -26,12 +27,28 @@ import {
   signUpSchema,
   type SignUpFormValues,
 } from "@/lib/validations/auth-schema";
+import { useEffect } from "react";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const user = await getCurrentUser();
+        if (user) {
+          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
+          router.replace(isAdmin ? "/admin/publication" : "/");
+        }
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),

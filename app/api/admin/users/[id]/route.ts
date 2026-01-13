@@ -24,11 +24,16 @@ export async function DELETE(
         // 1. Fetch user to check existence and get Supabase Auth ID
         const user = await prisma.user.findUnique({
             where: { id },
-            select: { supabaseAuthId: true },
+            select: { supabaseAuthId: true, role: true },
         });
 
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // 1.5 Prevent deletion of OWNER account
+        if (user.role === RoleName.OWNER) {
+            return NextResponse.json({ error: "Cannot delete Owner account" }, { status: 403 });
         }
 
         // 2. Delete from Supabase Auth if ID exists
@@ -123,7 +128,6 @@ export async function PATCH(
 
         const formData = await request.formData();
         const name = formData.get("name") as string;
-        const fullname = formData.get("fullname") as string;
         const collegeId = formData.get("collegeId") ? parseInt(formData.get("collegeId") as string) : undefined;
         const email = formData.get("email") as string;
         const role = formData.get("role") as string;
@@ -139,7 +143,6 @@ export async function PATCH(
 
         const updateData: any = {
             username: name,
-            fullname: fullname,
             email: email,
             collegeId: collegeId,
             role: roleEnum,
@@ -222,7 +225,6 @@ export async function PATCH(
         return NextResponse.json({
             id: updatedUser.id.toString(),
             name: updatedUser.username,
-            fullname: updatedUser.fullname,
             email: updatedUser.email,
             role: updatedUser.role,
             status: updatedUser.status === UserStatus.APPROVED ? "Accepted" : updatedUser.status === UserStatus.DELETED ? "Delete" : "Pending",

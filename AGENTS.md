@@ -10,10 +10,13 @@
 - **Access Control (RBAC):**
   - **Viewer (Unregistered):** Search and view abstracts only. No downloads.
   - **Registered User:** Verified account. Can download PDFs, bookmark studies, and generate citations.
-  - **Staff (College Admin):** Can upload, edit, and delete documents for their specific college only.
+  - **Staff (College Admin):** Can upload, edit, and delete documents for their specific college only. Restricted from User Management and Approval workflows.
   - **Super Admin:** Full system control. Manages users, roles, global content, analytics, and settings.
+  - **Owner:** Highest privilege level. Functionally equivalent to Super Admin but reserved for the system owner.
 - **Data Structure:** Categorized by Subject and Publication Year.
-- **Security:** Role-Based Access Control (RBAC) via Supabase Auth.
+- **File Storage:** Local storage in `public/uploads` (Development/Testing).
+- **Security:** Role-Based Access Control (RBAC) via Supabase Auth and Custom Admin Layout Shell.
+  - **Note:** `username` field is used as Full Name for Admin/Staff users.
 - **AI Integration:** Use Google Gemini to generate summaries of research materials automatically.
 
 ## Tech Stack

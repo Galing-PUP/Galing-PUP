@@ -15,18 +15,34 @@ import { GoogleIcon } from "@/components/button"; // Keep custom icon if specifi
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { checkUserStatus, verifyCredentials } from "@/lib/actions";
+import { checkUserStatus, verifyCredentials, getCurrentUser } from "@/lib/actions";
 import { signInWithGooglePopup } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 import {
   signInSchema,
   type SignInFormValues,
 } from "@/lib/validations/auth-schema";
+import { useEffect } from "react";
 
 export default function SignInPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const user = await getCurrentUser();
+        if (user) {
+          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
+          router.replace(isAdmin ? "/admin/publication" : "/");
+        }
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
