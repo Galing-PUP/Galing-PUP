@@ -5,7 +5,13 @@
 /**
  * Supported citation formats
  */
-export type CitationFormat = 'apa' | 'mla' | 'ieee' | 'acm' | 'chicago' | 'bibtex';
+export type CitationFormat =
+  | "apa"
+  | "mla"
+  | "ieee"
+  | "acm"
+  | "chicago"
+  | "bibtex";
 
 /**
  * Response object containing all citation formats
@@ -31,7 +37,7 @@ export interface CSLPerson {
  * CSL-JSON Date object
  */
 export interface CSLDate {
-  'date-parts': [[number]];
+  "date-parts": [[number]];
 }
 
 /**
@@ -40,12 +46,12 @@ export interface CSLDate {
  */
 export interface CSLData {
   id: string;
-  type: 'thesis' | 'article' | 'paper-conference' | 'report';
+  type: "thesis" | "article" | "paper-conference" | "report";
   title: string;
   author: CSLPerson[];
   issued: CSLDate;
   publisher?: string;
-  'container-title'?: string;
+  "container-title"?: string;
   genre?: string;
   abstract?: string;
   URL?: string;
@@ -65,5 +71,3 @@ export interface CitationServiceResponse {
   };
   error?: string;
 }
-
-
