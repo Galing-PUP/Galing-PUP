@@ -108,11 +108,22 @@ export function AdminUserFormModal({ isOpen, onClose, onSave, user, colleges }: 
     }
   };
 
-  const getRoleBadgeVariant = (role?: string) => {
+
+
+  const getRoleBadgeStyle = (role?: string) => {
     const r = role?.toUpperCase();
-    if (r === 'SUPERADMIN') return 'default';
-    if (r === 'ADMIN') return 'secondary';
-    return 'outline';
+    if (r === 'OWNER') return 'bg-pup-maroon text-white hover:bg-pup-maroon/90';
+    if (r === 'SUPERADMIN') return 'bg-pup-gold-dark text-black hover:bg-pup-gold-dark/90';
+    if (r === 'ADMIN') return 'bg-pup-gold-light text-gray-900 hover:bg-pup-gold-light/90';
+    return 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+  };
+
+  const getDotColor = (role?: string) => {
+    const r = role?.toUpperCase();
+    if (r === 'OWNER') return 'bg-yellow-400';
+    if (r === 'SUPERADMIN') return 'bg-red-800';
+    if (r === 'ADMIN') return 'bg-blue-500';
+    return 'bg-gray-500';
   };
 
   const imageUrl = user?.idImagePath && !user.idImagePath.startsWith('http')
@@ -133,12 +144,8 @@ export function AdminUserFormModal({ isOpen, onClose, onSave, user, colleges }: 
         <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <Badge variant={getRoleBadgeVariant(formData.role)} className="gap-2">
-                <div className={`w-2 h-2 rounded-full ${
-                  formData.role?.toUpperCase() === 'SUPERADMIN'
-                    ? 'bg-blue-500'
-                    : 'bg-green-500'
-                }`} />
+              <Badge className={`gap-2 ${getRoleBadgeStyle(formData.role)}`}>
+                <div className={`w-2 h-2 rounded-full animate-pulse ${getDotColor(formData.role)}`} />
                 {formData.role || "Admin"}
               </Badge>
               <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
