@@ -11,6 +11,11 @@ import { hash } from "bcryptjs";
 export async function GET() {
     try {
         const users = await prisma.user.findMany({
+            where: {
+                role: {
+                    not: RoleName.OWNER,
+                },
+            },
             orderBy: {
                 id: "asc",
             },
