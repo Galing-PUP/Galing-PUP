@@ -112,16 +112,14 @@ export function AdminUserFormModal({ isOpen, onClose, onSave, user, colleges }: 
 
   const getRoleBadgeStyle = (role?: string) => {
     const r = role?.toUpperCase();
-    if (r === 'OWNER') return 'bg-pup-maroon text-white hover:bg-pup-maroon/90';
-    if (r === 'SUPERADMIN') return 'bg-pup-gold-dark text-black hover:bg-pup-gold-dark/90';
+    if (r === 'SUPERADMIN') return 'bg-pup-maroon text-white hover:bg-pup-maroon/90';
     if (r === 'ADMIN') return 'bg-pup-gold-light text-gray-900 hover:bg-pup-gold-light/90';
     return 'bg-gray-200 text-gray-700 hover:bg-gray-300';
   };
 
   const getDotColor = (role?: string) => {
     const r = role?.toUpperCase();
-    if (r === 'OWNER') return 'bg-yellow-400';
-    if (r === 'SUPERADMIN') return 'bg-red-800';
+    if (r === 'SUPERADMIN') return 'bg-yellow-400';
     if (r === 'ADMIN') return 'bg-blue-500';
     return 'bg-gray-500';
   };
