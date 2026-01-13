@@ -85,12 +85,12 @@ export default function Upload() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-semibold text-pup-maroon">
-            Welcome to the Publication Portal!
+            Welcome to the Submission Portal!
           </h1>
         </div>
         <p className="text-gray-600">
           Please upload your publication materials and necessary information
-          using the form below.
+          for approval using the form below.
         </p>
       </div>
 
