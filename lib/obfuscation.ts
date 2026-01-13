@@ -11,24 +11,34 @@ const IV_LENGTH = 16;
 // Ensure key is 32 bytes for aes-256-cbc
 const key = Buffer.from(SECRET_KEY.padEnd(32, "0").slice(0, 32));
 
-export function encryptId(id: number): string {
+export function encryptId(id: number | string, userId?: number | string): string {
     const iv = randomBytes(IV_LENGTH);
     const cipher = createCipheriv("aes-256-cbc", key, iv);
-    let encrypted = cipher.update(id.toString());
+
+    // Create payload object
+    const payload = JSON.stringify({ d: id, u: userId });
+
+    let encrypted = cipher.update(payload);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString("hex") + ":" + encrypted.toString("hex");
 }
 
-export function decryptId(text: string): number | null {
+export function decryptId(text: string): { docId: number; userId?: string | number } | null {
     try {
         const textParts = text.split(":");
         const iv = Buffer.from(textParts.shift() as string, "hex");
         const encryptedText = Buffer.from(textParts.join(":"), "hex");
         const decipher = createDecipheriv("aes-256-cbc", key, iv);
+
         let decrypted = decipher.update(encryptedText);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
-        const id = parseInt(decrypted.toString());
-        return isNaN(id) ? null : id;
+
+        const payload = JSON.parse(decrypted.toString());
+
+        return {
+            docId: Number(payload.d),
+            userId: payload.u
+        };
     } catch (error) {
         return null;
     }

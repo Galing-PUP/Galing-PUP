@@ -13,11 +13,13 @@ export async function GET(
     const { documentId } = params;
 
     // Decrypt ID
-    const id = decryptId(decodeURIComponent(documentId));
+    const decrypted = decryptId(decodeURIComponent(documentId));
 
-    if (!id) {
+    if (!decrypted || !decrypted.docId) {
         return new NextResponse("Invalid document token", { status: 400 });
     }
+
+    const { docId: id, userId: tokenUserId } = decrypted;
 
     // 1. Auth Check
     const supabase = await createClient();
@@ -38,6 +40,11 @@ export async function GET(
 
     if (!user) {
         return new NextResponse("User not found", { status: 403 });
+    }
+
+    // NEW: Check if token is bound to this user
+    if (tokenUserId && Number(tokenUserId) !== user.id) {
+        return new NextResponse("Invalid session token. Please refresh the page.", { status: 403 });
     }
 
     const document = await prisma.document.findUnique({

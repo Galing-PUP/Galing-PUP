@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { encryptId } from "@/lib/obfuscation";
 import { formatResourceType } from "@/lib/utils/format";
 import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 type PaperPageProps = {
   params: Promise<{
@@ -19,6 +20,21 @@ type PaperPageProps = {
 export default async function PaperPage(props: PaperPageProps) {
   const { id: idParam } = await props.params;
   const id = Number(idParam);
+
+  // Get current user for token generation
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let userId: number | undefined = undefined;
+
+  if (user) {
+    // We need the Prisma ID (int) to match what API expects
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseAuthId: user.id },
+      select: { id: true }
+    });
+    userId = dbUser?.id;
+  }
 
   if (Number.isNaN(id)) {
     notFound();
@@ -67,7 +83,7 @@ export default async function PaperPage(props: PaperPageProps) {
   const downloads = document.downloadsCount;
   const citations = document.citationCount;
   const pdfUrl = document.filePath;
-  const downloadToken = encryptId(id);
+  const downloadToken = encryptId(id, userId);
 
   const mainAuthor = authors[0] ?? "Unknown Author";
   const additionalAuthors = authors.length > 1 ? " et al." : "";

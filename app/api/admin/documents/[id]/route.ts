@@ -5,6 +5,7 @@ import { DocStatus } from "@/lib/generated/prisma/enums";
 import path from "path";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { encryptId } from "@/lib/obfuscation";
+import { createClient } from "@/lib/supabase/server";
 
 type RouteParams = {
   params: Promise<{
@@ -74,6 +75,19 @@ export async function GET(req: NextRequest, props: RouteParams) {
       }
     };
 
+    // 0. Get Admin User for Token Generation
+    const supabase = await createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+
+    let adminUserId: number | undefined = undefined;
+    if (authUser) {
+      const adminUser = await prisma.user.findUnique({
+        where: { supabaseAuthId: authUser.id },
+        select: { id: true }
+      });
+      adminUserId = adminUser?.id;
+    }
+
     // Transform to match form structure
     const formattedDocument = {
       id: document.id,
@@ -88,7 +102,7 @@ export async function GET(req: NextRequest, props: RouteParams) {
       mimeType: document.mimeType,
       status: mapStatus(document.status),
       submissionDate: document.submissionDate?.toISOString().split("T")[0] || "",
-      documentToken: encryptId(document.id),
+      documentToken: encryptId(document.id, adminUserId),
       authors: document.authors.map((da: any) => ({
         firstName: da.author.firstName,
         middleName: da.author.middleName || "",
