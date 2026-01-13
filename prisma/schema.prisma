@@ -59,9 +59,9 @@ enum UserStatus {
 model SubscriptionTier {
   id                 Int      @id @default(autoincrement()) @map("tier_id")
   tierName           TierName @default(FREE) @map("tier_name")
-  dailyDownloadLimit Int      @map("daily_download_limit")
-  dailyCitationLimit Int      @map("daily_citation_limit")
-  maxBookmarks       Int      @map("max_bookmarks")
+  dailyDownloadLimit Int?     @map("daily_download_limit")
+  dailyCitationLimit Int?     @map("daily_citation_limit")
+  maxBookmarks       Int?     @map("max_bookmarks")
   hasAds             Boolean  @map("has_ads")
   hasAiInsights      Boolean  @map("has_ai_insights")
 
@@ -91,11 +91,11 @@ model Document {
   downloadsCount Int           @default(0) @map("downloads_count")
   citationCount  Int           @default(0) @map("citation_count")
   aiSummary      String?       @map("ai_summary") @db.Text
-  
+
   // File Metadata
-  originalFileName String?     @map("original_file_name") @db.Text
-  fileSize         Int?        @map("file_size")
-  mimeType         String?     @map("mime_type") @db.Text
+  originalFileName String? @map("original_file_name") @db.Text
+  fileSize         Int?    @map("file_size")
+  mimeType         String? @map("mime_type") @db.Text
 
   // Foreign Keys
   uploaderId Int @map("uploader_id")
