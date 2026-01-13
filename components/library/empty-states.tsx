@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Empty,
   EmptyContent,
@@ -6,12 +6,12 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty";
-import Link from "next/link";
-import { Bookmark, FileText } from "lucide-react";
+} from '@/components/ui/empty'
+import { Bookmark, FileText } from 'lucide-react'
+import Link from 'next/link'
 
 interface NoSearchResultsProps {
-  onClear: () => void;
+  onClear: () => void
 }
 
 export function NoSearchResultsState({ onClear }: NoSearchResultsProps) {
@@ -32,7 +32,7 @@ export function NoSearchResultsState({ onClear }: NoSearchResultsProps) {
         </Button>
       </EmptyContent>
     </Empty>
-  );
+  )
 }
 
 export function EmptyLibraryState() {
@@ -44,7 +44,8 @@ export function EmptyLibraryState() {
         </EmptyMedia>
         <EmptyTitle>Your library is empty</EmptyTitle>
         <EmptyDescription className="mb-8">
-          Start building your collection by browsing research papers and saving them for later.
+          Start building your collection by browsing research papers and saving
+          them for later.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
@@ -55,7 +56,7 @@ export function EmptyLibraryState() {
         </Link>
       </EmptyContent>
     </Empty>
-  );
+  )
 }
 
 export function LoggedOutState() {
@@ -67,7 +68,8 @@ export function LoggedOutState() {
         </EmptyMedia>
         <EmptyTitle>Start building your library</EmptyTitle>
         <EmptyDescription className="mb-8">
-          Found something useful? Create an account to keep your bookmarks in one place.
+          Found something useful? Create an account to keep your bookmarks in
+          one place.
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
@@ -78,5 +80,5 @@ export function LoggedOutState() {
         </Link>
       </EmptyContent>
     </Empty>
-  );
+  )
 }

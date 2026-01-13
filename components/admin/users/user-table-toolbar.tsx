@@ -1,16 +1,19 @@
-import { Button } from "@/components/button";
-import { Trash2 } from "lucide-react";
+import { Button } from '@/components/button'
+import { Trash2 } from 'lucide-react'
 
 type UserTableToolbarProps = {
-  selectedCount: number;
-  onDelete: () => void;
-};
+  selectedCount: number
+  onDelete: () => void
+}
 
-export function UserTableToolbar({ selectedCount, onDelete }: UserTableToolbarProps) {
+export function UserTableToolbar({
+  selectedCount,
+  onDelete,
+}: UserTableToolbarProps) {
   return (
     <div className="my-4 flex items-center justify-between rounded-lg bg-red-50 p-4">
       <p className="text-sm font-semibold text-pup-maroon">
-        {selectedCount} {selectedCount === 1 ? "user" : "users"} selected
+        {selectedCount} {selectedCount === 1 ? 'user' : 'users'} selected
       </p>
       <Button
         variant="primary"
@@ -23,5 +26,5 @@ export function UserTableToolbar({ selectedCount, onDelete }: UserTableToolbarPr
         Delete all
       </Button>
     </div>
-  );
+  )
 }

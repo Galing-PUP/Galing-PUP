@@ -1,83 +1,82 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import {
-  PublicationForm,
-  type PublicationFormData,
-} from "@/components/admin/publications/publication-form";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { PublicationForm } from '@/components/admin/publications/publication-form'
+import { type PublicationFormData } from '@/lib/validations/publication-schema'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 // 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleSubmit = async (formData: PublicationFormData) => {
-    if (isSubmitting) return;
+    if (isSubmitting) return
 
     if (!formData.file) {
-      toast.error("Please select a file to upload.");
-      return;
+      toast.error('Please select a file to upload.')
+      return
     }
 
-    setIsSubmitting(true);
-    let promiseResolve: (value: any) => void;
-    let promiseReject: (reason?: any) => void;
+    setIsSubmitting(true)
+    let promiseResolve: (value: any) => void
+    let promiseReject: (reason?: any) => void
     const submissionPromise = new Promise((resolve, reject) => {
-        promiseResolve = resolve;
-        promiseReject = reject;
-    });
+      promiseResolve = resolve
+      promiseReject = reject
+    })
 
     toast.promise(submissionPromise, {
-        loading: 'Uploading publication...',
-        success: 'Publication submitted successfully for approval!',
-        error: (err: any) => `Submission failed: ${err.message}`,
-    });
+      loading: 'Uploading publication...',
+      success: 'Publication submitted successfully for approval!',
+      error: (err: any) => `Submission failed: ${err.message}`,
+    })
 
     try {
-        const body = new FormData();
-        body.append("title", formData.title);
-        body.append("abstract", formData.abstract);
-        body.append("keywords", formData.keywords.join(", "));
-        body.append("datePublished", formData.datePublished);
-        body.append("resourceType", formData.resourceType);
-        body.append("authors", JSON.stringify(formData.authors));
-        body.append("courseId", formData.courseId);
-        body.append("file", formData.file);
+      const body = new FormData()
+      body.append('title', formData.title)
+      body.append('abstract', formData.abstract)
+      body.append('keywords', formData.keywords.join(', '))
+      body.append('datePublished', formData.datePublished)
+      body.append('resourceType', formData.resourceType)
+      body.append('authors', JSON.stringify(formData.authors))
+      body.append('courseId', formData.courseId)
+      body.append('file', formData.file)
 
-        const res = await fetch("/api/admin/documents", {
-            method: "POST",
-            body,
-        });
+      const res = await fetch('/api/admin/documents', {
+        method: 'POST',
+        body,
+      })
 
-        if (!res.ok) {
-            const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.error || "Failed to submit publication.");
-        }
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to submit publication.')
+      }
 
-        const data = await res.json();
-        console.log("Document created:", data);
-        
-        promiseResolve!(data);
-        
-        // Slight delay before redirect to let user see success message
-        setTimeout(() => {
-            router.push("/admin/publication");
-        }, 1000);
+      const data = await res.json()
+      console.log('Document created:', data)
 
+      promiseResolve!(data)
+
+      // Slight delay before redirect to let user see success message
+      setTimeout(() => {
+        router.push('/admin/publication')
+      }, 1000)
     } catch (error) {
-        console.error(error);
-        promiseReject!(error instanceof Error ? error : new Error("Unknown error"));
+      console.error(error)
+      promiseReject!(
+        error instanceof Error ? error : new Error('Unknown error'),
+      )
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleCancel = () => {
-    router.back();
-  };
+    router.back()
+  }
 
   return (
     <div className="w-full h-full relative">
@@ -89,8 +88,8 @@ export default function Upload() {
           </h1>
         </div>
         <p className="text-gray-600">
-          Please upload your publication materials and necessary information
-          for approval using the form below.
+          Please upload your publication materials and necessary information for
+          approval using the form below.
         </p>
       </div>
 
@@ -109,5 +108,5 @@ export default function Upload() {
         submitLabel="Submit for Approval"
       />
     </div>
-  );
+  )
 }

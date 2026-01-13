@@ -1,20 +1,20 @@
-"use client";
+'use client'
 
-import { AuthorSelector } from "@/components/admin/publications/author-selector";
+import { AuthorSelector } from '@/components/admin/publications/author-selector'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { PublicationFormData } from "@/lib/validations/publication-schema";
-import { Users } from "lucide-react";
+} from '@/components/ui/card'
+import { PublicationFormData } from '@/lib/validations/publication-schema'
+import { Users } from 'lucide-react'
 
 interface AuthorsSectionProps {
-  formData: PublicationFormData;
-  setFormData: React.Dispatch<React.SetStateAction<PublicationFormData>>;
-  error?: string;
+  formData: PublicationFormData
+  setFormData: React.Dispatch<React.SetStateAction<PublicationFormData>>
+  error?: string
 }
 
 export function AuthorsSection({
@@ -47,5 +47,5 @@ export function AuthorsSection({
         />
       </CardContent>
     </Card>
-  );
+  )
 }

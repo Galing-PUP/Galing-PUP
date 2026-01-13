@@ -1,120 +1,124 @@
-
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
-import { prisma } from "@/lib/db";
-import { decryptId } from "@/lib/obfuscation";
+import { prisma } from '@/lib/db'
+import { decryptId } from '@/lib/obfuscation'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
-    request: NextRequest,
-    props: { params: Promise<{ documentId: string }> }
+  request: NextRequest,
+  props: { params: Promise<{ documentId: string }> },
 ) {
-    const params = await props.params;
-    const { documentId } = params;
+  const params = await props.params
+  const { documentId } = params
 
-    // Decrypt ID
-    const decrypted = decryptId(decodeURIComponent(documentId));
+  // Decrypt ID
+  const decrypted = decryptId(decodeURIComponent(documentId))
 
-    if (!decrypted || !decrypted.docId) {
-        return new NextResponse("Invalid document token", { status: 400 });
-    }
+  if (!decrypted || !decrypted.docId) {
+    return new NextResponse('Invalid document token', { status: 400 })
+  }
 
-    const { docId: id, userId: tokenUserId } = decrypted;
+  const { docId: id, userId: tokenUserId } = decrypted
 
-    // 1. Auth Check
-    const supabase = await createClient();
-    const {
-        data: { user: authUser },
-        error: authError,
-    } = await supabase.auth.getUser();
+  // 1. Auth Check
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-    if (authError || !authUser) {
-        return new NextResponse("Unauthorized", { status: 401 });
-    }
+  if (authError || !authUser) {
+    return new NextResponse('Unauthorized', { status: 401 })
+  }
 
-    // 2. Authorization & Database Lookup
-    const user = await prisma.user.findUnique({
-        where: { supabaseAuthId: authUser.id },
-        include: { subscriptionTier: true },
-    });
+  // 2. Authorization & Database Lookup
+  const user = await prisma.user.findUnique({
+    where: { supabaseAuthId: authUser.id },
+    include: { subscriptionTier: true },
+  })
 
-    if (!user) {
-        return new NextResponse("User not found", { status: 403 });
-    }
+  if (!user) {
+    return new NextResponse('User not found', { status: 403 })
+  }
 
-    // NEW: Check if token is bound to this user
-    if (tokenUserId && Number(tokenUserId) !== user.id) {
-        return new NextResponse("Invalid session token. Please refresh the page.", { status: 403 });
-    }
+  // NEW: Check if token is bound to this user
+  if (tokenUserId && Number(tokenUserId) !== user.id) {
+    return new NextResponse('Invalid session token. Please refresh the page.', {
+      status: 403,
+    })
+  }
 
-    const document = await prisma.document.findUnique({
-        where: { id },
-    });
+  const document = await prisma.document.findUnique({
+    where: { id },
+  })
 
-    if (!document || document.status !== "APPROVED") {
-        // Return 404 to avoid leaking existence of unapproved/deleted files
-        return new NextResponse("Document not found", { status: 404 });
-    }
+  if (!document || document.status !== 'APPROVED') {
+    // Return 404 to avoid leaking existence of unapproved/deleted files
+    return new NextResponse('Document not found', { status: 404 })
+  }
 
-    // Role & Tier Checks
-    // Admin/Owner/SuperAdmin always allowed
-    const isPrivileged = ["ADMIN", "SUPERADMIN", "OWNER"].includes(user.role);
+  // Role & Tier Checks
+  // Admin/Owner/SuperAdmin always allowed
+  const isPrivileged = ['ADMIN', 'SUPERADMIN', 'OWNER'].includes(user.role)
 
-    // Registered users check tier
-    // If undefined tier (shouldn't happen), deny
-    const tierName = user.subscriptionTier?.tierName;
-    const isPaid = tierName === "PAID";
-    // Free users allowed with activity logging (limits enforced elsewhere or implicitly by session)
-    const isFree = tierName === "FREE";
+  // Registered users check tier
+  // If undefined tier (shouldn't happen), deny
+  const tierName = user.subscriptionTier?.tierName
+  const isPaid = tierName === 'PAID'
+  // Free users allowed with activity logging (limits enforced elsewhere or implicitly by session)
+  const isFree = tierName === 'FREE'
 
-    if (!isPrivileged && !isPaid && !isFree) {
-        return new NextResponse("Forbidden: Access Denied", { status: 403 });
-    }
+  if (!isPrivileged && !isPaid && !isFree) {
+    return new NextResponse('Forbidden: Access Denied', { status: 403 })
+  }
 
-    // 3. File Retrieval
-    const { data: fileData, error: fileError } = await supabaseAdmin.storage
-        .from("PDF_UPLOADS")
-        .download(document.filePath);
+  // 3. File Retrieval
+  const { data: fileData, error: fileError } = await supabaseAdmin.storage
+    .from('PDF_UPLOADS')
+    .download(document.filePath)
 
-    if (fileError || !fileData) {
-        console.error(`[PDF Stream] Storage Error for doc ${id}:`, fileError);
-        return new NextResponse("File retrieval failed", { status: 500 });
-    }
+  if (fileError || !fileData) {
+    console.error(`[PDF Stream] Storage Error for doc ${id}:`, fileError)
+    return new NextResponse('File retrieval failed', { status: 500 })
+  }
 
-    // 4. Activity Logging
-    try {
-        // We log the download. 
-        // Note: If streaming fails mid-way, this still counts.
-        await prisma.activityLog.create({
-            data: {
-                userId: user.id,
-                documentId: document.id,
-                activityType: "download",
-            },
-        });
-    } catch (e) {
-        console.error(`[PDF Stream] Logging failed for user ${user.id} doc ${id}:`, e);
-        // Continue even if logging fails? 
-        // Usually yes, don't block user for logging error, but could be critical for audit.
-        // Proceeding.
-    }
+  // 4. Activity Logging
+  try {
+    // We log the download.
+    // Note: If streaming fails mid-way, this still counts.
+    await prisma.activityLog.create({
+      data: {
+        userId: user.id,
+        documentId: document.id,
+        activityType: 'download',
+      },
+    })
+  } catch (e) {
+    console.error(
+      `[PDF Stream] Logging failed for user ${user.id} doc ${id}:`,
+      e,
+    )
+    // Continue even if logging fails?
+    // Usually yes, don't block user for logging error, but could be critical for audit.
+    // Proceeding.
+  }
 
-    // 5. Streaming Response
-    const headers = new Headers();
-    // set content-type
-    headers.set("Content-Type", document.mimeType || "application/pdf");
-    // inline = view, attachment = download. Requirement says "Stream file contents".
-    // Frontend uses blob() -> createObjectURL -> <a download>. 
-    // 'inline' is better for viewing in browser if they navigate directly, 
-    // but for the download button it doesn't matter much.
-    // Using inline to allow browser viewing if desired.
-    headers.set(
-        "Content-Disposition",
-        `inline; filename="${document.originalFileName || `document-${id}.pdf`}"`
-    );
+  // 5. Streaming Response
+  const headers = new Headers()
+  // set content-type
+  headers.set('Content-Type', document.mimeType || 'application/pdf')
+  // inline = view, attachment = download. Requirement says "Stream file contents".
+  // Frontend uses blob() -> createObjectURL -> <a download>.
+  // 'inline' is better for viewing in browser if they navigate directly,
+  // but for the download button it doesn't matter much.
+  // Using inline to allow browser viewing if desired.
+  headers.set(
+    'Content-Disposition',
+    `inline; filename="${document.originalFileName || `document-${id}.pdf`}"`,
+  )
 
-    return new NextResponse(fileData.stream(), {
-        headers,
-        status: 200,
-    });
+  return new NextResponse(fileData.stream(), {
+    headers,
+    status: 200,
+  })
 }

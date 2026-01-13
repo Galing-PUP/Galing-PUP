@@ -1,79 +1,79 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { FilterX } from "lucide-react";
-import { ResourceTypes } from "@/lib/generated/prisma/enums";
-import { formatResourceType } from "@/lib/utils/format";
+} from '@/components/ui/select'
+import { ResourceTypes } from '@/lib/generated/prisma/enums'
+import { formatResourceType } from '@/lib/utils/format'
+import { FilterX } from 'lucide-react'
+import { useState } from 'react'
 
 export type FilterValues = {
-  course: string;
-  yearRange: "Anytime" | "last3years" | "last5years" | "last10years";
-  documentType: ResourceTypes | "All Types";
-};
+  course: string
+  yearRange: 'Anytime' | 'last3years' | 'last5years' | 'last10years'
+  documentType: ResourceTypes | 'All Types'
+}
 
 type FilterBoxProps = {
-  className?: string;
+  className?: string
   /** Visual style variant for the filter box */
-  variant?: "pill" | "sidebar";
+  variant?: 'pill' | 'sidebar'
   /** Notify parent when filters change */
-  onChange?: (filters: FilterValues) => void;
+  onChange?: (filters: FilterValues) => void
   /** Available courses coming from the database */
-  courseOptions?: string[];
+  courseOptions?: string[]
   /** Whether the filters accordion should be expanded by default */
-  defaultExpanded?: boolean;
-};
+  defaultExpanded?: boolean
+}
 
 const DEFAULT_FILTERS: FilterValues = {
-  course: "All Courses",
-  yearRange: "Anytime",
-  documentType: "All Types",
-};
+  course: 'All Courses',
+  yearRange: 'Anytime',
+  documentType: 'All Types',
+}
 
 export function FilterBox({
-  className = "",
-  variant = "pill",
+  className = '',
+  variant = 'pill',
   onChange,
   courseOptions = [],
   defaultExpanded = false,
 }: FilterBoxProps) {
-  const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS)
 
   const updateFilters = (next: FilterValues) => {
-    setFilters(next);
-    onChange?.(next);
-  };
+    setFilters(next)
+    onChange?.(next)
+  }
 
   const handleClearFilters = () => {
-    updateFilters(DEFAULT_FILTERS);
-  };
+    updateFilters(DEFAULT_FILTERS)
+  }
 
   const handleValueChange = (key: keyof FilterValues, value: string) => {
-    updateFilters({ ...filters, [key]: value });
-  };
+    updateFilters({ ...filters, [key]: value })
+  }
 
   const activeFilterCount = Object.values(filters).filter(
-    (value) => !value.startsWith("All") && value !== "Anytime"
-  ).length;
+    (value) => !value.startsWith('All') && value !== 'Anytime',
+  ).length
 
   // Sidebar variant: static card with filters always visible (used on browse page)
-  if (variant === "sidebar") {
+  if (variant === 'sidebar') {
     return (
       <Card
         className={`w-full rounded-2xl border border-pup-maroon/15 bg-white/95 shadow-sm ${className}`}
@@ -99,30 +99,47 @@ export function FilterBox({
             </Label>
             <RadioGroup
               value={filters.yearRange}
-              onValueChange={(value) => handleValueChange("yearRange", value as FilterValues["yearRange"])}
+              onValueChange={(value) =>
+                handleValueChange(
+                  'yearRange',
+                  value as FilterValues['yearRange'],
+                )
+              }
               className="space-y-2"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="Anytime" id="Anytime" />
-                <Label htmlFor="Anytime" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="Anytime"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Anytime
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="last3years" id="last3years" />
-                <Label htmlFor="last3years" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="last3years"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Last 3 Years
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="last5years" id="last5years" />
-                <Label htmlFor="last5years" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="last5years"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Last 5 Years
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="last10years" id="last10years" />
-                <Label htmlFor="last10years" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="last10years"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Last 10 Years
                 </Label>
               </div>
@@ -139,7 +156,7 @@ export function FilterBox({
             </Label>
             <Select
               value={filters.course}
-              onValueChange={(value) => handleValueChange("course", value)}
+              onValueChange={(value) => handleValueChange('course', value)}
             >
               <SelectTrigger
                 id="course-filter"
@@ -169,7 +186,7 @@ export function FilterBox({
             <Select
               value={filters.documentType}
               onValueChange={(value) =>
-                handleValueChange("documentType", value)
+                handleValueChange('documentType', value)
               }
             >
               <SelectTrigger
@@ -201,7 +218,7 @@ export function FilterBox({
           </Button>
         </div>
       </Card>
-    );
+    )
   }
 
   // Pill variant: compact trigger with floating dropdown (used on admin publication page)
@@ -212,7 +229,7 @@ export function FilterBox({
       <Accordion
         type="single"
         collapsible
-        defaultValue={defaultExpanded ? "filters" : undefined}
+        defaultValue={defaultExpanded ? 'filters' : undefined}
         className="w-full"
       >
         <AccordionItem value="filters" className="border-none">
@@ -238,7 +255,7 @@ export function FilterBox({
                 </Label>
                 <Select
                   value={filters.course}
-                  onValueChange={(value) => handleValueChange("course", value)}
+                  onValueChange={(value) => handleValueChange('course', value)}
                 >
                   <SelectTrigger id="course-filter" className="w-full">
                     <SelectValue placeholder="Select Course" />
@@ -261,30 +278,47 @@ export function FilterBox({
                 </Label>
                 <RadioGroup
                   value={filters.yearRange}
-                  onValueChange={(value) => handleValueChange("yearRange", value as FilterValues["yearRange"])}
+                  onValueChange={(value) =>
+                    handleValueChange(
+                      'yearRange',
+                      value as FilterValues['yearRange'],
+                    )
+                  }
                   className="space-y-2"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Anytime" id="Anytime-pill" />
-                    <Label htmlFor="anytime-pill" className="text-sm font-normal cursor-pointer">
+                    <Label
+                      htmlFor="anytime-pill"
+                      className="text-sm font-normal cursor-pointer"
+                    >
                       Anytime
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="last3years" id="last3years-pill" />
-                    <Label htmlFor="last3years-pill" className="text-sm font-normal cursor-pointer">
+                    <Label
+                      htmlFor="last3years-pill"
+                      className="text-sm font-normal cursor-pointer"
+                    >
                       Last 3 Years
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="last5years" id="last5years-pill" />
-                    <Label htmlFor="last5years-pill" className="text-sm font-normal cursor-pointer">
+                    <Label
+                      htmlFor="last5years-pill"
+                      className="text-sm font-normal cursor-pointer"
+                    >
                       Last 5 Years
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="last10years" id="last10years-pill" />
-                    <Label htmlFor="last10years-pill" className="text-sm font-normal cursor-pointer">
+                    <Label
+                      htmlFor="last10years-pill"
+                      className="text-sm font-normal cursor-pointer"
+                    >
                       Last 10 Years
                     </Label>
                   </div>
@@ -302,7 +336,7 @@ export function FilterBox({
                 <Select
                   value={filters.documentType}
                   onValueChange={(value) =>
-                    handleValueChange("documentType", value)
+                    handleValueChange('documentType', value)
                   }
                 >
                   <SelectTrigger id="type-filter" className="w-full">
@@ -334,7 +368,7 @@ export function FilterBox({
         </AccordionItem>
       </Accordion>
     </Card>
-  );
+  )
 }
 
-export default FilterBox;
+export default FilterBox

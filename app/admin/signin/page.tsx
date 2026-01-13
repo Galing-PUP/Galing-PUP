@@ -1,120 +1,131 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
-import { checkUserStatus, verifyCredentials, getCurrentUser } from "@/lib/actions";
-import { RoleName } from "@/lib/generated/prisma/enums";
-import { useEffect } from "react";
+import {
+  checkUserStatus,
+  getCurrentUser,
+  verifyCredentials,
+} from '@/lib/actions'
+import { createClient } from '@/lib/supabase/client'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
-import starLogo from "@/assets/Logo/star-logo-yellow.png";
-import sideIllustration from "@/assets/Graphics/side-img-staff-signin.png";
+import sideIllustration from '@/assets/Graphics/side-img-staff-signin.png'
+import starLogo from '@/assets/Logo/star-logo-yellow.png'
 
 export default function AdminSignInPage() {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (session) {
-        const user = await getCurrentUser();
+        const user = await getCurrentUser()
         if (user) {
-          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN" || user.role === "OWNER";
-          router.replace(isAdmin ? "/admin/publication" : "/");
+          const isAdmin =
+            user.role === 'ADMIN' ||
+            user.role === 'SUPERADMIN' ||
+            user.role === 'OWNER'
+          router.replace(isAdmin ? '/admin/publication' : '/')
         }
       }
-    };
-    checkSession();
-  }, [router]);
+    }
+    checkSession()
+  }, [router])
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
     try {
       // Step 1: Check user status
-      const status = await checkUserStatus(email);
+      const status = await checkUserStatus(email)
 
       if (!status.exists) {
-        toast.error("User is not found, if you are college admin please click the request-access link below");
-        setLoading(false);
-        return;
+        toast.error(
+          'User is not found, if you are college admin please click the request-access link below',
+        )
+        setLoading(false)
+        return
       }
 
       // Step 2: Verify credentials & Sign in with Supabase
-      const supabase = createClient();
+      const supabase = createClient()
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      });
+      })
 
       // Step 2.1: If Supabase fails, check if we have a valid local password hash
       // This handles cases where seeds/owner scripts set the DB password but Supabase sync might be off or delayed
       if (error) {
-        const validLocal = await verifyCredentials(email, password);
+        const validLocal = await verifyCredentials(email, password)
         if (validLocal && status.isAdmin) {
           // If local is valid, we might need to manually sign them in or just warn them they need to reset
           // But for now, let's treat it as a specific error we can inform them about
-          // Or, if we want to allow login, we can't because Supabase handles the session. 
-          // So we just tell them to use the password from the .env if they are Owner? 
+          // Or, if we want to allow login, we can't because Supabase handles the session.
+          // So we just tell them to use the password from the .env if they are Owner?
           // Actually, if local is valid but Supabase failed, it means they are desynced.
           // We can't log them in without Supabase session.
-          toast.error("Password valid in database but login failed. Please run 'db:owner' to sync credentials.");
-          setLoading(false);
-          return;
+          toast.error(
+            "Password valid in database but login failed. Please run 'db:owner' to sync credentials.",
+          )
+          setLoading(false)
+          return
         }
 
-        toast.error("Invalid password please try again");
-        setLoading(false);
-        return;
+        toast.error('Invalid password please try again')
+        setLoading(false)
+        return
       }
-
-
 
       // Step 3: Check if user is allowed to login here (Role 3 or 4)
       if (!status.isAdmin) {
-        await supabase.auth.signOut(); // Security: Sign out if role is invalid
-        toast.error("User is not set to login here");
-        setLoading(false);
-        return;
+        await supabase.auth.signOut() // Security: Sign out if role is invalid
+        toast.error('User is not set to login here')
+        setLoading(false)
+        return
       }
 
       // Step 4: Check if user is verified
       if (!status.isVerified) {
-        await supabase.auth.signOut(); // Security: Sign out if not verified
+        await supabase.auth.signOut() // Security: Sign out if not verified
         if (status.updatedDate) {
           // Case: Not verified AND has updatedDate -> On Hold
-          toast.error("Your account has been put ON HOLD, please contact the support team");
+          toast.error(
+            'Your account has been put ON HOLD, please contact the support team',
+          )
         } else {
           // Case: Not verified AND updatedDate is NULL -> Pending
-          toast.message("Your request is kindly processing, please wait for admin approval");
+          toast.message(
+            'Your request is kindly processing, please wait for admin approval',
+          )
         }
-        setLoading(false);
-        return;
+        setLoading(false)
+        return
       }
 
       // Success: Redirect
-      toast.success("Signed in successfully");
-      router.push("/admin/publication");
-      router.refresh();
-
-
+      toast.success('Signed in successfully')
+      router.push('/admin/publication')
+      router.refresh()
     } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "An unexpected error occurred");
+      console.error('Login error:', error)
+      toast.error(error.message || 'An unexpected error occurred')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col bg-white">
@@ -184,7 +195,7 @@ export default function AdminSignInPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -230,14 +241,14 @@ export default function AdminSignInPage() {
                 disabled={loading}
                 className="w-full rounded-lg bg-[#7C1D1D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5a1515] disabled:opacity-50"
               >
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
 
             {/* Request Access Link */}
             <div className="text-center">
               <p className="text-sm text-neutral-500">
-                Don&apos;t have an account?{" "}
+                Don&apos;t have an account?{' '}
                 <Link
                   href="/admin/request-access"
                   className="font-semibold text-[#7C1D1D] transition hover:underline"
@@ -264,5 +275,5 @@ export default function AdminSignInPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
