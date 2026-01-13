@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Copy, Check, Loader2, Quote } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +44,7 @@ export function CitationModal({
   const [citations, setCitations] = useState<CitationFormats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLimitError, setIsLimitError] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<CitationFormat>("apa");
   const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null);
   const [usage, setUsage] = useState<{
@@ -67,12 +69,17 @@ export function CitationModal({
   const fetchCitations = async () => {
     setIsLoading(true);
     setError(null);
+    setIsLimitError(false);
 
     try {
       const response = await fetch(`/api/citations/${documentId}`);
       const result = await response.json();
 
       if (!response.ok) {
+        // Check if it's a rate limit error (429 or 403)
+        if (response.status === 429 || response.status === 403) {
+          setIsLimitError(true);
+        }
         throw new Error(result.error || "Failed to generate citations");
       }
 
@@ -168,13 +175,22 @@ export function CitationModal({
         {error && !isLoading && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <p className="text-sm text-red-800">{error}</p>
-            <button
-              type="button"
-              onClick={fetchCitations}
-              className="mt-3 text-sm font-medium text-pup-maroon hover:underline"
-            >
-              Try again
-            </button>
+            {isLimitError ? (
+              <Link
+                href="/pricing"
+                className="mt-3 inline-block rounded-md bg-pup-maroon px-4 py-2 text-sm font-medium text-white hover:bg-pup-maroon/90 transition-colors"
+              >
+                Upgrade to Premium
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={fetchCitations}
+                className="mt-3 text-sm font-medium text-pup-maroon hover:underline"
+              >
+                Try again
+              </button>
+            )}
           </div>
         )}
 
