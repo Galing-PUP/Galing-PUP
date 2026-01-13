@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createClient } from "@/lib/supabase/client";
+import {
+  userPreferencesSchema,
+  type UserPreferencesFormValues,
+} from "@/lib/validations/user-preferences-schema";
 
 type UserPreferencesModalProps = {
   isOpen: boolean;
@@ -24,99 +29,6 @@ type UserPreferencesModalProps = {
   initialUsername: string;
   onUsernameUpdated?: (nextUsername: string) => void;
 };
-
-/**
- * Validation schema for user preferences form
- */
-const preferencesSchema = z
-  .object({
-    username: z
-      .string()
-      .min(1, "Username is required")
-      .min(2, "Username must be at least 2 characters")
-      .regex(
-        /^[a-zA-Z0-9.]+$/,
-        "Username can only contain letters, numbers, and periods"
-      ),
-    newPassword: z.string().optional(),
-    confirmPassword: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      // If password is provided, it must meet requirements
-      if (data.newPassword && data.newPassword.length > 0) {
-        return data.newPassword.length >= 8;
-      }
-      return true;
-    },
-    {
-      message: "Password must be at least 8 characters long",
-      path: ["newPassword"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return /[A-Z]/.test(data.newPassword);
-      }
-      return true;
-    },
-    {
-      message: "Password must contain at least one uppercase letter",
-      path: ["newPassword"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return /[a-z]/.test(data.newPassword);
-      }
-      return true;
-    },
-    {
-      message: "Password must contain at least one lowercase letter",
-      path: ["newPassword"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return /[0-9]/.test(data.newPassword);
-      }
-      return true;
-    },
-    {
-      message: "Password must contain at least one number",
-      path: ["newPassword"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.newPassword && data.newPassword.length > 0) {
-        return /[^A-Za-z0-9]/.test(data.newPassword);
-      }
-      return true;
-    },
-    {
-      message: "Password must contain at least one special character",
-      path: ["newPassword"],
-    }
-  )
-  .refine(
-    (data) => {
-      // If either password field has a value, both must match
-      if (data.newPassword || data.confirmPassword) {
-        return data.newPassword === data.confirmPassword;
-      }
-      return true;
-    },
-    {
-      message: "Passwords do not match",
-      path: ["confirmPassword"],
-    }
-  );
-
-type PreferencesFormValues = z.infer<typeof preferencesSchema>;
 
 /**
  * Modal for updating the authenticated user's own preferences.
@@ -131,12 +43,13 @@ export function UserPreferencesModal({
   initialUsername,
   onUsernameUpdated,
 }: UserPreferencesModalProps) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const form = useForm<PreferencesFormValues>({
-    resolver: zodResolver(preferencesSchema),
+  const form = useForm<UserPreferencesFormValues>({
+    resolver: zodResolver(userPreferencesSchema),
     defaultValues: {
       username: initialUsername,
       newPassword: "",
@@ -149,6 +62,7 @@ export function UserPreferencesModal({
     handleSubmit,
     formState: { errors },
     reset,
+    setError,
   } = form;
 
   // Reset form when modal opens or initialUsername changes
@@ -177,8 +91,9 @@ export function UserPreferencesModal({
   /**
    * Handles form submission with username availability check
    */
-  const onSubmit = async (data: PreferencesFormValues) => {
+  const onSubmit = async (data: UserPreferencesFormValues) => {
     const trimmedUsername = data.username.trim();
+    const isPasswordChanged = data.newPassword && data.newPassword.length > 0;
 
     // Check username availability if it changed
     if (trimmedUsername !== initialUsername) {
@@ -197,7 +112,10 @@ export function UserPreferencesModal({
           await checkResponse.json();
 
         if (!checkData.available) {
-          toast.error("This username is already taken");
+          setError("username", {
+            type: "manual",
+            message: "This username is already taken",
+          });
           return;
         }
       } catch (error) {
@@ -240,6 +158,16 @@ export function UserPreferencesModal({
       });
 
       handleClose();
+
+      // If password was changed, sign out and redirect to home
+      if (isPasswordChanged) {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        
+        toast.success("Password changed. Please sign in with your new password.");
+        router.push("/");
+        router.refresh();
+      }
     } catch (error: unknown) {
       console.error("Failed to update preferences:", error);
       toast.error(
@@ -304,7 +232,7 @@ export function UserPreferencesModal({
               <Input
                 id="preferences-new-password"
                 type={showNewPassword ? "text" : "password"}
-                className={`rounded-lg border px-3 py-2 pr-10 text-sm text-neutral-900 focus:outline-none focus:ring-1 ${
+                className={`rounded-lg border px-3 py-2 pr-9 text-sm text-neutral-900 focus:outline-none focus:ring-1 ${
                   errors.newPassword
                     ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                     : "border-neutral-200 focus:border-pup-maroon focus:ring-pup-maroon"
@@ -317,15 +245,18 @@ export function UserPreferencesModal({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 hover:bg-transparent"
                 onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
                 aria-label={showNewPassword ? "Hide password" : "Show password"}
               >
                 {showNewPassword ? (
-                  <EyeOff className="h-4 w-4 text-neutral-400" />
+                  <EyeOff className="h-5 w-5" />
                 ) : (
-                  <Eye className="h-4 w-4 text-neutral-400" />
+                  <Eye className="h-5 w-5" />
                 )}
+                <span className="sr-only">
+                  {showNewPassword ? "Hide password" : "Show password"}
+                </span>
               </Button>
             </div>
             {errors.newPassword && (
@@ -347,7 +278,7 @@ export function UserPreferencesModal({
               <Input
                 id="preferences-confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
-                className={`rounded-lg border px-3 py-2 pr-10 text-sm text-neutral-900 focus:outline-none focus:ring-1 ${
+                className={`rounded-lg border px-3 py-2 pr-9 text-sm text-neutral-900 focus:outline-none focus:ring-1 ${
                   errors.confirmPassword
                     ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                     : "border-neutral-200 focus:border-pup-maroon focus:ring-pup-maroon"
@@ -360,17 +291,20 @@ export function UserPreferencesModal({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 hover:bg-transparent"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
                 aria-label={
                   showConfirmPassword ? "Hide password" : "Show password"
                 }
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4 text-neutral-400" />
+                  <EyeOff className="h-5 w-5" />
                 ) : (
-                  <Eye className="h-4 w-4 text-neutral-400" />
+                  <Eye className="h-5 w-5" />
                 )}
+                <span className="sr-only">
+                  {showConfirmPassword ? "Hide password" : "Show password"}
+                </span>
               </Button>
             </div>
             {errors.confirmPassword && (

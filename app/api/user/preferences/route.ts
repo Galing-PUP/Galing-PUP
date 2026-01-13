@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAuthenticatedUserId } from "@/lib/auth/server";
-import { hash } from "bcryptjs";
+import { hash, compare } from "bcryptjs";
 
 type PreferencesPayload = {
   username?: string;
@@ -87,7 +87,10 @@ export async function PATCH(request: Request) {
 
     const dbUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { supabaseAuthId: true },
+      select: { 
+        supabaseAuthId: true,
+        passwordHash: true, // Fetch current password hash for comparison
+      },
     });
 
     if (!dbUser) {
@@ -135,6 +138,17 @@ export async function PATCH(request: Request) {
     }
 
     if (typeof newPassword === "string" && newPassword.trim().length > 0) {
+      // Check if new password is the same as current password
+      if (dbUser.passwordHash) {
+        const isSamePassword = await compare(newPassword, dbUser.passwordHash);
+        if (isSamePassword) {
+          return NextResponse.json(
+            { error: "New password cannot be the same as your current password" },
+            { status: 400 },
+          );
+        }
+      }
+
       authUpdatePayload.password = newPassword;
       const passwordHash = await hash(newPassword, 10);
       updateData.passwordHash = passwordHash;
