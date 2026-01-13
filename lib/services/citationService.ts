@@ -275,11 +275,15 @@ export async function logCitationActivity(
 
 /**
  * Generates citations for a document in multiple academic formats
+ * Also increments the citation counter for the document
  * @param documentId - The ID of the document to generate citations for
- * @returns Object containing citations in all supported formats
+ * @returns Object containing citations and updated citation count
  * @throws Error if document is not found
  */
-export async function generateCitations(documentId: number): Promise<CitationFormats> {
+export async function generateCitations(documentId: number): Promise<{
+  citations: CitationFormats;
+  citationCount: number;
+}> {
   // Fetch document with all necessary relations
   const document = await prisma.document.findUnique({
     where: { id: documentId },
@@ -357,13 +361,30 @@ export async function generateCitations(documentId: number): Promise<CitationFor
   const cite = new Cite(cslData);
   const bibtex = cite.format('bibtex');
 
-  // Return all citation formats
+  // Increment citation count atomically
+  const updatedDocument = await prisma.document.update({
+    where: { id: documentId },
+    data: {
+      citationCount: {
+        increment: 1,
+      },
+    },
+    select: {
+      citationCount: true,
+    },
+  });
+
+  // Return citations and updated count
   return {
-    apa,
-    mla,
-    ieee,
-    acm,
-    chicago,
-    bibtex,
+    citations: {
+      apa,
+      mla,
+      ieee,
+      acm,
+      chicago,
+      bibtex,
+    },
+    citationCount: updatedDocument.citationCount,
   };
 }
+

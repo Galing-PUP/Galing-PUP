@@ -77,7 +77,7 @@ export async function GET(
     }
 
     // 4. Generate Citations
-    const citations = await generateCitations(documentId);
+    const { citations, citationCount } = await generateCitations(documentId);
 
     // 5. Activity Logging (Post-Action)
     try {
@@ -91,6 +91,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: citations,
+      citationCount: citationCount,
     });
   } catch (error) {
     // Handle document not found

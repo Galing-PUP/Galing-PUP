@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Copy, Check, Loader2, Quote } from "lucide-react";
 import {
   Dialog,
@@ -38,6 +39,7 @@ export function CitationModal({
   isOpen,
   onClose,
 }: CitationModalProps) {
+  const router = useRouter();
   const [citations, setCitations] = useState<CitationFormats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +73,8 @@ export function CitationModal({
 
       if (result.success && result.data) {
         setCitations(result.data);
+        // Refresh server components to update citation count
+        router.refresh();
       } else {
         throw new Error("Invalid response format");
       }

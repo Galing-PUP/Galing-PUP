@@ -57,5 +57,7 @@ export interface CSLData {
 export interface CitationServiceResponse {
   success: boolean;
   data?: CitationFormats;
+  citationCount?: number;
   error?: string;
 }
+
