@@ -28,7 +28,7 @@ export default function LibraryPage() {
     useState<LibrarySortOption>("bookmarked-newest");
   const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [maxBookmarks, setMaxBookmarks] = useState(10);
+  const [maxBookmarks, setMaxBookmarks] = useState<number | null>(10);
   const [tierName, setTierName] = useState("Free");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -151,7 +151,7 @@ export default function LibraryPage() {
               </div>
               <div className="text-right">
                 <div className="text-4xl font-bold text-white">
-                  {bookmarkedPapers.length} / {maxBookmarks}
+                  {bookmarkedPapers.length} / {maxBookmarks === null ? "∞" : maxBookmarks}
                 </div>
                 <p className="text-sm text-gray-200">Bookmarks Used</p>
               </div>
@@ -161,8 +161,8 @@ export default function LibraryPage() {
 
         {/* Main Content */}
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-          {/* Premium Banner */}
-          {bookmarkedPapers.length >= maxBookmarks && (
+          {/* Premium Banner - only show if limit is not null and reached */}
+          {maxBookmarks !== null && bookmarkedPapers.length >= maxBookmarks && (
             <div className="mb-6">
               <PremiumBanner
                 usedBookmarks={bookmarkedPapers.length}

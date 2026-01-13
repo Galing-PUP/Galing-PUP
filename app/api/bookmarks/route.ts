@@ -184,12 +184,14 @@ export async function POST(request: NextRequest) {
       where: { userId: userId },
     });
 
-    if (bookmarkCount >= user.subscriptionTier.maxBookmarks) {
+    // Check bookmark limit (null means unlimited)
+    const maxBookmarks = user.subscriptionTier.maxBookmarks;
+    if (maxBookmarks !== null && bookmarkCount >= maxBookmarks) {
       return NextResponse.json(
         {
           success: false,
-          message: `Bookmark limit reached. You can only save ${user.subscriptionTier.maxBookmarks} bookmarks with your current tier.`,
-          maxBookmarks: user.subscriptionTier.maxBookmarks,
+          message: `Bookmark limit reached. You can only save ${maxBookmarks} bookmarks with your current tier.`,
+          maxBookmarks: maxBookmarks,
           currentCount: bookmarkCount,
         },
         { status: 403 }
