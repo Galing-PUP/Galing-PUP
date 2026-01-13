@@ -23,7 +23,10 @@ export function RoleBadge({ role }: RoleBadgeProps) {
   };
 
   const getLabel = () => {
-    if (normalizedRole === "superadmin" || normalizedRole === "admin") {
+    if (normalizedRole === "superadmin") {
+      return "Super Admin";
+    }
+    if (normalizedRole === "admin") {
       return "Admin";
     }
     if (normalizedRole === "registered") {
