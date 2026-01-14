@@ -35,9 +35,6 @@ export function RoleBadge({ role }: RoleBadgeProps) {
     if (normalizedRole === 'registered') {
       return 'Registered'
     }
-    if (normalizedRole === 'viewer') {
-      return 'Viewer'
-    }
     return role
   }
 
