@@ -3,9 +3,7 @@
 ![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-
 A Next.js application for academic research paper discovery and analysis, built with Next.js 16, React 19, and shadcn/ui.
-
 
 - [Galing-PUP](#galing-pup)
   - [Tech Stack](#tech-stack)
@@ -34,7 +32,6 @@ A Next.js application for academic research paper discovery and analysis, built 
   - [Deployment](#deployment)
   - [Learn More](#learn-more)
   - [Support](#support)
-
 
 ## Tech Stack
 
@@ -109,10 +106,9 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
    git checkout -b fix/your-fix-name
    ```
 
-
 2. **Make your changes** following the coding standards below.
 
->[!IMPORTANT] **Commit Message Guidelines (Conventional Commits)**  
+> [!IMPORTANT] **Commit Message Guidelines (Conventional Commits)**  
 > Use these prefixes in your commit messages to maintain consistency and clarity.
 
 - `feat:` Add a new feature or capability  
@@ -122,7 +118,7 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
   Example: `fix: resolve navigation error on mobile`
 
 - `chore:` Maintenance tasks or refactoring that does not affect functionality  
-  Example: `chore: update dependencies`  
+  Example: `chore: update dependencies`
 
 - `docs:` Documentation-only changes  
   Example: `docs: update CONTRIBUTING.md`
@@ -191,8 +187,8 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
 
   ```typescript
   interface SearchResult {
-    id: string;
-    title: string;
+    id: string
+    title: string
   }
   ```
 
@@ -232,8 +228,8 @@ We welcome contributions! Please follow these guidelines to maintain code qualit
 - Use absolute imports with `@/` prefix:
 
   ```typescript
-  import { Button } from "@/components/button"
-  import { mockResults } from "@/data/mockResults"
+  import { Button } from '@/components/button'
+  import { mockResults } from '@/data/mockResults'
   ```
 
 ### Using Next.js MCP Server (VS Code Copilot Users)
@@ -254,20 +250,18 @@ This ensures:
 
 ### Prisma ORM & Supabase
 
-
-
 #### Supabase (Local)
 
 Galing-PUP application uses Supabase PostgreSQL as the backend database for CRUD operations.
 
 **Running locally**
 
-> [!NOTE] 
+> [!NOTE]
 > For macOS 15 or lower If the health check fails, pass the flag `--ignore-health-check` to run anyway.
 
 **Prerequisites:** Docker or Docker Desktop must be installed.
 
->[!NOTE]
+> [!NOTE]
 > If `docker-desktop` fails to run the engine, try exporting via `export DOCKER_HOST=unix:///var/run/docker.sock`
 
 **Start Supabase locally:** run `bunx supabase start` or `npx supabase start`
@@ -277,14 +271,16 @@ Galing-PUP application uses Supabase PostgreSQL as the backend database for CRUD
 #### Supabase (Web)
 
 **1. Create a new project**
-  - Go to "New Project"
-  - Enter Project Name, Database Password, Region
-  - Wait for the project to initialize
+
+- Go to "New Project"
+- Enter Project Name, Database Password, Region
+- Wait for the project to initialize
 
 **2. Retrieve connection details**
- - Go to "Settings" -> "Database"
- - Copy the "Connection String" (PostgreSQL URL)
- - This URL will be used to connect Prisma or other clients
+
+- Go to "Settings" -> "Database"
+- Copy the "Connection String" (PostgreSQL URL)
+- This URL will be used to connect Prisma or other clients
 
 ```sql
 create user "prisma" with password 'galingpuplocal' bypassrls createdb;
@@ -314,24 +310,21 @@ Prisma is an ORM (Object-Relational Mapper) that abstracts database operations, 
 - Quickstart guide on [prisma](https://www.prisma.io/docs/getting-started/prisma-orm/quickstart/prisma-postgres)
 - Latest Changes in [Prisma 7](https://www.prisma.io/docs/orm/more/upgrade-guides/upgrading-versions/upgrading-to-prisma-7) as of November 18, 2025
 
-
 #### Setup
 
 `bunx prisma migrate` or `npx prisma migrate`
 
-####  Migrating
+#### Migrating
 
 Creates a SQL migration file for rollback to older version in case of errors
 
 `bunx prisma migrate dev` or `npx prisma migrate dev`
 
-#### Seeding 
+#### Seeding
 
 Populate the database for testing
 
 `bunx prisma db seed` or `npx prisma db seed`
-
-
 
 ### Adding shadcn/ui Components
 

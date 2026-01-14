@@ -1,25 +1,25 @@
 /**
  * API Route: Generate Citations
  * GET /api/citations/[id]
- * 
+ *
  * Generates academic citations for a document in multiple formats
  * Requires authentication and enforces daily citation limits
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUserId } from '@/lib/auth/server';
+import { getAuthenticatedUserId } from '@/lib/auth/server'
 import {
-  generateCitations,
   checkCitationLimit,
+  generateCitations,
   logCitationActivity,
-} from '@/lib/services/citationService';
-import type { CitationServiceResponse } from '@/types/citation';
+} from '@/lib/services/citationService'
+import type { CitationServiceResponse } from '@/types/citation'
+import { NextRequest, NextResponse } from 'next/server'
 
 type RouteParams = {
   params: Promise<{
-    id: string;
-  }>;
-};
+    id: string
+  }>
+}
 
 /**
  * GET handler for citation generation
@@ -29,11 +29,11 @@ type RouteParams = {
  */
 export async function GET(
   request: NextRequest,
-  context: RouteParams
+  context: RouteParams,
 ): Promise<NextResponse<CitationServiceResponse>> {
   try {
     // 1. Authentication Check
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedUserId()
 
     if (!userId) {
       return NextResponse.json(
@@ -41,13 +41,13 @@ export async function GET(
           success: false,
           error: 'Unauthorized. Please sign in to generate citations.',
         },
-        { status: 401 }
-      );
+        { status: 401 },
+      )
     }
 
     // 2. Validate document ID
-    const { id: idParam } = await context.params;
-    const documentId = Number(idParam);
+    const { id: idParam } = await context.params
+    const documentId = Number(idParam)
 
     if (Number.isNaN(documentId) || documentId <= 0) {
       return NextResponse.json(
@@ -55,36 +55,42 @@ export async function GET(
           success: false,
           error: 'Invalid document ID. Must be a positive number.',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
     // 3. Rate Limiting Pre-Check
     try {
-      await checkCitationLimit(userId, documentId);
+      await checkCitationLimit(userId, documentId)
     } catch (limitError) {
       // Handle limit reached error
-      if (limitError instanceof Error && limitError.message.includes('limit reached')) {
+      if (
+        limitError instanceof Error &&
+        limitError.message.includes('limit reached')
+      ) {
         return NextResponse.json(
           {
             success: false,
             error: limitError.message,
           },
-          { status: 429 } // 429 Too Many Requests
-        );
+          { status: 429 }, // 429 Too Many Requests
+        )
       }
-      throw limitError; // Re-throw if it's a different error
+      throw limitError // Re-throw if it's a different error
     }
 
     // 4. Generate Citations
-    const { citations, citationCount, usage } = await generateCitations(documentId, userId);
+    const { citations, citationCount, usage } = await generateCitations(
+      documentId,
+      userId,
+    )
 
     // 5. Activity Logging (Post-Action)
     try {
-      await logCitationActivity(userId, documentId);
+      await logCitationActivity(userId, documentId)
     } catch (logError) {
       // Log the error but don't fail the request
-      console.error('Failed to log citation activity:', logError);
+      console.error('Failed to log citation activity:', logError)
     }
 
     // 6. Return Success Response
@@ -93,7 +99,7 @@ export async function GET(
       data: citations,
       citationCount: citationCount,
       usage: usage,
-    });
+    })
   } catch (error) {
     // Handle document not found
     if (error instanceof Error && error.message.includes('not found')) {
@@ -102,18 +108,18 @@ export async function GET(
           success: false,
           error: 'Document not found.',
         },
-        { status: 404 }
-      );
+        { status: 404 },
+      )
     }
 
     // Handle other errors
-    console.error('Citation generation error:', error);
+    console.error('Citation generation error:', error)
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to generate citations. Please try again later.',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }

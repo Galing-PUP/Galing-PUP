@@ -1,140 +1,132 @@
-"use client";
+'use client'
 
-import { BookmarkCard } from "@/components/library/bookmark-card";
-import { BookmarkCardSkeleton } from "@/components/library/bookmark-card-skeleton";
-import { PremiumBanner } from "@/components/library/premium-banner";
-import { PremiumSection } from "@/components/library/premium-section";
+import { BookmarkCard } from '@/components/library/bookmark-card'
+import { BookmarkCardSkeleton } from '@/components/library/bookmark-card-skeleton'
+import {
+  EmptyLibraryState,
+  LoggedOutState,
+  NoSearchResultsState,
+} from '@/components/library/empty-states'
+import { PremiumBanner } from '@/components/library/premium-banner'
+import { PremiumSection } from '@/components/library/premium-section'
+import { LibrarySearchInput } from '@/components/library/search-input'
 import {
   LibrarySortDropdown,
   LibrarySortOption,
-} from "@/components/library/sort-dropdown";
-import { LibrarySearchInput } from "@/components/library/search-input";
-import { useState, useMemo, useEffect } from "react";
-import * as libraryService from "@/lib/services/libraryService";
-import { toast } from "sonner";
-import {
-  NoSearchResultsState,
-  EmptyLibraryState,
-  LoggedOutState,
-} from "@/components/library/empty-states";
+} from '@/components/library/sort-dropdown'
+import * as libraryService from '@/lib/services/libraryService'
+import { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from '@/lib/supabase/client'
 
-import { BookmarkData } from "@/lib/services/libraryService";
+import { BookmarkData } from '@/lib/services/libraryService'
 
 export default function LibraryPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('')
   const [sortOption, setSortOption] =
-    useState<LibrarySortOption>("bookmarked-newest");
-  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [maxBookmarks, setMaxBookmarks] = useState<number | null>(10);
-  const [tierName, setTierName] = useState("Free");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+    useState<LibrarySortOption>('bookmarked-newest')
+  const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [maxBookmarks, setMaxBookmarks] = useState<number | null>(10)
+  const [tierName, setTierName] = useState('Free')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Fetch bookmarked papers and user tier from API on mount only
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const supabase = createClient();
+        const supabase = createClient()
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } = await supabase.auth.getSession()
 
         if (session) {
-          setIsAuthenticated(true);
+          setIsAuthenticated(true)
           // Fetch both bookmarks and tier info in parallel
           const [bookmarks, tierResponse] = await Promise.all([
             libraryService.getDetailedBookmarks(),
             fetch(`/api/user/tier`),
-          ]);
+          ])
 
-          setBookmarkedPapers(bookmarks);
+          setBookmarkedPapers(bookmarks)
 
           if (tierResponse.ok) {
-            const tierData = await tierResponse.json();
-            setMaxBookmarks(tierData.maxBookmarks);
-            setTierName(tierData.tierName);
+            const tierData = await tierResponse.json()
+            setMaxBookmarks(tierData.maxBookmarks)
+            setTierName(tierData.tierName)
           }
         } else {
-          setIsAuthenticated(false);
+          setIsAuthenticated(false)
         }
       } catch (error) {
-        console.error("Error fetching library data:", error);
+        console.error('Error fetching library data:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   // Filter and sort papers
   const filteredPapers = useMemo(() => {
     // First, filter by search query
-    let papers = bookmarkedPapers;
+    let papers = bookmarkedPapers
 
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase()
       papers = bookmarkedPapers.filter(
         (paper) =>
           paper.document.title.toLowerCase().includes(query) ||
           paper.document.authors.some((author: string) =>
-            author.toLowerCase().includes(query)
+            author.toLowerCase().includes(query),
           ) ||
           paper.document.course.toLowerCase().includes(query) ||
-          paper.document.abstract.toLowerCase().includes(query)
-      );
+          paper.document.abstract.toLowerCase().includes(query),
+      )
     }
 
     // Then, sort the filtered results
     const sorted = [...papers].sort((paperA, paperB) => {
       switch (sortOption) {
-        case "title-asc":
-          return paperA.document.title.localeCompare(paperB.document.title);
-        case "title-desc":
-          return paperB.document.title.localeCompare(paperA.document.title);
-        case "date-newest": {
-          const publishTimeA = new Date(
-            paperA.document.datePublished
-          ).getTime();
-          const publishTimeB = new Date(
-            paperB.document.datePublished
-          ).getTime();
-          return publishTimeB - publishTimeA;
+        case 'title-asc':
+          return paperA.document.title.localeCompare(paperB.document.title)
+        case 'title-desc':
+          return paperB.document.title.localeCompare(paperA.document.title)
+        case 'date-newest': {
+          const publishTimeA = new Date(paperA.document.datePublished).getTime()
+          const publishTimeB = new Date(paperB.document.datePublished).getTime()
+          return publishTimeB - publishTimeA
         }
-        case "date-oldest": {
-          const publishTimeA = new Date(
-            paperA.document.datePublished
-          ).getTime();
-          const publishTimeB = new Date(
-            paperB.document.datePublished
-          ).getTime();
-          return publishTimeA - publishTimeB;
+        case 'date-oldest': {
+          const publishTimeA = new Date(paperA.document.datePublished).getTime()
+          const publishTimeB = new Date(paperB.document.datePublished).getTime()
+          return publishTimeA - publishTimeB
         }
-        case "bookmarked-newest": {
-          const bookmarkTimeA = new Date(paperA.dateBookmarked).getTime();
-          const bookmarkTimeB = new Date(paperB.dateBookmarked).getTime();
-          return bookmarkTimeB - bookmarkTimeA;
+        case 'bookmarked-newest': {
+          const bookmarkTimeA = new Date(paperA.dateBookmarked).getTime()
+          const bookmarkTimeB = new Date(paperB.dateBookmarked).getTime()
+          return bookmarkTimeB - bookmarkTimeA
         }
-        case "bookmarked-oldest": {
-          const bookmarkTimeA = new Date(paperA.dateBookmarked).getTime();
-          const bookmarkTimeB = new Date(paperB.dateBookmarked).getTime();
-          return bookmarkTimeA - bookmarkTimeB;
+        case 'bookmarked-oldest': {
+          const bookmarkTimeA = new Date(paperA.dateBookmarked).getTime()
+          const bookmarkTimeB = new Date(paperB.dateBookmarked).getTime()
+          return bookmarkTimeA - bookmarkTimeB
         }
         default:
-          return 0;
+          return 0
       }
-    });
+    })
 
-    return sorted;
-  }, [bookmarkedPapers, searchQuery, sortOption]);
+    return sorted
+  }, [bookmarkedPapers, searchQuery, sortOption])
 
   // Handle bookmark removal
   const handleRemoveBookmark = async (documentId: number) => {
-    const result = await libraryService.removeBookmark(documentId);
-    return result;
-  };
+    const result = await libraryService.removeBookmark(documentId)
+    return result
+  }
 
   return (
     <>
@@ -151,7 +143,8 @@ export default function LibraryPage() {
               </div>
               <div className="text-right">
                 <div className="text-4xl font-bold text-white">
-                  {bookmarkedPapers.length} / {maxBookmarks === null ? "∞" : maxBookmarks}
+                  {bookmarkedPapers.length} /{' '}
+                  {maxBookmarks === null ? '∞' : maxBookmarks}
                 </div>
                 <p className="text-sm text-gray-200">Bookmarks Used</p>
               </div>
@@ -179,9 +172,9 @@ export default function LibraryPage() {
               className="flex-1"
               disabled={!isAuthenticated || bookmarkedPapers.length === 0}
             />
-            <LibrarySortDropdown 
-              value={sortOption} 
-              onChange={setSortOption} 
+            <LibrarySortDropdown
+              value={sortOption}
+              onChange={setSortOption}
               disabled={!isAuthenticated || bookmarkedPapers.length === 0}
             />
           </div>
@@ -205,7 +198,7 @@ export default function LibraryPage() {
                     field: bookmark.document.course,
                     college: bookmark.document.college,
                     year: new Date(
-                      bookmark.document.datePublished
+                      bookmark.document.datePublished,
                     ).getFullYear(),
                     abstract: bookmark.document.abstract,
                     citations: bookmark.document.citationCount,
@@ -217,9 +210,9 @@ export default function LibraryPage() {
                   onRemove={() => {
                     // Remove card from local state immediately
                     setBookmarkedPapers((prev) =>
-                      prev.filter((b) => b.documentId !== bookmark.documentId)
-                    );
-                    toast.success("Bookmark removed successfully");
+                      prev.filter((b) => b.documentId !== bookmark.documentId),
+                    )
+                    toast.success('Bookmark removed successfully')
                   }}
                   onError={(message) => toast.error(message)}
                 />
@@ -227,7 +220,7 @@ export default function LibraryPage() {
             </div>
           ) : isAuthenticated ? (
             searchQuery ? (
-              <NoSearchResultsState onClear={() => setSearchQuery("")} />
+              <NoSearchResultsState onClear={() => setSearchQuery('')} />
             ) : (
               <EmptyLibraryState />
             )
@@ -244,5 +237,5 @@ export default function LibraryPage() {
         </div>
       </div>
     </>
-  );
+  )
 }

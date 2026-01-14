@@ -1,52 +1,52 @@
-"use client";
+'use client'
 
-import type React from "react";
+import type React from 'react'
 
-import { Check, X } from "lucide-react";
+import { Check, X } from 'lucide-react'
 
 interface PricingFeature {
-  name: string;
-  included: boolean;
+  name: string
+  included: boolean
 }
 
 interface PricingCardProps {
-  title: string;
-  price: number;
-  currency?: string;
-  duration?: string;
-  description: string;
-  features: PricingFeature[];
-  buttonText: string;
-  onButtonClick?: () => void;
-  isRecommended?: boolean;
-  icon?: React.ReactNode;
-  borderColor?: string;
-  buttonColor?: string;
-  accentColor?: string;
+  title: string
+  price: number
+  currency?: string
+  duration?: string
+  description: string
+  features: PricingFeature[]
+  buttonText: string
+  onButtonClick?: () => void
+  isRecommended?: boolean
+  icon?: React.ReactNode
+  borderColor?: string
+  buttonColor?: string
+  accentColor?: string
 }
 
 export function PricingCard({
   title,
   price,
-  currency = "₱",
-  duration = "/forever",
+  currency = '₱',
+  duration = '/forever',
   description,
   features,
   buttonText,
   onButtonClick,
   isRecommended = false,
   icon,
-  borderColor = "border-gray-200",
-  buttonColor = "bg-gray-900",
-  accentColor = "text-green-600",
+  borderColor = 'border-gray-200',
+  buttonColor = 'bg-gray-900',
+  accentColor = 'text-green-600',
 }: PricingCardProps) {
   return (
     <div
       className={`relative flex flex-col rounded-2xl p-8 transition-all duration-300 ${
         isRecommended
           ? `border-4 ${borderColor} shadow-lg`
-          : "border border-gray-200 bg-white"
-      } ${!isRecommended ? "bg-white" : "bg-white"}`}
+          : 'border border-gray-200 bg-white'
+      } ${!isRecommended ? 'bg-white' : 'bg-white'}`}
     >
       {/* Recommended Badge */}
       {isRecommended && (
@@ -90,8 +90,8 @@ export function PricingCard({
               <span
                 className={
                   feature.included
-                    ? "text-gray-900 font-medium"
-                    : "text-gray-400"
+                    ? 'text-gray-900 font-medium'
+                    : 'text-gray-400'
                 }
               >
                 {feature.name}
@@ -109,5 +109,5 @@ export function PricingCard({
         {buttonText}
       </button>
     </div>
-  );
+  )
 }

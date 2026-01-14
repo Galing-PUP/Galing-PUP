@@ -1,43 +1,45 @@
-import { Abstract } from "@/components/paper/abstract";
-import { ActionButtons } from "@/components/paper/action-buttons";
-import { AiInsights } from "@/components/paper/ai-insights";
-import { DocumentInfo } from "@/components/paper/document-info";
-import { DocumentStats } from "@/components/paper/document-stats";
-import { HeaderInfo } from "@/components/paper/header-info";
-import { Keywords } from "@/components/paper/keywords";
-import { prisma } from "@/lib/db";
-import { encryptId } from "@/lib/obfuscation";
-import { formatResourceType } from "@/lib/utils/format";
-import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { Abstract } from '@/components/paper/abstract'
+import { ActionButtons } from '@/components/paper/action-buttons'
+import { AiInsights } from '@/components/paper/ai-insights'
+import { DocumentInfo } from '@/components/paper/document-info'
+import { DocumentStats } from '@/components/paper/document-stats'
+import { HeaderInfo } from '@/components/paper/header-info'
+import { Keywords } from '@/components/paper/keywords'
+import { prisma } from '@/lib/db'
+import { encryptId } from '@/lib/obfuscation'
+import { createClient } from '@/lib/supabase/server'
+import { formatResourceType } from '@/lib/utils/format'
+import { notFound } from 'next/navigation'
 
 type PaperPageProps = {
   params: Promise<{
-    id: string;
-  }>;
-};
+    id: string
+  }>
+}
 
 export default async function PaperPage(props: PaperPageProps) {
-  const { id: idParam } = await props.params;
-  const id = Number(idParam);
+  const { id: idParam } = await props.params
+  const id = Number(idParam)
 
   // Get current user for token generation
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  let userId: number | undefined = undefined;
+  let userId: number | undefined = undefined
 
   if (user) {
     // We need the Prisma ID (int) to match what API expects
     const dbUser = await prisma.user.findUnique({
       where: { supabaseAuthId: user.id },
-      select: { id: true }
-    });
-    userId = dbUser?.id;
+      select: { id: true },
+    })
+    userId = dbUser?.id
   }
 
   if (Number.isNaN(id)) {
-    notFound();
+    notFound()
   }
 
   const document = await prisma.document.findUnique({
@@ -48,7 +50,7 @@ export default async function PaperPage(props: PaperPageProps) {
           author: true,
         },
         orderBy: {
-          authorOrder: "asc",
+          authorOrder: 'asc',
         },
       },
       course: {
@@ -62,32 +64,36 @@ export default async function PaperPage(props: PaperPageProps) {
         },
       },
     },
-  });
+  })
 
   if (!document) {
-    notFound();
+    notFound()
   }
 
   // Extract data from document
-  const authors = document.authors.map((a) => a.author.fullName);
-  const authorEmails = document.authors.map((a) => a.author.email);
+  const authors = document.authors.map((a) => a.author.fullName)
+  const authorEmails = document.authors
+    .map((a) => a.author.email)
+    .filter((email): email is string => email !== null)
 
-  const datePublished = document.datePublished;
-  const yearPublished = document.datePublished?.getFullYear().toString() ?? "n.d.";
-  const courseName = document.course.courseName;
-  const department = document.course.college?.collegeName ?? document.course.courseName;
-  const campus = "Polytechnic University of the Philippines";
-  const documentType = formatResourceType(document.resourceType);
-  const keywords = document.keywords.map((k) => k.keyword.keywordText);
+  const datePublished = document.datePublished
+  const yearPublished =
+    document.datePublished?.getFullYear().toString() ?? 'n.d.'
+  const courseName = document.course.courseName
+  const department =
+    document.course.college?.collegeName ?? document.course.courseName
+  const campus = 'Polytechnic University of the Philippines'
+  const documentType = formatResourceType(document.resourceType)
+  const keywords = document.keywords.map((k) => k.keyword.keywordText)
 
-  const downloads = document.downloadsCount;
-  const citations = document.citationCount;
-  const pdfUrl = document.filePath;
-  const downloadToken = encryptId(id, userId);
+  const downloads = document.downloadsCount
+  const citations = document.citationCount
+  const pdfUrl = document.filePath
+  const downloadToken = encryptId(id, userId)
 
-  const mainAuthor = authors[0] ?? "Unknown Author";
-  const additionalAuthors = authors.length > 1 ? " et al." : "";
-  const citation = `${mainAuthor}${additionalAuthors} (${yearPublished}). ${document.title}. ${department}, ${campus}.`;
+  const mainAuthor = authors[0] ?? 'Unknown Author'
+  const additionalAuthors = authors.length > 1 ? ' et al.' : ''
+  const citation = `${mainAuthor}${additionalAuthors} (${yearPublished}). ${document.title}. ${department}, ${campus}.`
 
   return (
     <div className="min-h-screen">
@@ -146,5 +152,5 @@ export default async function PaperPage(props: PaperPageProps) {
         </div>
       </main>
     </div>
-  );
+  )
 }

@@ -1,42 +1,42 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { PricingCard } from "@/components/pricing/pricing-card";
-import { BenefitCard } from "@/components/pricing/benefit-card";
-import { FeatureComparisonTable } from "@/components/pricing/feature-comparison-table";
-import { FAQCard } from "@/components/pricing/faq-card";
-import { Crown, Download, Sparkles, Zap } from "lucide-react";
-import { toast } from "sonner";
+import { BenefitCard } from '@/components/pricing/benefit-card'
+import { FAQCard } from '@/components/pricing/faq-card'
+import { FeatureComparisonTable } from '@/components/pricing/feature-comparison-table'
+import { PricingCard } from '@/components/pricing/pricing-card'
+import { Crown, Download, Sparkles, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const freeTierFeatures = [
-    { name: "3 downloads per day", included: true },
-    { name: "5 citations per day", included: true },
-    { name: "Up to 5 bookmarks", included: true },
-    { name: "Basic search and browse", included: true },
-    { name: "View abstracts", included: true },
-    { name: "AI-generated summaries", included: true },
-    { name: "Unlimited downloads", included: false },
-  ];
+    { name: '3 downloads per day', included: true },
+    { name: '5 citations per day', included: true },
+    { name: 'Up to 5 bookmarks', included: true },
+    { name: 'Basic search and browse', included: true },
+    { name: 'View abstracts', included: true },
+    { name: 'AI-generated summaries', included: true },
+    { name: 'Unlimited downloads', included: false },
+  ]
 
   const premiumTierFeatures = [
-    { name: "Unlimited downloads", included: true },
-    { name: "Unlimited citations", included: true },
-    { name: "Unlimited bookmarks", included: true },
-    { name: "Advanced search filters", included: true },
-    { name: "Full document access", included: true },
-    { name: "AI-generated summaries", included: true },
-    { name: "Early access to features", included: true },
-  ];
+    { name: 'Unlimited downloads', included: true },
+    { name: 'Unlimited citations', included: true },
+    { name: 'Unlimited bookmarks', included: true },
+    { name: 'Advanced search filters', included: true },
+    { name: 'Full document access', included: true },
+    { name: 'AI-generated summaries', included: true },
+    { name: 'Early access to features', included: true },
+  ]
 
   const comparisonFeatures = [
-    { name: "Daily Downloads", free: "3", premium: "Unlimited" },
-    { name: "Citation Generations", free: "5/day", premium: "Unlimited" },
-    { name: "Bookmarks", free: "5 max", premium: "Unlimited" },
-    { name: "AI Summaries", free: true, premium: true },
-    { name: "Advertisements", free: "20s before download", premium: "None" },
-  ];
+    { name: 'Daily Downloads', free: '3', premium: 'Unlimited' },
+    { name: 'Citation Generations', free: '5/day', premium: 'Unlimited' },
+    { name: 'Bookmarks', free: '5 max', premium: 'Unlimited' },
+    { name: 'AI Summaries', free: true, premium: true },
+    { name: 'Advertisements', free: '20s before download', premium: 'None' },
+  ]
 
   /**
    * Handles premium tier upgrade by creating a payment session
@@ -65,7 +65,6 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen">
-
       <main>
         <section className="flex flex-col items-center justify-center space-y-6 bg-pup-maroon py-8 text-white">
           <span className="bg-white/20 rounded-full px-3 py-1 flex items-center gap-2">
@@ -94,7 +93,7 @@ export default function PricingPage() {
             buttonText="Get Started Free"
             buttonColor="bg-gray-900 hover:bg-gray-800"
             accentColor="text-green-600"
-            onButtonClick={() => console.log("Free tier clicked")}
+            onButtonClick={() => console.log('Free tier clicked')}
           />
 
           {/* Premium Tier Card */}
@@ -183,5 +182,5 @@ export default function PricingPage() {
         </section>
       </main>
     </div>
-  );
+  )
 }

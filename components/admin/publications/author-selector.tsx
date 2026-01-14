@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -8,7 +8,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from '@/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -17,20 +17,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Author } from "@/lib/generated/prisma/browser";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/popover'
+import { Author } from '@/lib/generated/prisma/browser'
+import { cn } from '@/lib/utils'
 import {
   authorFormSchema,
   type AuthorFormValues,
-} from "@/lib/validations/author-schema";
+} from '@/lib/validations/author-schema'
 import {
   ArrowDown,
   ArrowUp,
@@ -39,13 +39,13 @@ import {
   Loader2,
   Plus,
   X,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface AuthorSelectorProps {
-  selectedAuthors: AuthorFormValues[];
-  onAuthorsChange: (authors: AuthorFormValues[]) => void;
-  error?: string;
+  selectedAuthors: AuthorFormValues[]
+  onAuthorsChange: (authors: AuthorFormValues[]) => void
+  error?: string
 }
 
 /**
@@ -60,47 +60,47 @@ export function AuthorSelector({
   onAuthorsChange,
   error,
 }: AuthorSelectorProps) {
-  const [availableAuthors, setAvailableAuthors] = useState<Author[]>([]);
-  const [open, setOpen] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [availableAuthors, setAvailableAuthors] = useState<Author[]>([])
+  const [open, setOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const [formData, setFormData] = useState<AuthorFormValues>({
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    email: "",
-  });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+  })
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   // Debounced search for authors
   useEffect(() => {
     const timer = setTimeout(() => {
       const fetchAuthors = async () => {
-        setIsLoading(true);
+        setIsLoading(true)
         try {
           // If query is empty, fetch first 20 authors ascending by lastName
           const response = await fetch(
-            `/api/authors?q=${encodeURIComponent(searchQuery)}`
-          );
+            `/api/authors?q=${encodeURIComponent(searchQuery)}`,
+          )
           if (response.ok) {
-            const data = await response.json();
-            setAvailableAuthors(data);
+            const data = await response.json()
+            setAvailableAuthors(data)
           }
         } catch (error) {
-          console.error("Failed to fetch authors:", error);
+          console.error('Failed to fetch authors:', error)
         } finally {
-          setIsLoading(false);
+          setIsLoading(false)
         }
-      };
+      }
 
-      fetchAuthors();
-    }, 300); // 300ms debounce
+      fetchAuthors()
+    }, 300) // 300ms debounce
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   const handleSelectAuthor = (author: Author) => {
     const newAuthor: AuthorFormValues = {
@@ -109,50 +109,50 @@ export function AuthorSelector({
       middleName: author.middleName || undefined,
       lastName: author.lastName,
       email: author.email || undefined,
-    };
+    }
 
     // Check if author already selected
     const alreadySelected = selectedAuthors.some(
-      (a) => a.email === newAuthor.email
-    );
+      (a) => a.email === newAuthor.email,
+    )
 
     if (!alreadySelected) {
-      onAuthorsChange([...selectedAuthors, newAuthor]);
+      onAuthorsChange([...selectedAuthors, newAuthor])
     }
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const handleRemoveAuthor = (index: number) => {
-    onAuthorsChange(selectedAuthors.filter((_, i) => i !== index));
-  };
+    onAuthorsChange(selectedAuthors.filter((_, i) => i !== index))
+  }
 
-  const handleMoveAuthor = (index: number, direction: "up" | "down") => {
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= selectedAuthors.length) return;
+  const handleMoveAuthor = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= selectedAuthors.length) return
 
-    const newAuthors = [...selectedAuthors];
-    const temp = newAuthors[index];
-    newAuthors[index] = newAuthors[newIndex];
-    newAuthors[newIndex] = temp;
-    onAuthorsChange(newAuthors);
-  };
+    const newAuthors = [...selectedAuthors]
+    const temp = newAuthors[index]
+    newAuthors[index] = newAuthors[newIndex]
+    newAuthors[newIndex] = temp
+    onAuthorsChange(newAuthors)
+  }
 
   const handleAddNewAuthor = async () => {
-    setFormErrors({});
-    setIsSubmitting(true);
+    setFormErrors({})
+    setIsSubmitting(true)
 
     // Validate with Zod
-    const result = authorFormSchema.safeParse(formData);
+    const result = authorFormSchema.safeParse(formData)
 
     if (!result.success) {
-      const errors: Record<string, string> = {};
+      const errors: Record<string, string> = {}
       result.error.issues.forEach((issue) => {
-        const path = String(issue.path[0]);
-        errors[path] = issue.message;
-      });
-      setFormErrors(errors);
-      setIsSubmitting(false);
-      return;
+        const path = String(issue.path[0])
+        errors[path] = issue.message
+      })
+      setFormErrors(errors)
+      setIsSubmitting(false)
+      return
     }
 
     // Add to selected authors
@@ -161,29 +161,27 @@ export function AuthorSelector({
       middleName: formData.middleName || undefined,
       lastName: formData.lastName,
       email: formData.email || undefined,
-    };
+    }
 
     // Check if author already exists
     const alreadySelected = selectedAuthors.some(
-      (a) => a.email === newAuthor.email
-    );
+      (a) => a.email === newAuthor.email,
+    )
 
     if (alreadySelected) {
-      setFormErrors({ email: "This author is already added" });
-      setIsSubmitting(false);
-      return;
+      setFormErrors({ email: 'This author is already added' })
+      setIsSubmitting(false)
+      return
     }
 
-    onAuthorsChange([...selectedAuthors, newAuthor]);
+    onAuthorsChange([...selectedAuthors, newAuthor])
 
     // Add to available authors if not already there
-    const existsInDB = availableAuthors.some(
-      (a) => a.email === newAuthor.email
-    );
+    const existsInDB = availableAuthors.some((a) => a.email === newAuthor.email)
     if (!existsInDB) {
-      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ""} ${
+      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${
         newAuthor.lastName
-      }`.trim();
+      }`.trim()
       setAvailableAuthors([
         ...availableAuthors,
         {
@@ -193,19 +191,19 @@ export function AuthorSelector({
           email: newAuthor.email || null,
           fullName,
         },
-      ]);
+      ])
     }
 
     // Reset form
     setFormData({
-      firstName: "",
-      middleName: "",
-      lastName: "",
-      email: "",
-    });
-    setDialogOpen(false);
-    setIsSubmitting(false);
-  };
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+    })
+    setDialogOpen(false)
+    setIsSubmitting(false)
+  }
 
   return (
     <div className="space-y-4">
@@ -226,7 +224,7 @@ export function AuthorSelector({
           <PopoverContent
             className="p-0"
             align="start"
-            style={{ width: "var(--radix-popover-trigger-width)" }}
+            style={{ width: 'var(--radix-popover-trigger-width)' }}
           >
             <Command shouldFilter={false}>
               <CommandInput
@@ -243,16 +241,16 @@ export function AuthorSelector({
                 )}
                 {!isLoading && availableAuthors.length === 0 && (
                   <CommandEmpty>
-                    No author found.{" "}
+                    No author found.{' '}
                     <button
                       className="text-primary underline"
                       onClick={() => {
-                        setOpen(false);
-                        setDialogOpen(true);
+                        setOpen(false)
+                        setDialogOpen(true)
                         setFormData((prev) => ({
                           ...prev,
                           lastName: searchQuery,
-                        }));
+                        }))
                       }}
                     >
                       Create new?
@@ -268,10 +266,10 @@ export function AuthorSelector({
                     >
                       <Check
                         className={cn(
-                          "mr-2 h-4 w-4",
+                          'mr-2 h-4 w-4',
                           selectedAuthors.some((a) => a.email === author.email)
-                            ? "opacity-100"
-                            : "opacity-0"
+                            ? 'opacity-100'
+                            : 'opacity-0',
                         )}
                       />
                       <div className="flex flex-col">
@@ -316,7 +314,7 @@ export function AuthorSelector({
                   onChange={(e) =>
                     setFormData({ ...formData, firstName: e.target.value })
                   }
-                  className={cn(formErrors.firstName && "border-red-500")}
+                  className={cn(formErrors.firstName && 'border-red-500')}
                 />
                 {formErrors.firstName && (
                   <p className="text-sm text-red-600">{formErrors.firstName}</p>
@@ -331,7 +329,7 @@ export function AuthorSelector({
                   onChange={(e) =>
                     setFormData({ ...formData, middleName: e.target.value })
                   }
-                  className={cn(formErrors.middleName && "border-red-500")}
+                  className={cn(formErrors.middleName && 'border-red-500')}
                 />
                 {formErrors.middleName && (
                   <p className="text-sm text-red-600">
@@ -350,7 +348,7 @@ export function AuthorSelector({
                   onChange={(e) =>
                     setFormData({ ...formData, lastName: e.target.value })
                   }
-                  className={cn(formErrors.lastName && "border-red-500")}
+                  className={cn(formErrors.lastName && 'border-red-500')}
                 />
                 {formErrors.lastName && (
                   <p className="text-sm text-red-600">{formErrors.lastName}</p>
@@ -366,7 +364,7 @@ export function AuthorSelector({
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className={cn(formErrors.email && "border-red-500")}
+                  className={cn(formErrors.email && 'border-red-500')}
                 />
                 {formErrors.email && (
                   <p className="text-sm text-red-600">{formErrors.email}</p>
@@ -404,7 +402,7 @@ export function AuthorSelector({
               <div className="flex flex-col gap-1">
                 <button
                   type="button"
-                  onClick={() => handleMoveAuthor(index, "up")}
+                  onClick={() => handleMoveAuthor(index, 'up')}
                   disabled={index === 0}
                   className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                 >
@@ -412,7 +410,7 @@ export function AuthorSelector({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleMoveAuthor(index, "down")}
+                  onClick={() => handleMoveAuthor(index, 'down')}
                   disabled={index === selectedAuthors.length - 1}
                   className="text-muted-foreground hover:text-foreground disabled:opacity-30"
                 >
@@ -443,5 +441,5 @@ export function AuthorSelector({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
-  );
+  )
 }
