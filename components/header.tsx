@@ -3,7 +3,7 @@
 import LogoDefault from '@/assets/Logo/logo-default.png'
 import { SignInModal } from '@/components/SignInModal'
 import { getCurrentUser, signOut } from '@/lib/actions'
-import { TierName } from '@/lib/generated/prisma/enums'
+import { RoleName, TierName } from '@/lib/generated/prisma/enums'
 import { formatTier } from '@/lib/utils/format'
 import { Loader2, User } from 'lucide-react'
 import Image from 'next/image'
@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import UserPreferencesModal from './user-preferences-modal'
 
 type NavItem = {
   label: string
@@ -27,6 +28,7 @@ type UserProfile = {
   username: string
   tierName: TierName
   email: string
+  role: RoleName
 }
 
 type HeaderProps = {
@@ -71,6 +73,7 @@ export function Header({
   const pathname = usePathname()
   const router = useRouter()
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false)
   const [user, setUser] = useState<UserProfile | null>(initialUser)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
@@ -178,6 +181,19 @@ export function Header({
         isOpen={isSignInModalOpen}
         onClose={() => setIsSignInModalOpen(false)}
       />
+      {user && (
+        <UserPreferencesModal
+          isOpen={isPreferencesOpen}
+          onClose={() => setIsPreferencesOpen(false)}
+          initialUsername={user.username}
+          userRole={user.role}
+          onUsernameUpdated={(nextUsername) => {
+            setUser((prev) =>
+              prev ? { ...prev, username: nextUsername } : prev,
+            )
+          }}
+        />
+      )}
       <header
         className={`w-full border-b border-neutral-200 bg-white ${className}`}
       >
@@ -250,7 +266,7 @@ export function Header({
                     <button
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => {
-                        // TODO: Navigate to user preferences
+                        setIsPreferencesOpen(true)
                         setIsDropdownOpen(false)
                       }}
                     >
