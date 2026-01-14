@@ -5,14 +5,14 @@ import * as libraryService from "@/lib/services/libraryService";
 import { createClient } from "@/lib/supabase/client";
 
 interface UserTier {
-  maxBookmarks: number;
+  maxBookmarks: number | null;
   tierName: string;
 }
 
 export function useLibrary() {
   const [bookmarkedIds, setBookmarkedIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [maxBookmarks, setMaxBookmarks] = useState(10);
+  const [maxBookmarks, setMaxBookmarks] = useState<number | null>(10);
   const [tierName, setTierName] = useState("Free");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -73,7 +73,8 @@ export function useLibrary() {
         return { success: false, message: "Already in library" };
       }
 
-      if (bookmarkedIds.length >= maxBookmarks) {
+      // Check if limit is reached (null means unlimited)
+      if (maxBookmarks !== null && bookmarkedIds.length >= maxBookmarks) {
         return {
           success: false,
           message: `${tierName} tier limit reached (${maxBookmarks} bookmarks)`,

@@ -15,7 +15,7 @@ export default function Edit() {
   const documentId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [initialData, setInitialData] =
-    useState<Partial<PublicationFormData> | null>(null);
+    useState<(Partial<PublicationFormData> & { documentToken?: string }) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +45,7 @@ export default function Edit() {
             fileSize: data.fileSize,
             submissionDate: data.submissionDate,
             filePath: data.filePath,
+            documentToken: data.documentToken,
           });
 
           setIsLoading(false);
@@ -197,6 +198,8 @@ export default function Edit() {
               : undefined
           }
           existingFilePath={initialData.filePath || undefined}
+          documentId={Number(documentId)}
+          documentToken={initialData.documentToken}
         />
       )}
     </div>

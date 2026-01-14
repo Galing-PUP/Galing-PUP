@@ -35,9 +35,9 @@ async function main() {
     {
       id: 2,
       tierName: TierName.PAID,
-      dailyDownloadLimit: 500,
-      dailyCitationLimit: 500,
-      maxBookmarks: 500,
+      dailyDownloadLimit: null,
+      dailyCitationLimit: null,
+      maxBookmarks: null,
       hasAds: false,
       hasAiInsights: true,
     },
