@@ -168,7 +168,7 @@ model payment_transactions {
   status         PaymentStatus @default(PENDING)
   created_at     DateTime      @default(now())
   updated_at     DateTime
-  users          User          @relation(fields: [user_id], references: [id])
+  users          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 enum RoleName {
