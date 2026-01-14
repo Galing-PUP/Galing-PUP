@@ -1,0 +1,12 @@
+# Configuration for welcome - https://github.com/behaviorbot/welcome
+
+# First-time issue comment
+newIssueWelcomeComment: >
+  Thanks for opening an issue in **Galing-PUP**. A maintainer will review it shortly.  
+  For now, read the contribution guide in `.github/CONTRIBUTING.md`.
+
+# First-time pull request comment
+newPRWelcomeComment: >
+  Thanks for submitting a pull request to **Galing-PUP**.  
+  A maintainer will review it soon.  
+  Make sure your changes follow the rules in `.github/CONTRIBUTING.md`.
