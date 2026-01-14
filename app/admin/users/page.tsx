@@ -1,18 +1,18 @@
 'use client'
 
-import { colleges } from "@/data/collegeCourses";
-import { getCurrentUser } from "@/lib/actions";
+import { colleges } from '@/data/collegeCourses'
+import { getCurrentUser } from '@/lib/actions'
 
-import { useState, useMemo, useEffect } from "react";
-import type { User, UserStatus, UserRole } from "@/types/users";
-import { UserStats, type Stats } from "@/components/admin/users/user-stats";
-import { UserManagementHeader } from "@/components/admin/users/user-management-header";
-import { UserToolbar } from "@/components/admin/users/user-toolbar";
-import { UsersTable } from "@/components/admin/users/users-table";
-import { UserTableToolbar } from "@/components/admin/users/user-table-toolbar";
-import { AdminUserFormModal } from "@/components/admin/users/admin-user-form-modal";
-import { RegisteredUserFormModal } from "@/components/admin/users/registered-user-form-modal";
-import { AddUserModal } from "@/components/admin/users/add-user-modal";
+import { AddUserModal } from '@/components/admin/users/add-user-modal'
+import { AdminUserFormModal } from '@/components/admin/users/admin-user-form-modal'
+import { RegisteredUserFormModal } from '@/components/admin/users/registered-user-form-modal'
+import { UserManagementHeader } from '@/components/admin/users/user-management-header'
+import { UserStats, type Stats } from '@/components/admin/users/user-stats'
+import { UserTableToolbar } from '@/components/admin/users/user-table-toolbar'
+import { UserToolbar } from '@/components/admin/users/user-toolbar'
+import { UsersTable } from '@/components/admin/users/users-table'
+import type { User, UserRole, UserStatus } from '@/types/users'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   AlertDialog,
@@ -27,21 +27,21 @@ import {
 import { toast } from 'sonner'
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ role: string } | null>(null);
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
-  const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([]);
-  const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [users, setUsers] = useState<User[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [currentUser, setCurrentUser] = useState<{ role: string } | null>(null)
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [deletingUser, setDeletingUser] = useState<User | null>(null)
+  const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([])
+  const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([])
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean
     user: User | null
   }>({ isOpen: false, user: null })
 
-  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false)
 
   const [duplicateWarning, setDuplicateWarning] = useState<{
     isOpen: boolean
@@ -64,14 +64,14 @@ export default function UserManagementPage() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const user = await getCurrentUser();
+        const user = await getCurrentUser()
         if (user) {
-          setCurrentUser({ role: user.role });
+          setCurrentUser({ role: user.role })
         }
       } catch (error) {
-        console.error("Error loading current user:", error);
+        console.error('Error loading current user:', error)
       }
-    };
+    }
 
     const fetchUsers = async () => {
       try {
@@ -84,25 +84,25 @@ export default function UserManagementPage() {
       }
     }
 
-    fetchCurrentUser();
-    fetchUsers();
-    fetchStats();
-  }, []);
+    fetchCurrentUser()
+    fetchUsers()
+    fetchStats()
+  }, [])
 
   /**
    * Refetches users and stats after adding a new user
    */
   const handleUserAdded = async () => {
     try {
-      const response = await fetch("/api/admin/users");
-      if (!response.ok) throw new Error("Failed to fetch users");
-      const data = await response.json();
-      setUsers(data);
-      await fetchStats();
+      const response = await fetch('/api/admin/users')
+      if (!response.ok) throw new Error('Failed to fetch users')
+      const data = await response.json()
+      setUsers(data)
+      await fetchStats()
     } catch (error) {
-      console.error("Error reloading users:", error);
+      console.error('Error reloading users:', error)
     }
-  };
+  }
 
   // Filter users based on selected statuses, roles, and search query
   const filteredUsers = useMemo(() => {
@@ -254,9 +254,9 @@ export default function UserManagementPage() {
       <UserStats stats={stats} />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <UserManagementHeader 
+        <UserManagementHeader
           onAddNewUser={() => setAddUserModalOpen(true)}
-          showAddButton={currentUser?.role === "OWNER"}
+          showAddButton={currentUser?.role === 'OWNER'}
         />
         <UserToolbar
           selectedStatuses={selectedStatuses}

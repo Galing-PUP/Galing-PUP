@@ -116,18 +116,20 @@ export function AdminUserFormModal({
   }
 
   const getRoleBadgeStyle = (role?: string) => {
-    const r = role?.toUpperCase();
-    if (r === 'SUPERADMIN') return 'bg-pup-maroon text-white hover:bg-pup-maroon/90';
-    if (r === 'ADMIN') return 'bg-pup-gold-light text-gray-900 hover:bg-pup-gold-light/90';
-    return 'bg-gray-200 text-gray-700 hover:bg-gray-300';
-  };
+    const r = role?.toUpperCase()
+    if (r === 'SUPERADMIN')
+      return 'bg-pup-maroon text-white hover:bg-pup-maroon/90'
+    if (r === 'ADMIN')
+      return 'bg-pup-gold-light text-gray-900 hover:bg-pup-gold-light/90'
+    return 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+  }
 
   const getDotColor = (role?: string) => {
-    const r = role?.toUpperCase();
-    if (r === 'SUPERADMIN') return 'bg-yellow-400';
-    if (r === 'ADMIN') return 'bg-blue-500';
-    return 'bg-gray-500';
-  };
+    const r = role?.toUpperCase()
+    if (r === 'SUPERADMIN') return 'bg-yellow-400'
+    if (r === 'ADMIN') return 'bg-blue-500'
+    return 'bg-gray-500'
+  }
 
   const imageUrl =
     user?.idImagePath && !user.idImagePath.startsWith('http')
