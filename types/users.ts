@@ -1,5 +1,5 @@
 export type UserStatus = 'Accepted' | 'Pending' | 'Delete'
-export type UserRole = 'Viewer' | 'Registered' | 'Admin' | 'Superadmin'
+export type UserRole = 'Registered' | 'Admin' | 'Superadmin'
 
 export type User = {
   id: string

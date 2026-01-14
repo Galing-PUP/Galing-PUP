@@ -5,6 +5,36 @@ import { hash } from 'bcryptjs'
 import { NextResponse } from 'next/server'
 
 /**
+ * Normalizes database role enum to TypeScript UserRole type
+ */
+function normalizeRole(role: RoleName): 'Registered' | 'Admin' | 'Superadmin' {
+  switch (role) {
+    case RoleName.ADMIN:
+      return 'Admin'
+    case RoleName.SUPERADMIN:
+      return 'Superadmin'
+    case RoleName.REGISTERED:
+    default:
+      return 'Registered'
+  }
+}
+
+/**
+ * Normalizes database status enum to display format
+ */
+function normalizeStatus(status: UserStatus): 'Accepted' | 'Pending' | 'Delete' {
+  switch (status) {
+    case UserStatus.APPROVED:
+      return 'Accepted'
+    case UserStatus.DELETED:
+      return 'Delete'
+    case UserStatus.PENDING:
+    default:
+      return 'Pending'
+  }
+}
+
+/**
  * @param request - The incoming request
  * @param context - The context object containing the params
  */
@@ -247,13 +277,8 @@ export async function PATCH(
       id: updatedUser.id.toString(),
       name: updatedUser.username,
       email: updatedUser.email,
-      role: updatedUser.role,
-      status:
-        updatedUser.status === UserStatus.APPROVED
-          ? 'Accepted'
-          : updatedUser.status === UserStatus.DELETED
-            ? 'Delete'
-            : 'Pending',
+      role: normalizeRole(updatedUser.role),
+      status: normalizeStatus(updatedUser.status),
       subscriptionTier: updatedUser.tierId,
       collegeId: updatedUser.collegeId,
       idImagePath: updatedUser.idImagePath,

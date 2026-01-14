@@ -115,22 +115,29 @@ export function AdminUserFormModal({
     }
   }
 
-  const getRoleBadgeStyle = (role?: string) => {
-    const r = role?.toUpperCase()
-    if (r === 'OWNER') return 'bg-pup-maroon text-white hover:bg-pup-maroon/90'
-    if (r === 'SUPERADMIN')
-      return 'bg-pup-gold-dark text-black hover:bg-pup-gold-dark/90'
-    if (r === 'ADMIN')
-      return 'bg-pup-gold-light text-gray-900 hover:bg-pup-gold-light/90'
-    return 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-  }
+  const getRoleInfo = (role?: string) => {
+    const normalizedRole = role?.toLowerCase()
 
-  const getDotColor = (role?: string) => {
-    const r = role?.toUpperCase()
-    if (r === 'OWNER') return 'bg-yellow-400'
-    if (r === 'SUPERADMIN') return 'bg-red-800'
-    if (r === 'ADMIN') return 'bg-blue-500'
-    return 'bg-gray-500'
+    switch (normalizedRole) {
+      case 'superadmin':
+        return {
+          badgeStyle: 'bg-pup-maroon text-white',
+          dotColor: 'bg-yellow-400',
+          label: 'Super Admin',
+        }
+      case 'admin':
+        return {
+          badgeStyle: 'bg-pup-gold-light text-gray-900',
+          dotColor: 'bg-blue-500',
+          label: 'Admin',
+        }
+      default:
+        return {
+          badgeStyle: 'bg-gray-200 text-gray-700',
+          dotColor: 'bg-gray-500',
+          label: role || 'Admin',
+        }
+    }
   }
 
   const imageUrl =
@@ -152,11 +159,11 @@ export function AdminUserFormModal({
         <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <Badge className={`gap-2 ${getRoleBadgeStyle(formData.role)}`}>
+              <Badge className={`gap-2 ${getRoleInfo(formData.role).badgeStyle}`}>
                 <div
-                  className={`w-2 h-2 rounded-full animate-pulse ${getDotColor(formData.role)}`}
+                  className={`w-2 h-2 rounded-full animate-pulse ${getRoleInfo(formData.role).dotColor}`}
                 />
-                {formData.role || 'Admin'}
+                {getRoleInfo(formData.role).label}
               </Badge>
               <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
                 {formData.name || 'Administrator'}
@@ -250,34 +257,39 @@ export function AdminUserFormModal({
             </div>
           </div>
 
-          {/* Row 3: ID Number (Full Width) */}
+          {/* Row 3: ID Number (Full Width) - Read Only */}
           <div className="space-y-2">
-            <Label htmlFor="idNumber">ID Number</Label>
+            <Label htmlFor="idNumber" className="text-gray-700">
+              ID Number
+            </Label>
             <Input
               id="idNumber"
               value={formData.id || ''}
               disabled
-              className="bg-gray-50"
+              readOnly
+              className="bg-gray-100 cursor-not-allowed border-gray-300"
             />
           </div>
 
-          {/* ID Picture Display */}
+          {/* ID Picture Display - Read Only */}
           <div className="space-y-2">
-            <Label htmlFor="idImage">ID Picture</Label>
+            <Label htmlFor="idImage" className="text-gray-700">
+              ID Picture
+            </Label>
             {imageUrl ? (
-              <div className="mt-2 border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div className="mt-2 border-2 border-gray-300 rounded-lg p-4 bg-gray-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageUrl}
                   alt="Admin ID"
-                  className="w-full h-auto object-contain rounded-md"
+                  className="w-full h-auto max-h-96 object-contain rounded-md"
                   onError={(e) => {
                     ;(e.target as HTMLImageElement).style.display = 'none'
                   }}
                 />
               </div>
             ) : (
-              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50">
+              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-100">
                 <p className="text-sm text-gray-500 italic text-center">
                   No ID image uploaded.
                 </p>
