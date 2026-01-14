@@ -116,7 +116,9 @@ export function RegisteredUserFormModal({
         <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <Badge className={`gap-2 ${getRoleInfo(formData.role).badgeStyle}`}>
+              <Badge
+                className={`gap-2 ${getRoleInfo(formData.role).badgeStyle}`}
+              >
                 <div
                   className={`w-2 h-2 rounded-full animate-pulse ${getRoleInfo(formData.role).dotColor}`}
                 />

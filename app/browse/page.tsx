@@ -1,8 +1,7 @@
 'use client'
 
-import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
 import { FilterBox, FilterValues } from '@/components/filter-box'
 import { SearchBar } from '@/components/search-bar'

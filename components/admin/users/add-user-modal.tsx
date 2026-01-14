@@ -1,60 +1,64 @@
-"use client";
+'use client'
 
-import { colleges } from "@/data/collegeCourses";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import type { Resolver } from "react-hook-form";
-import { toast } from "sonner";
+import { colleges } from '@/data/collegeCourses'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, Loader2, UserPlus } from 'lucide-react'
+import { useState } from 'react'
+import type { Resolver } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 import {
   addUserSchema,
   type AddUserFormValues,
-} from "@/lib/validations/add-user-schema";
+} from '@/lib/validations/add-user-schema'
 
 type AddUserModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onUserAdded: () => void;
-};
+  isOpen: boolean
+  onClose: () => void
+  onUserAdded: () => void
+}
 
 /**
  * Modal for adding a new admin user
  * Contains fields from request access page plus role selection
  */
-export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+export function AddUserModal({
+  isOpen,
+  onClose,
+  onUserAdded,
+}: AddUserModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const form = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema) as Resolver<AddUserFormValues>,
     defaultValues: {
-      username: "",
+      username: '',
       college: 0,
-      email: "",
-      idNumber: "",
-      password: "",
-      confirmPassword: "",
+      email: '',
+      idNumber: '',
+      password: '',
+      confirmPassword: '',
     },
-  });
+  })
 
   const {
     register,
@@ -63,82 +67,85 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
     trigger,
     reset,
     formState: { errors },
-  } = form;
+  } = form
 
   /**
    * Handles file input changes
    * Manually updates form value since RHF doesn't control file inputs well
    */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setValue("idImage", file);
-      await trigger("idImage");
+      setValue('idImage', file)
+      await trigger('idImage')
     }
-  };
+  }
 
   /**
    * Submits the new user data to the API
    */
   const onSubmit = async (data: AddUserFormValues) => {
-    setIsSubmitting(true);
-    const toastId = toast.loading("Creating user...");
+    setIsSubmitting(true)
+    const toastId = toast.loading('Creating user...')
 
     try {
-      const submissionData = new FormData();
-      submissionData.append("name", data.username);
-      submissionData.append("college", data.college.toString());
-      submissionData.append("collegeId", data.college.toString());
-      submissionData.append("email", data.email);
-      submissionData.append("idNumber", data.idNumber);
-      submissionData.append("password", data.password);
-      submissionData.append("role", "ADMIN");
-      submissionData.append("status", "Accepted");
-      submissionData.append("subscriptionTier", "1");
-      submissionData.append("idImage", data.idImage);
+      const submissionData = new FormData()
+      submissionData.append('name', data.username)
+      submissionData.append('college', data.college.toString())
+      submissionData.append('collegeId', data.college.toString())
+      submissionData.append('email', data.email)
+      submissionData.append('idNumber', data.idNumber)
+      submissionData.append('password', data.password)
+      submissionData.append('role', 'ADMIN')
+      submissionData.append('status', 'Accepted')
+      submissionData.append('subscriptionTier', '1')
+      submissionData.append('idImage', data.idImage)
 
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
         body: submissionData,
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (!response.ok) {
-        if (result.type === "DUPLICATE_ENTRY") {
-          throw new Error("Username or Email already exists");
+        if (result.type === 'DUPLICATE_ENTRY') {
+          throw new Error('Username or Email already exists')
         }
-        throw new Error(result.error || "Failed to create user");
+        throw new Error(result.error || 'Failed to create user')
       }
 
-      toast.success("User created successfully", { id: toastId });
-      reset();
-      onUserAdded();
-      onClose();
+      toast.success('User created successfully', { id: toastId })
+      reset()
+      onUserAdded()
+      onClose()
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Something went wrong";
-      toast.error(message, { id: toastId });
+      const message =
+        error instanceof Error ? error.message : 'Something went wrong'
+      toast.error(message, { id: toastId })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   /**
    * Handles modal close and resets form
    */
   const handleClose = () => {
     if (!isSubmitting) {
-      reset();
-      onClose();
+      reset()
+      onClose()
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center gap-3">
           <UserPlus className="h-6 w-6 text-pup-maroon" />
-          <DialogTitle className="text-2xl font-semibold text-pup-maroon">Add New User</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold text-pup-maroon">
+            Add New User
+          </DialogTitle>
         </div>
         <DialogDescription>
           Create a new Admin account with the form below.
@@ -151,12 +158,10 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
             <Input
               id="username"
               placeholder="Enter full name"
-              {...register("username")}
+              {...register('username')}
             />
             {errors.username && (
-              <p className="text-sm text-red-500">
-                {errors.username.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.username.message}</p>
             )}
           </div>
 
@@ -165,7 +170,9 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
             <Label htmlFor="college">College</Label>
             <Select
               onValueChange={(value) =>
-                setValue("college", parseInt(value, 10), { shouldValidate: true })
+                setValue('college', parseInt(value, 10), {
+                  shouldValidate: true,
+                })
               }
             >
               <SelectTrigger id="college" className="w-full">
@@ -180,9 +187,7 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
               </SelectContent>
             </Select>
             {errors.college && (
-              <p className="text-sm text-red-500">
-                {errors.college.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.college.message}</p>
             )}
           </div>
 
@@ -194,12 +199,10 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
                 id="email"
                 type="email"
                 placeholder="Enter email address"
-                {...register("email")}
+                {...register('email')}
               />
               {errors.email && (
-                <p className="text-sm text-red-500">
-                  {errors.email.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -207,7 +210,7 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
               <Input
                 id="idNumber"
                 placeholder="Enter ID number"
-                {...register("idNumber")}
+                {...register('idNumber')}
               />
               {errors.idNumber && (
                 <p className="text-sm text-red-500">
@@ -224,10 +227,10 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Enter password"
                   className="pr-9"
-                  {...register("password")}
+                  {...register('password')}
                 />
                 <Button
                   type="button"
@@ -242,7 +245,7 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
                     <Eye className="h-4 w-4 text-muted-foreground" />
                   )}
                   <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
+                    {showPassword ? 'Hide password' : 'Show password'}
                   </span>
                 </Button>
               </div>
@@ -258,10 +261,10 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
               <div className="relative">
                 <Input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm password"
                   className="pr-9"
-                  {...register("confirmPassword")}
+                  {...register('confirmPassword')}
                 />
                 <Button
                   type="button"
@@ -276,7 +279,7 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
                     <Eye className="h-4 w-4 text-muted-foreground" />
                   )}
                   <span className="sr-only">
-                    {showConfirmPassword ? "Hide password" : "Show password"}
+                    {showConfirmPassword ? 'Hide password' : 'Show password'}
                   </span>
                 </Button>
               </div>
@@ -326,12 +329,12 @@ export function AddUserModal({ isOpen, onClose, onUserAdded }: AddUserModalProps
                   Creating...
                 </>
               ) : (
-                "Create User"
+                'Create User'
               )}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

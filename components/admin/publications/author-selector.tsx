@@ -299,7 +299,7 @@ export function AuthorSelector({
             <DialogHeader>
               <DialogTitle>Add New Author</DialogTitle>
               <DialogDescription>
-                Enter the author's information. This will be added to your
+                Enter the author&apos;s information. This will be added to your
                 publication.
               </DialogDescription>
             </DialogHeader>

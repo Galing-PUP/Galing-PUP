@@ -300,8 +300,8 @@ export default function UserManagementPage() {
       </div>
 
       {/* Conditional Modal Rendering Based on User Role */}
-      {(modalState.user?.role === 'Admin' ||
-        modalState.user?.role === 'Superadmin') ? (
+      {modalState.user?.role === 'Admin' ||
+      modalState.user?.role === 'Superadmin' ? (
         <AdminUserFormModal
           isOpen={modalState.isOpen}
           onClose={() => setModalState({ isOpen: false, user: null })}

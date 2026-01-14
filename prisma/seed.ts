@@ -181,8 +181,6 @@ async function main() {
     },
   })
 
-  const allUserIds = createdUsers.map((u) => u.id)
-
   // Filter for ADMIN and SUPERADMIN users only for document uploaders
   const adminUserIds = createdUsers
     .filter((u) => u.role === RoleName.ADMIN || u.role === RoleName.SUPERADMIN)

@@ -1,13 +1,13 @@
-import { getAuthenticatedUserId } from "@/lib/auth/server";
-import { prisma } from "@/lib/db";
-import { supabaseAdmin } from "@/lib/supabase/admin";
-import { compare, hash } from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { getAuthenticatedUserId } from '@/lib/auth/server'
+import { prisma } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { compare, hash } from 'bcryptjs'
+import { NextRequest, NextResponse } from 'next/server'
 
 type PreferencesPayload = {
-  username?: string;
-  newPassword?: string;
-};
+  username?: string
+  newPassword?: string
+}
 
 /**
  * Check if a username is available.
@@ -17,23 +17,23 @@ type PreferencesPayload = {
  */
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedUserId()
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url);
-    const username = searchParams.get("username");
+    const { searchParams } = new URL(request.url)
+    const username = searchParams.get('username')
 
     if (!username || username.trim().length === 0) {
       return NextResponse.json(
-        { error: "Username parameter is required" },
-        { status: 400 }
-      );
+        { error: 'Username parameter is required' },
+        { status: 400 },
+      )
     }
 
-    const trimmedUsername = username.trim();
+    const trimmedUsername = username.trim()
 
     // Check if username is already taken by another user
     const existingUser = await prisma.user.findFirst({
@@ -42,18 +42,18 @@ export async function GET(request: NextRequest) {
         id: { not: userId }, // Exclude current user
       },
       select: { id: true },
-    });
+    })
 
     return NextResponse.json({
       available: !existingUser,
       username: trimmedUsername,
-    });
+    })
   } catch (error) {
-    console.error("Error checking username availability:", error);
+    console.error('Error checking username availability:', error)
     return NextResponse.json(
-      { error: "Failed to check username availability" },
-      { status: 500 }
-    );
+      { error: 'Failed to check username availability' },
+      { status: 500 },
+    )
   }
 }
 
@@ -69,20 +69,20 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: Request) {
   try {
-    const userId = await getAuthenticatedUserId();
+    const userId = await getAuthenticatedUserId()
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = (await request.json()) as PreferencesPayload;
-    const { username, newPassword } = body;
+    const body = (await request.json()) as PreferencesPayload
+    const { username, newPassword } = body
 
     if (!username && !newPassword) {
       return NextResponse.json(
-        { error: "No changes provided" },
-        { status: 400 }
-      );
+        { error: 'No changes provided' },
+        { status: 400 },
+      )
     }
 
     const dbUser = await prisma.user.findUnique({
@@ -92,31 +92,31 @@ export async function PATCH(request: Request) {
         passwordHash: true, // Fetch current password hash for comparison
         username: true, // Fetch current username to check for changes
       },
-    });
+    })
 
     if (!dbUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     const updateData: {
-      username?: string;
-      passwordHash?: string;
-      updatedDate: Date;
+      username?: string
+      passwordHash?: string
+      updatedDate: Date
     } = {
       updatedDate: new Date(),
-    };
+    }
 
     // Prepare Supabase Auth update payload
     const authUpdatePayload: {
-      password?: string;
-      user_metadata?: { username?: string };
-    } = {};
+      password?: string
+      user_metadata?: { username?: string }
+    } = {}
 
     // Track if there are actual changes
-    let hasChanges = false;
+    let hasChanges = false
 
-    if (typeof username === "string" && username.trim().length > 0) {
-      const trimmedUsername = username.trim();
+    if (typeof username === 'string' && username.trim().length > 0) {
+      const trimmedUsername = username.trim()
 
       // Check if username actually changed
       if (trimmedUsername === dbUser.username) {
@@ -129,47 +129,47 @@ export async function PATCH(request: Request) {
             id: { not: userId }, // Exclude current user
           },
           select: { id: true },
-        });
+        })
 
         if (existingUser) {
           return NextResponse.json(
-            { error: "Username is already taken" },
-            { status: 409 }
-          );
+            { error: 'Username is already taken' },
+            { status: 409 },
+          )
         }
 
-        updateData.username = trimmedUsername;
-        authUpdatePayload.user_metadata = { username: trimmedUsername };
-        hasChanges = true;
+        updateData.username = trimmedUsername
+        authUpdatePayload.user_metadata = { username: trimmedUsername }
+        hasChanges = true
       }
     }
 
-    if (typeof newPassword === "string" && newPassword.trim().length > 0) {
+    if (typeof newPassword === 'string' && newPassword.trim().length > 0) {
       // Check if new password is the same as current password
       if (dbUser.passwordHash) {
-        const isSamePassword = await compare(newPassword, dbUser.passwordHash);
+        const isSamePassword = await compare(newPassword, dbUser.passwordHash)
         if (isSamePassword) {
           return NextResponse.json(
             {
-              error: "New password cannot be the same as your current password",
+              error: 'New password cannot be the same as your current password',
             },
-            { status: 400 }
-          );
+            { status: 400 },
+          )
         }
       }
 
-      authUpdatePayload.password = newPassword;
-      const passwordHash = await hash(newPassword, 10);
-      updateData.passwordHash = passwordHash;
-      hasChanges = true;
+      authUpdatePayload.password = newPassword
+      const passwordHash = await hash(newPassword, 10)
+      updateData.passwordHash = passwordHash
+      hasChanges = true
     }
 
     // If no actual changes detected, return early
     if (!hasChanges) {
       return NextResponse.json(
-        { error: "No changes detected" },
-        { status: 400 }
-      );
+        { error: 'No changes detected' },
+        { status: 400 },
+      )
     }
 
     // Update Supabase Auth if we have an auth ID and something to update
@@ -180,15 +180,15 @@ export async function PATCH(request: Request) {
       const { error: authError } =
         await supabaseAdmin.auth.admin.updateUserById(
           dbUser.supabaseAuthId,
-          authUpdatePayload
-        );
+          authUpdatePayload,
+        )
 
       if (authError) {
-        console.error("Failed to update Supabase Auth user:", authError);
+        console.error('Failed to update Supabase Auth user:', authError)
         return NextResponse.json(
-          { error: "Failed to update authentication profile" },
-          { status: 500 }
-        );
+          { error: 'Failed to update authentication profile' },
+          { status: 500 },
+        )
       }
     }
 
@@ -202,44 +202,44 @@ export async function PATCH(request: Request) {
           username: true,
           email: true,
         },
-      });
+      })
 
       // Prepare activity logs to create
-      const activityLogs = [];
+      const activityLogs = []
 
       if (authUpdatePayload.password) {
         activityLogs.push({
           userId,
-          activityType: "PASSWORD_CHANGED",
-        });
+          activityType: 'PASSWORD_CHANGED',
+        })
       }
 
       if (updateData.username) {
         activityLogs.push({
           userId,
-          activityType: "USERNAME_CHANGED",
-        });
+          activityType: 'USERNAME_CHANGED',
+        })
       }
 
       // Create all activity logs in a single operation if any exist
       if (activityLogs.length > 0) {
         await tx.activityLog.createMany({
           data: activityLogs,
-        });
+        })
       }
 
-      return updatedUser;
-    });
+      return updatedUser
+    })
 
     return NextResponse.json({
       username: result.username,
       email: result.email,
-    });
+    })
   } catch (error) {
-    console.error("Error updating user preferences:", error);
+    console.error('Error updating user preferences:', error)
     return NextResponse.json(
-      { error: "Failed to update preferences" },
-      { status: 500 }
-    );
+      { error: 'Failed to update preferences' },
+      { status: 500 },
+    )
   }
 }

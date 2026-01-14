@@ -342,9 +342,9 @@ export function CitationModal({
                   )}
                   {usage.limit !== null && usage.used >= usage.limit && (
                     <p className="mt-2 text-xs text-amber-600">
-                      ℹ️ You've reached your daily limit for new citations. You
-                      can still re-generate citations for documents you've
-                      already cited today.
+                      ℹ️ You&apos;ve reached your daily limit for new citations.
+                      You can still re-generate citations for documents
+                      you&apos;ve already cited today.
                     </p>
                   )}
                 </div>
@@ -355,7 +355,7 @@ export function CitationModal({
                 <p className="text-xs text-gray-500 text-center">
                   <span className="font-medium">Note:</span> Citations are
                   generated automatically. Please verify format against your
-                  institution's guidelines.
+                  institution&apos;s guidelines.
                 </p>
               </div>
             </div>

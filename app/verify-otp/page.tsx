@@ -1,6 +1,5 @@
 'use client'
 
-import { Suspense } from 'react'
 import { Button } from '@/components/button'
 import {
   InputOTP,
@@ -13,7 +12,7 @@ import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import sideIllustration from '@/assets/Graphics/side-img-user-signin.png'
@@ -230,11 +229,13 @@ function VerifyOtpContent() {
 
 export default function VerifyOtpPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-neutral-500">Loading...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <p className="text-neutral-500">Loading...</p>
+        </div>
+      }
+    >
       <VerifyOtpContent />
     </Suspense>
   )

@@ -248,69 +248,76 @@ export async function deleteUser(userId: string) {
  * @param password The user's current password for verification
  * @returns Success status and optional error message
  */
-export async function deleteUserAccount(password: string): Promise<{ success: boolean; error?: string }> {
-    try {
-        // Get authenticated user
-        const user = await getAuthenticatedUser();
-        
-        if (!user) {
-            return { success: false, error: "Unauthorized" };
-        }
+export async function deleteUserAccount(
+  password: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Get authenticated user
+    const user = await getAuthenticatedUser()
 
-        // Verify password using Supabase Auth
-        const supabase = await createClient();
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: user.email,
-            password,
-        });
-
-        if (signInError) {
-            return { success: false, error: "Incorrect password" };
-        }
-
-        // Find OWNER account to reassign documents
-        const owner = await prisma.user.findFirst({
-            where: { role: RoleName.OWNER },
-            select: { id: true },
-        });
-
-        if (!owner) {
-            return { success: false, error: "System error: Cannot preserve documents" };
-        }
-
-        // Reassign user's documents to OWNER and delete user in a transaction
-        await prisma.$transaction(async (tx) => {
-            // Reassign all documents uploaded by this user to OWNER
-            await tx.document.updateMany({
-                where: { uploaderId: user.id },
-                data: { uploaderId: owner.id },
-            });
-
-            // Delete user (cascades to bookmarks and activity logs)
-            await tx.user.delete({
-                where: { id: user.id },
-            });
-        });
-
-        // Delete user from Supabase Auth
-        if (user.supabaseAuthId) {
-            const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(
-                user.supabaseAuthId
-            );
-
-            if (authDeleteError) {
-                console.error("Failed to delete user from Supabase Auth:", authDeleteError);
-                // Don't fail the entire operation if Auth deletion fails
-                // User is already deleted from database
-            }
-        }
-
-        // Sign out the user
-        await supabase.auth.signOut();
-
-        return { success: true };
-    } catch (error) {
-        console.error("Error deleting user account:", error);
-        return { success: false, error: "Failed to delete account" };
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
     }
+
+    // Verify password using Supabase Auth
+    const supabase = await createClient()
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password,
+    })
+
+    if (signInError) {
+      return { success: false, error: 'Incorrect password' }
+    }
+
+    // Find OWNER account to reassign documents
+    const owner = await prisma.user.findFirst({
+      where: { role: RoleName.OWNER },
+      select: { id: true },
+    })
+
+    if (!owner) {
+      return {
+        success: false,
+        error: 'System error: Cannot preserve documents',
+      }
+    }
+
+    // Reassign user's documents to OWNER and delete user in a transaction
+    await prisma.$transaction(async (tx) => {
+      // Reassign all documents uploaded by this user to OWNER
+      await tx.document.updateMany({
+        where: { uploaderId: user.id },
+        data: { uploaderId: owner.id },
+      })
+
+      // Delete user (cascades to bookmarks and activity logs)
+      await tx.user.delete({
+        where: { id: user.id },
+      })
+    })
+
+    // Delete user from Supabase Auth
+    if (user.supabaseAuthId) {
+      const { error: authDeleteError } =
+        await supabaseAdmin.auth.admin.deleteUser(user.supabaseAuthId)
+
+      if (authDeleteError) {
+        console.error(
+          'Failed to delete user from Supabase Auth:',
+          authDeleteError,
+        )
+        // Don't fail the entire operation if Auth deletion fails
+        // User is already deleted from database
+      }
+    }
+
+    // Sign out the user
+    await supabase.auth.signOut()
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting user account:', error)
+    return { success: false, error: 'Failed to delete account' }
+  }
 }

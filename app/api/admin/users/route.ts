@@ -22,7 +22,9 @@ function normalizeRole(role: RoleName): 'Registered' | 'Admin' | 'Superadmin' {
 /**
  * Normalizes database status enum to display format
  */
-function normalizeStatus(status: UserStatus): 'Accepted' | 'Pending' | 'Delete' {
+function normalizeStatus(
+  status: UserStatus,
+): 'Accepted' | 'Pending' | 'Delete' {
   switch (status) {
     case UserStatus.APPROVED:
       return 'Accepted'

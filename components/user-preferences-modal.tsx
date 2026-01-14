@@ -1,38 +1,38 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertTriangle, Eye, EyeOff, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AlertTriangle, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import { deleteUserAccount } from "@/lib/actions";
+import { deleteUserAccount } from '@/lib/actions'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RoleName } from '@/lib/generated/prisma/enums'
+import { createClient } from '@/lib/supabase/client'
 import {
   userPreferencesSchema,
   type UserPreferencesFormValues,
-} from "@/lib/validations/user-preferences-schema";
-import { RoleName } from "@/lib/generated/prisma/enums";
+} from '@/lib/validations/user-preferences-schema'
 
 type UserPreferencesModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  initialUsername: string;
-  userRole?: RoleName;
-  onUsernameUpdated?: (nextUsername: string) => void;
-};
+  isOpen: boolean
+  onClose: () => void
+  initialUsername: string
+  userRole?: RoleName
+  onUsernameUpdated?: (nextUsername: string) => void
+}
 
 /**
  * Modal for updating the authenticated user's own preferences.
@@ -48,25 +48,25 @@ export function UserPreferencesModal({
   userRole,
   onUsernameUpdated,
 }: UserPreferencesModalProps) {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   // Delete account state
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [showDeletePassword, setShowDeletePassword] = useState(false)
 
   const form = useForm<UserPreferencesFormValues>({
     resolver: zodResolver(userPreferencesSchema),
     defaultValues: {
       username: initialUsername,
-      newPassword: "",
-      confirmPassword: "",
+      newPassword: '',
+      confirmPassword: '',
     },
-  });
+  })
 
   const {
     register,
@@ -75,179 +75,179 @@ export function UserPreferencesModal({
     reset,
     setError,
     watch,
-  } = form;
+  } = form
 
   // Watch form values to detect changes
-  const watchedValues = watch();
+  const watchedValues = watch()
 
   // Check if there are actual changes
   const hasChanges = useMemo(() => {
-    const usernameChanged = watchedValues.username?.trim() !== initialUsername;
+    const usernameChanged = watchedValues.username?.trim() !== initialUsername
     const passwordChanged =
-      watchedValues.newPassword && watchedValues.newPassword.length > 0;
-    return usernameChanged || passwordChanged;
-  }, [watchedValues.username, watchedValues.newPassword, initialUsername]);
+      watchedValues.newPassword && watchedValues.newPassword.length > 0
+    return usernameChanged || passwordChanged
+  }, [watchedValues.username, watchedValues.newPassword, initialUsername])
 
   // Reset form when modal opens or initialUsername changes
   useEffect(() => {
     if (isOpen) {
       reset({
         username: initialUsername,
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
-      setIsDeleting(false);
-      setDeletePassword("");
-      setShowDeletePassword(false);
+        newPassword: '',
+        confirmPassword: '',
+      })
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+      setIsDeleting(false)
+      setDeletePassword('')
+      setShowDeletePassword(false)
     }
-  }, [isOpen, initialUsername, reset]);
+  }, [isOpen, initialUsername, reset])
 
   /**
    * Handles closing the modal and resetting state
    */
   const handleClose = () => {
-    if (isSubmitting || isDeletingAccount) return;
-    onClose();
-    setShowNewPassword(false);
-    setShowConfirmPassword(false);
-    setIsDeleting(false);
-    setDeletePassword("");
-  };
+    if (isSubmitting || isDeletingAccount) return
+    onClose()
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+    setIsDeleting(false)
+    setDeletePassword('')
+  }
 
   /**
    * Handles account deletion with password verification
    */
   const handleDeleteAccount = async () => {
     if (!deletePassword) {
-      toast.error("Please enter your password");
-      return;
+      toast.error('Please enter your password')
+      return
     }
 
-    setIsDeletingAccount(true);
-    toast.loading("Deleting account...", { id: "delete-account" });
+    setIsDeletingAccount(true)
+    toast.loading('Deleting account...', { id: 'delete-account' })
 
     try {
-      const result = await deleteUserAccount(deletePassword);
+      const result = await deleteUserAccount(deletePassword)
 
       if (!result.success) {
-        toast.error(result.error || "Failed to delete account", {
-          id: "delete-account",
-        });
-        return;
+        toast.error(result.error || 'Failed to delete account', {
+          id: 'delete-account',
+        })
+        return
       }
 
-      toast.success("Account deleted successfully", { id: "delete-account" });
-      
+      toast.success('Account deleted successfully', { id: 'delete-account' })
+
       // Close modal and redirect to home
-      onClose();
-      router.push("/");
-      router.refresh();
+      onClose()
+      router.push('/')
+      router.refresh()
     } catch (error) {
-      console.error("Error deleting account:", error);
-      toast.error("Failed to delete account. Please try again.", {
-        id: "delete-account",
-      });
+      console.error('Error deleting account:', error)
+      toast.error('Failed to delete account. Please try again.', {
+        id: 'delete-account',
+      })
     } finally {
-      setIsDeletingAccount(false);
+      setIsDeletingAccount(false)
     }
-  };
+  }
 
   /**
    * Handles form submission with username availability check
    */
   const onSubmit = async (data: UserPreferencesFormValues) => {
-    const trimmedUsername = data.username.trim();
-    const isPasswordChanged = data.newPassword && data.newPassword.length > 0;
+    const trimmedUsername = data.username.trim()
+    const isPasswordChanged = data.newPassword && data.newPassword.length > 0
 
     // Check username availability if it changed
     if (trimmedUsername !== initialUsername) {
       try {
         const checkResponse = await fetch(
           `/api/user/preferences?username=${encodeURIComponent(
-            trimmedUsername
-          )}`
-        );
+            trimmedUsername,
+          )}`,
+        )
 
         if (!checkResponse.ok) {
-          throw new Error("Failed to check username");
+          throw new Error('Failed to check username')
         }
 
         const checkData: { available: boolean; username: string } =
-          await checkResponse.json();
+          await checkResponse.json()
 
         if (!checkData.available) {
-          setError("username", {
-            type: "manual",
-            message: "This username is already taken",
-          });
-          return;
+          setError('username', {
+            type: 'manual',
+            message: 'This username is already taken',
+          })
+          return
         }
       } catch (error) {
-        console.error("Error checking username availability:", error);
-        toast.error("Failed to check username availability");
-        return;
+        console.error('Error checking username availability:', error)
+        toast.error('Failed to check username availability')
+        return
       }
     }
 
     // Submit the form
     try {
-      setIsSubmitting(true);
-      toast.loading("Saving preferences...", { id: "preferences" });
+      setIsSubmitting(true)
+      toast.loading('Saving preferences...', { id: 'preferences' })
 
-      const response = await fetch("/api/user/preferences", {
-        method: "PATCH",
+      const response = await fetch('/api/user/preferences', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           username: trimmedUsername,
           newPassword: data.newPassword || undefined,
         }),
-      });
+      })
 
       if (!response.ok) {
-        const responseData = await response.json().catch(() => ({}));
-        const message = responseData.error || "Failed to update preferences.";
-        throw new Error(message);
+        const responseData = await response.json().catch(() => ({}))
+        const message = responseData.error || 'Failed to update preferences.'
+        throw new Error(message)
       }
 
-      const result: { username: string | null } = await response.json();
+      const result: { username: string | null } = await response.json()
 
       if (result.username) {
-        onUsernameUpdated?.(result.username);
+        onUsernameUpdated?.(result.username)
       }
 
-      toast.success("Preferences updated successfully.", {
-        id: "preferences",
-      });
+      toast.success('Preferences updated successfully.', {
+        id: 'preferences',
+      })
 
-      handleClose();
+      handleClose()
 
       // If password was changed, sign out and redirect to home
       if (isPasswordChanged) {
-        const supabase = createClient();
-        await supabase.auth.signOut();
+        const supabase = createClient()
+        await supabase.auth.signOut()
 
         toast.success(
-          "Password changed. Please sign in with your new password."
-        );
-        router.push("/");
-        router.refresh();
+          'Password changed. Please sign in with your new password.',
+        )
+        router.push('/')
+        router.refresh()
       }
     } catch (error: unknown) {
-      console.error("Failed to update preferences:", error);
+      console.error('Failed to update preferences:', error)
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to update preferences. Please try again.",
-        { id: "preferences" }
-      );
+          : 'Failed to update preferences. Please try again.',
+        { id: 'preferences' },
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -277,7 +277,7 @@ export function UserPreferencesModal({
                   id="preferences-username"
                   type="text"
                   placeholder="Enter your username"
-                  {...register("username")}
+                  {...register('username')}
                   className="rounded-lg border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon"
                 />
                 {errors.username && (
@@ -298,9 +298,9 @@ export function UserPreferencesModal({
                 <div className="relative">
                   <Input
                     id="preferences-new-password"
-                    type={showNewPassword ? "text" : "password"}
+                    type={showNewPassword ? 'text' : 'password'}
                     placeholder="Enter new password (optional)"
-                    {...register("newPassword")}
+                    {...register('newPassword')}
                     className="rounded-lg border-neutral-300 pr-9 focus:border-pup-maroon focus:ring-pup-maroon"
                   />
                   <Button
@@ -316,7 +316,7 @@ export function UserPreferencesModal({
                       <Eye className="h-5 w-5" />
                     )}
                     <span className="sr-only">
-                      {showNewPassword ? "Hide password" : "Show password"}
+                      {showNewPassword ? 'Hide password' : 'Show password'}
                     </span>
                   </Button>
                 </div>
@@ -338,9 +338,9 @@ export function UserPreferencesModal({
                 <div className="relative">
                   <Input
                     id="preferences-confirm-password"
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm new password"
-                    {...register("confirmPassword")}
+                    {...register('confirmPassword')}
                     className="rounded-lg border-neutral-300 pr-9 focus:border-pup-maroon focus:ring-pup-maroon"
                   />
                   <Button
@@ -356,7 +356,7 @@ export function UserPreferencesModal({
                       <Eye className="h-5 w-5" />
                     )}
                     <span className="sr-only">
-                      {showConfirmPassword ? "Hide password" : "Show password"}
+                      {showConfirmPassword ? 'Hide password' : 'Show password'}
                     </span>
                   </Button>
                 </div>
@@ -382,7 +382,7 @@ export function UserPreferencesModal({
                 >
                   Delete Account
                 </Button>
-                
+
                 <div className="flex gap-3">
                   <Button
                     type="button"
@@ -404,7 +404,7 @@ export function UserPreferencesModal({
                         Saving...
                       </>
                     ) : (
-                      "Save changes"
+                      'Save changes'
                     )}
                   </Button>
                 </div>
@@ -452,7 +452,7 @@ export function UserPreferencesModal({
                 <div className="relative">
                   <Input
                     id="delete-password"
-                    type={showDeletePassword ? "text" : "password"}
+                    type={showDeletePassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={deletePassword}
                     onChange={(e) => setDeletePassword(e.target.value)}
@@ -473,7 +473,7 @@ export function UserPreferencesModal({
                       <Eye className="h-5 w-5" />
                     )}
                     <span className="sr-only">
-                      {showDeletePassword ? "Hide password" : "Show password"}
+                      {showDeletePassword ? 'Hide password' : 'Show password'}
                     </span>
                   </Button>
                 </div>
@@ -485,8 +485,8 @@ export function UserPreferencesModal({
                   type="button"
                   variant="ghost"
                   onClick={() => {
-                    setIsDeleting(false);
-                    setDeletePassword("");
+                    setIsDeleting(false)
+                    setDeletePassword('')
                   }}
                   disabled={isDeletingAccount}
                   className="text-sm font-medium text-neutral-600 hover:bg-transparent hover:underline"
@@ -505,7 +505,7 @@ export function UserPreferencesModal({
                       Deleting...
                     </>
                   ) : (
-                    "Confirm Delete"
+                    'Confirm Delete'
                   )}
                 </Button>
               </div>
@@ -514,7 +514,7 @@ export function UserPreferencesModal({
         )}
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
-export default UserPreferencesModal;
+export default UserPreferencesModal
