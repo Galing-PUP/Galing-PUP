@@ -11,7 +11,7 @@ import { getCurrentUser, signOut } from "@/lib/actions";
 import { User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatTier } from "@/lib/utils/format";
-import { TierName } from "@/lib/generated/prisma/enums";
+import { RoleName, TierName } from "@/lib/generated/prisma/enums";
 
 type NavItem = {
   label: string;
@@ -28,6 +28,7 @@ type UserProfile = {
   username: string;
   tierName: TierName;
   email: string;
+  role: RoleName;
 };
 
 type HeaderProps = {
@@ -185,6 +186,7 @@ export function Header({
           isOpen={isPreferencesOpen}
           onClose={() => setIsPreferencesOpen(false)}
           initialUsername={user.username}
+          userRole={user.role}
           onUsernameUpdated={(nextUsername) => {
             setUser((prev) =>
               prev ? { ...prev, username: nextUsername } : prev,
