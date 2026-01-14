@@ -21,7 +21,7 @@ import {
   createUserInDb,
   getCurrentUser,
 } from '@/lib/actions'
-import { signInWithGooglePopup } from '@/lib/auth'
+import { signInWithGoogle } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/client'
 import {
   signUpSchema,
@@ -50,6 +50,14 @@ export default function SignUpPage() {
       }
     }
     checkSession()
+
+    // Handle OAuth errors from redirect
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get('error')
+    if (error === 'UserExists') {
+      toast.error('User already exists. Please sign in instead.')
+      router.replace('/signup')
+    }
   }, [router])
 
   const form = useForm<SignUpFormValues>({
@@ -71,35 +79,9 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     try {
-      const { user, error } = await signInWithGooglePopup('signup')
-
-      if (error) {
-        toast.error(error.message)
-        return
-      }
-
-      if (user) {
-        const supabase = createClient()
-        await supabase.auth.setSession({
-          access_token: user.session?.access_token || '',
-          refresh_token: user.session?.refresh_token || '',
-        })
-
-        const status = await checkUserStatus(user.email || '')
-
-        if (!status.exists) {
-          await createUserInDb(
-            user.email || '',
-            user.user_metadata.full_name || '',
-            user.id,
-            '', // No password for Google auth
-          )
-        }
-
-        toast.success('Successfully signed in with Google!')
-        router.push('/')
-        router.refresh()
-      }
+      await signInWithGoogle('signup')
+      // The browser will redirect to Google OAuth, then back to our callback
+      // The callback will handle user creation and redirect to home
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign up with Google')
     }

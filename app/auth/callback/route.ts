@@ -7,7 +7,6 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const intent = requestUrl.searchParams.get('intent')
-  const isPopup = requestUrl.searchParams.get('popup') === 'true'
 
   const supabase = await createClient()
 
@@ -27,13 +26,9 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    if (isPopup) {
-      return new NextResponse(
-        `<script>window.opener.postMessage({ type: 'OAUTH_ERROR', message: 'Unauthorized' }, '*'); window.close();</script>`,
-        { headers: { 'Content-Type': 'text/html' } },
-      )
-    }
-    return new Response('Unauthorized', { status: 401 })
+    return NextResponse.redirect(
+      `${requestUrl.origin}/signin?error=Unauthorized`,
+    )
   }
 
   const email = user.email!
@@ -47,13 +42,9 @@ export async function GET(request: NextRequest) {
     // Sign out the user immediately since they shouldn't be logged in
     await supabase.auth.signOut()
 
-    if (isPopup) {
-      return new NextResponse(
-        `<script>window.opener.postMessage({ type: 'OAUTH_ERROR', message: 'User not found. Please sign up first.' }, '*'); window.close();</script>`,
-        { headers: { 'Content-Type': 'text/html' } },
-      )
-    }
-    return new Response('User not found', { status: 404 })
+    return NextResponse.redirect(
+      `${requestUrl.origin}/signin?error=UserNotFound`,
+    )
   }
 
   // If intent is signup, user MUST NOT exist
@@ -61,13 +52,9 @@ export async function GET(request: NextRequest) {
     // Sign out the user immediately
     await supabase.auth.signOut()
 
-    if (isPopup) {
-      return new NextResponse(
-        `<script>window.opener.postMessage({ type: 'OAUTH_ERROR', message: 'User already exists. Please sign in.' }, '*'); window.close();</script>`,
-        { headers: { 'Content-Type': 'text/html' } },
-      )
-    }
-    return new Response('User already exists', { status: 409 })
+    return NextResponse.redirect(
+      `${requestUrl.origin}/signup?error=UserExists`,
+    )
   }
 
   // Step 2: Handle user data in our database
@@ -107,13 +94,6 @@ export async function GET(request: NextRequest) {
         tierId: 1,
       },
     })
-  }
-
-  if (isPopup) {
-    return new NextResponse(
-      `<script>window.opener.postMessage({ type: 'OAUTH_SUCCESS' }, '*'); window.close();</script>`,
-      { headers: { 'Content-Type': 'text/html' } },
-    )
   }
 
   const next = requestUrl.searchParams.get('next')

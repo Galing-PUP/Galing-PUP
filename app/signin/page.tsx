@@ -20,7 +20,7 @@ import {
   getCurrentUser,
   verifyCredentials,
 } from '@/lib/actions'
-import { signInWithGooglePopup } from '@/lib/auth'
+import { signInWithGoogle } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/client'
 import {
   signInSchema,
@@ -48,6 +48,20 @@ export default function SignInPage() {
       }
     }
     checkSession()
+
+    // Handle OAuth errors from redirect
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get('error')
+    if (error === 'UserNotFound') {
+      toast.error('User not found. Please sign up first.')
+      router.replace('/signin')
+    } else if (error === 'VerificationFailed') {
+      toast.error('Authentication failed. Please try again.')
+      router.replace('/signin')
+    } else if (error === 'Unauthorized') {
+      toast.error('Unauthorized. Please try again.')
+      router.replace('/signin')
+    }
   }, [router])
 
   const form = useForm<SignInFormValues>({
@@ -66,21 +80,9 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const { user, error } = await signInWithGooglePopup('signin')
-      if (error) {
-        toast.error(error.message)
-        return
-      }
-      if (user) {
-        const supabase = createClient()
-        await supabase.auth.setSession({
-          access_token: user.session?.access_token || '',
-          refresh_token: user.session?.refresh_token || '',
-        })
-        toast.success('Successfully signed in with Google!')
-        router.push('/')
-        router.refresh()
-      }
+      await signInWithGoogle('signin')
+      // The browser will redirect to Google OAuth, then back to our callback
+      // The callback will handle session creation and redirect to home
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in with Google')
     }
