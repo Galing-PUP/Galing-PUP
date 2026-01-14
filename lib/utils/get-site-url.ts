@@ -10,12 +10,7 @@
 export function getSiteUrl(): string {
   // For client-side code
   if (typeof window !== 'undefined') {
-    return (
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      (process.env.NEXT_PUBLIC_VERCEL_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-        : window.location.origin)
-    )
+    return window.location.origin
   }
 
   // For server-side code
