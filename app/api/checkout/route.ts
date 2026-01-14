@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
     // 5. Create Xendit payment session
     // Note: Xendit requires HTTPS URLs. For localhost, we use a placeholder HTTPS URL
     // since we're using the "Verify on Return" pattern and manually handling redirects
-    const httpsVercelUrl = 'https://' + process.env.VERCEL_URL
-    const appUrl = httpsVercelUrl || process.env.APP_URL
-    console.log('APP_URL from env:', process.env.APP_URL)
+    const httpsVercelUrl = 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL
+    const appUrl = httpsVercelUrl || process.env.NEXT_PUBLIC_APP_URL
+    console.log('APP_URL from env:', process.env.NEXT_PUBLIC_APP_URL)
     console.log('Using appUrl:', appUrl)
     console.log('Success URL:', `${appUrl}/pricing/success?ref=${referenceId}`)
 
@@ -63,11 +63,6 @@ export async function POST(request: NextRequest) {
       success_return_url: `${appUrl}/pricing/success?ref=${referenceId}`,
       cancel_return_url: `${appUrl}/pricing`,
     })
-
-    console.log(
-      'Xendit session response:',
-      JSON.stringify(sessionResponse, null, 2),
-    )
 
     // 6. Save transaction record in database
     await prisma.paymentTransaction.create({
