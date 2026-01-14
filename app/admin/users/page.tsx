@@ -48,6 +48,17 @@ export default function UserManagementPage() {
     message: string
   }>({ isOpen: false, message: '' })
 
+  // Debug: Log modal state changes
+  useEffect(() => {
+    if (modalState.isOpen && modalState.user) {
+      console.log('Modal opened for user:', {
+        name: modalState.user.name,
+        role: modalState.user.role,
+        email: modalState.user.email,
+      })
+    }
+  }, [modalState])
+
   // Fetch users and stats from API
   const fetchStats = async () => {
     try {
@@ -288,9 +299,9 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {modalState.user &&
-      (modalState.user.role === 'Admin' ||
-        modalState.user.role === 'Superadmin') ? (
+      {/* Conditional Modal Rendering Based on User Role */}
+      {(modalState.user?.role === 'Admin' ||
+        modalState.user?.role === 'Superadmin') ? (
         <AdminUserFormModal
           isOpen={modalState.isOpen}
           onClose={() => setModalState({ isOpen: false, user: null })}
