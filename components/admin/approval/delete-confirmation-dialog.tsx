@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   AlertDialog,
@@ -9,24 +9,29 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import type { ContentItem } from "@/types/content";
+} from '@/components/ui/alert-dialog'
+import type { ContentItem } from '@/types/content'
 
 interface DeleteConfirmationDialogProps {
-  item: ContentItem | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (id: string) => void;
+  item: ContentItem | null
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: (id: string) => void
 }
 
-export function DeleteConfirmationDialog({ item, isOpen, onClose, onConfirm }: DeleteConfirmationDialogProps) {
+export function DeleteConfirmationDialog({
+  item,
+  isOpen,
+  onClose,
+  onConfirm,
+}: DeleteConfirmationDialogProps) {
   if (!item) {
-    return null;
+    return null
   }
 
   const handleConfirm = () => {
-    onConfirm(item.id);
-  };
+    onConfirm(item.id)
+  }
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -34,7 +39,8 @@ export function DeleteConfirmationDialog({ item, isOpen, onClose, onConfirm }: D
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            The chosen publication will be permanently deleted from the database. This action cannot be undone.
+            The chosen publication will be permanently deleted from the
+            database. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -55,5 +61,5 @@ export function DeleteConfirmationDialog({ item, isOpen, onClose, onConfirm }: D
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

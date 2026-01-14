@@ -1,40 +1,40 @@
-"use client";
+'use client'
 
-import { CourseCombobox } from "@/components/admin/publications/course-combobox";
-import { KeywordsSection } from "@/components/admin/publications/form-sections/keywords";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { CourseCombobox } from '@/components/admin/publications/course-combobox'
+import { KeywordsSection } from '@/components/admin/publications/form-sections/keywords'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { PublicationFormData } from "@/lib/validations/publication-schema";
-import { Calendar1, ChevronDownIcon, FileText, Sparkles } from "lucide-react";
-import { ChangeEvent, useState } from "react";
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { PublicationFormData } from '@/lib/validations/publication-schema'
+import { Calendar1, FileText, Sparkles } from 'lucide-react'
+import { ChangeEvent, useState } from 'react'
 
 interface BasicInfoSectionProps {
-  formData: PublicationFormData;
-  setFormData: React.Dispatch<React.SetStateAction<PublicationFormData>>;
-  errors: Record<string, string>;
+  formData: PublicationFormData
+  setFormData: React.Dispatch<React.SetStateAction<PublicationFormData>>
+  errors: Record<string, string>
 }
 
 export function BasicInfoSection({
@@ -42,39 +42,39 @@ export function BasicInfoSection({
   setFormData,
   errors,
 }: BasicInfoSectionProps) {
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    formData.datePublished ? new Date(formData.datePublished) : undefined
-  );
+    formData.datePublished ? new Date(formData.datePublished) : undefined,
+  )
 
   const resourceTypeOptions = [
-    { value: "THESIS", label: "Thesis" },
-    { value: "CAPSTONE", label: "Capstone" },
-    { value: "DISSERTATION", label: "Dissertation" },
-    { value: "ARTICLE", label: "Article" },
-    { value: "RESEARCH_PAPER", label: "Research Paper" },
-  ];
+    { value: 'THESIS', label: 'Thesis' },
+    { value: 'CAPSTONE', label: 'Capstone' },
+    { value: 'DISSERTATION', label: 'Dissertation' },
+    { value: 'ARTICLE', label: 'Article' },
+    { value: 'RESEARCH_PAPER', label: 'Research Paper' },
+  ]
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   // Helper to display field errors
   const FieldError = ({ name }: { name: string }) => {
-    if (!errors[name]) return null;
+    if (!errors[name]) return null
     return (
       <p className="text-sm text-red-600 mt-1" data-error="true">
         {errors[name]}
       </p>
-    );
-  };
+    )
+  }
 
   return (
     <Card>
@@ -103,7 +103,7 @@ export function BasicInfoSection({
             value={formData.title}
             onChange={handleInputChange}
             placeholder="Enter the full title of the publication"
-            className={cn("text-sm", errors.title && "border-red-500")}
+            className={cn('text-sm', errors.title && 'border-red-500')}
             required
           />
           <FieldError name="title" />
@@ -122,8 +122,8 @@ export function BasicInfoSection({
             placeholder="Enter a brief summary of your research (150-300 words)"
             rows={4}
             className={cn(
-              "text-sm resize-none",
-              errors.abstract && "border-red-500"
+              'text-sm resize-none',
+              errors.abstract && 'border-red-500',
             )}
             required
           />
@@ -146,7 +146,7 @@ export function BasicInfoSection({
                 >
                   {selectedDate
                     ? selectedDate.toLocaleDateString()
-                    : "Select date"}
+                    : 'Select date'}
                   <Calendar1 className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -159,14 +159,14 @@ export function BasicInfoSection({
                   selected={selectedDate}
                   captionLayout="dropdown"
                   onSelect={(date) => {
-                    setSelectedDate(date);
+                    setSelectedDate(date)
                     setFormData((prev) => ({
                       ...prev,
                       datePublished: date
-                        ? date.toISOString().split("T")[0]
-                        : "",
-                    }));
-                    setDatePickerOpen(false);
+                        ? date.toISOString().split('T')[0]
+                        : '',
+                    }))
+                    setDatePickerOpen(false)
                   }}
                 />
               </PopoverContent>
@@ -181,10 +181,10 @@ export function BasicInfoSection({
             <Select
               value={formData.resourceType}
               onValueChange={(value) =>
-                handleSelectChange("resourceType", value)
+                handleSelectChange('resourceType', value)
               }
             >
-            <SelectTrigger id="resourceType" className="w-full text-sm">
+              <SelectTrigger id="resourceType" className="w-full text-sm">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -204,7 +204,7 @@ export function BasicInfoSection({
             </Label>
             <CourseCombobox
               value={formData.courseId}
-              onValueChange={(value) => handleSelectChange("courseId", value)}
+              onValueChange={(value) => handleSelectChange('courseId', value)}
             />
           </div>
         </div>
@@ -234,5 +234,5 @@ export function BasicInfoSection({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

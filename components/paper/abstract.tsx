@@ -1,6 +1,6 @@
 type AbstractProps = {
-  text: string;
-};
+  text: string
+}
 
 export function Abstract({ text }: AbstractProps) {
   return (
@@ -10,5 +10,5 @@ export function Abstract({ text }: AbstractProps) {
       </h2>
       <p className="leading-relaxed text-gray-700">{text}</p>
     </div>
-  );
+  )
 }

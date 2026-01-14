@@ -1,8 +1,8 @@
-import type { UserRole } from "@/types/users";
+import type { UserRole } from '@/types/users'
 
 type RoleBadgeProps = {
-  role: UserRole;
-};
+  role: UserRole
+}
 
 /**
  * Renders a styled badge for user roles
@@ -10,36 +10,36 @@ type RoleBadgeProps = {
  */
 export function RoleBadge({ role }: RoleBadgeProps) {
   // Normalize role to handle different cases
-  const normalizedRole = role?.toString().toLowerCase();
-  
+  const normalizedRole = role?.toString().toLowerCase()
+
   const getStyle = () => {
     if (normalizedRole === "superadmin") {
       return "bg-pup-maroon text-white";
     }
-    if (normalizedRole === "admin") {
-      return "bg-pup-gold-light text-gray-900";
+    if (normalizedRole === 'admin') {
+      return 'bg-pup-gold-light text-gray-900'
     }
-    if (normalizedRole === "registered") {
-      return "bg-gray-200 text-gray-700";
+    if (normalizedRole === 'registered') {
+      return 'bg-gray-200 text-gray-700'
     }
-    return "bg-gray-100 text-gray-600";
-  };
+    return 'bg-gray-100 text-gray-600'
+  }
 
   const getLabel = () => {
     if (normalizedRole === "superadmin") {
       return "Super Admin";
     }
-    if (normalizedRole === "admin") {
-      return "Admin";
+    if (normalizedRole === 'admin') {
+      return 'Admin'
     }
-    if (normalizedRole === "registered") {
-      return "Registered";
+    if (normalizedRole === 'registered') {
+      return 'Registered'
     }
-    if (normalizedRole === "viewer") {
-      return "Viewer";
+    if (normalizedRole === 'viewer') {
+      return 'Viewer'
     }
-    return role;
-  };
+    return role
+  }
 
   return (
     <span
@@ -47,5 +47,5 @@ export function RoleBadge({ role }: RoleBadgeProps) {
     >
       {getLabel()}
     </span>
-  );
+  )
 }

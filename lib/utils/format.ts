@@ -1,4 +1,10 @@
-import { ResourceTypes, RoleName, TierName, DocStatus, UserStatus } from "@/lib/generated/prisma/enums";
+import {
+  DocStatus,
+  ResourceTypes,
+  RoleName,
+  TierName,
+  UserStatus,
+} from '@/lib/generated/prisma/enums'
 
 /**
  * Formats a ResourceTypes enum value into a human-readable string.
@@ -10,14 +16,14 @@ import { ResourceTypes, RoleName, TierName, DocStatus, UserStatus } from "@/lib/
  */
 export function formatResourceType(resourceType: ResourceTypes): string {
   const formatMap: Record<ResourceTypes, string> = {
-    [ResourceTypes.THESIS]: "Thesis",
-    [ResourceTypes.CAPSTONE]: "Capstone",
-    [ResourceTypes.DISSERTATION]: "Dissertation",
-    [ResourceTypes.ARTICLE]: "Article",
-    [ResourceTypes.RESEARCH_PAPER]: "Research Paper",
-  };
+    [ResourceTypes.THESIS]: 'Thesis',
+    [ResourceTypes.CAPSTONE]: 'Capstone',
+    [ResourceTypes.DISSERTATION]: 'Dissertation',
+    [ResourceTypes.ARTICLE]: 'Article',
+    [ResourceTypes.RESEARCH_PAPER]: 'Research Paper',
+  }
 
-  return formatMap[resourceType];
+  return formatMap[resourceType]
 }
 
 /**
@@ -30,12 +36,13 @@ export function formatResourceType(resourceType: ResourceTypes): string {
  */
 export function formatRole(role: RoleName): string {
   const formatMap: Record<RoleName, string> = {
-    [RoleName.REGISTERED]: "Registered User",
-    [RoleName.ADMIN]: "Admin",
-    [RoleName.SUPERADMIN]: "Super Admin",
-  };
+    [RoleName.REGISTERED]: 'Registered User',
+    [RoleName.ADMIN]: 'Admin',
+    [RoleName.SUPERADMIN]: 'Super Admin',
+    [RoleName.OWNER]: 'Owner',
+  }
 
-  return formatMap[role];
+  return formatMap[role]
 }
 
 /**
@@ -48,11 +55,11 @@ export function formatRole(role: RoleName): string {
  */
 export function formatTier(tier: TierName): string {
   const formatMap: Record<TierName, string> = {
-    [TierName.FREE]: "Free",
-    [TierName.PAID]: "Premium",
-  };
+    [TierName.FREE]: 'Free',
+    [TierName.PAID]: 'Premium',
+  }
 
-  return formatMap[tier];
+  return formatMap[tier]
 }
 
 /**
@@ -65,13 +72,13 @@ export function formatTier(tier: TierName): string {
  */
 export function formatDocStatus(status: DocStatus): string {
   const formatMap: Record<DocStatus, string> = {
-    [DocStatus.PENDING]: "Pending Review",
-    [DocStatus.APPROVED]: "Approved",
-    [DocStatus.REJECTED]: "Rejected",
-    [DocStatus.DELETED]: "Deleted",
-  };
+    [DocStatus.PENDING]: 'Pending Review',
+    [DocStatus.APPROVED]: 'Approved',
+    [DocStatus.REJECTED]: 'Rejected',
+    [DocStatus.DELETED]: 'Deleted',
+  }
 
-  return formatMap[status];
+  return formatMap[status]
 }
 
 /**
@@ -84,10 +91,10 @@ export function formatDocStatus(status: DocStatus): string {
  */
 export function formatUserStatus(status: UserStatus): string {
   const formatMap: Record<UserStatus, string> = {
-    [UserStatus.PENDING]: "Pending Verification",
-    [UserStatus.APPROVED]: "Approved",
-    [UserStatus.DELETED]: "Deleted",
-  };
+    [UserStatus.PENDING]: 'Pending Verification',
+    [UserStatus.APPROVED]: 'Approved',
+    [UserStatus.DELETED]: 'Deleted',
+  }
 
-  return formatMap[status];
+  return formatMap[status]
 }

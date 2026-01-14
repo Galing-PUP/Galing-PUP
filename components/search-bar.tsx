@@ -1,69 +1,69 @@
-"use client";
+'use client'
 
-type SearchBarSize = "sm" | "md" | "lg" | "xl";
+type SearchBarSize = 'sm' | 'md' | 'lg' | 'xl'
 
 type SearchBarProps = {
-  className?: string;
-  placeholder?: string;
+  className?: string
+  placeholder?: string
   /** Text shown inside the button (default: "Search") */
-  buttonText?: string;
-  size?: SearchBarSize;
+  buttonText?: string
+  size?: SearchBarSize
   /** Optional controlled value for the input */
-  value?: string;
+  value?: string
   /** Called whenever the input text changes */
-  onChange?: (value: string) => void;
+  onChange?: (value: string) => void
   /** Called when the user submits the search (button click or Enter) */
-  onSubmit?: () => void;
-};
+  onSubmit?: () => void
+}
 
 function getSizeConfig(size: SearchBarSize) {
   switch (size) {
-    case "sm":
+    case 'sm':
       return {
-        inputPadding: "px-3 py-3",
-        inputText: "text-sm",
-        buttonPadding: "px-5 py-2.5",
-        buttonText: "text-sm",
+        inputPadding: 'px-3 py-3',
+        inputText: 'text-sm',
+        buttonPadding: 'px-5 py-2.5',
+        buttonText: 'text-sm',
         icon: { w: 20, h: 20 },
-      };
-    case "lg":
+      }
+    case 'lg':
       return {
-        inputPadding: "px-5 py-6",
-        inputText: "text-lg md:text-xl",
-        buttonPadding: "px-10 py-5",
-        buttonText: "text-lg",
+        inputPadding: 'px-5 py-6',
+        inputText: 'text-lg md:text-xl',
+        buttonPadding: 'px-10 py-5',
+        buttonText: 'text-lg',
         icon: { w: 28, h: 28 },
-      };
-    case "xl":
+      }
+    case 'xl':
       return {
-        inputPadding: "px-6 py-7",
-        inputText: "text-xl",
-        buttonPadding: "px-12 py-6",
-        buttonText: "text-xl",
+        inputPadding: 'px-6 py-7',
+        inputText: 'text-xl',
+        buttonPadding: 'px-12 py-6',
+        buttonText: 'text-xl',
         icon: { w: 32, h: 32 },
-      };
-    case "md":
+      }
+    case 'md':
     default:
       return {
-        inputPadding: "px-4 py-5",
-        inputText: "text-base md:text-lg",
-        buttonPadding: "px-8 py-4",
-        buttonText: "text-base",
+        inputPadding: 'px-4 py-5',
+        inputText: 'text-base md:text-lg',
+        buttonPadding: 'px-8 py-4',
+        buttonText: 'text-base',
         icon: { w: 24, h: 24 },
-      };
+      }
   }
 }
 
 export function SearchBar({
-  className = "",
-  placeholder = "Search by title, author, keywords...",
-  buttonText = "Search",
-  size = "md",
+  className = '',
+  placeholder = 'Search by title, author, keywords...',
+  buttonText = 'Search',
+  size = 'md',
   value,
   onChange,
   onSubmit,
 }: SearchBarProps) {
-  const cfg = getSizeConfig(size);
+  const cfg = getSizeConfig(size)
 
   return (
     <div className={`w-full ${className}`} role="search">
@@ -90,8 +90,8 @@ export function SearchBar({
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onSubmit?.();
+            if (e.key === 'Enter') {
+              onSubmit?.()
             }
           }}
         />
@@ -104,8 +104,7 @@ export function SearchBar({
         </button>
       </div>
     </div>
-  );
+  )
 }
 
-export default SearchBar;
-
+export default SearchBar

@@ -1,27 +1,27 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import { User, Users, X } from "lucide-react";
+import { User, Users, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface SignInModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 export function SignInModal({ isOpen, onClose }: SignInModalProps) {
-  const router = useRouter();
+  const router = useRouter()
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const handleUserSignIn = () => {
-    router.push("/signin");
-    onClose();
-  };
+    router.push('/signin')
+    onClose()
+  }
 
   const handleAdminSignIn = () => {
-    router.push("/admin/signin");
-    onClose();
-  };
+    router.push('/admin/signin')
+    onClose()
+  }
 
   return (
     <>
@@ -103,5 +103,5 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         </div>
       </div>
     </>
-  );
+  )
 }

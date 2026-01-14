@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import type { User } from "@/types/users";
-import { UserTableRow } from "./user-table-row";
-import { useRef, useEffect } from "react";
+import type { User } from '@/types/users'
+import { useEffect, useRef } from 'react'
+import { UserTableRow } from './user-table-row'
 
 type UsersTableProps = {
-  users: User[];
-  selectedUserIds: string[];
-  onSelectAll: () => void;
-  onSelectUser: (userId: string) => void;
-  onEditUser: (user: User) => void;
-  onDeleteUser: (user: User) => void;
-};
+  users: User[]
+  selectedUserIds: string[]
+  onSelectAll: () => void
+  onSelectUser: (userId: string) => void
+  onEditUser: (user: User) => void
+  onDeleteUser: (user: User) => void
+}
 
 export function UsersTable({
   users,
@@ -21,17 +21,18 @@ export function UsersTable({
   onEditUser,
   onDeleteUser,
 }: UsersTableProps) {
-  const headerCheckboxRef = useRef<HTMLInputElement>(null);
+  const headerCheckboxRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (headerCheckboxRef.current) {
-      const numSelected = selectedUserIds.length;
-      const numUsers = users.length;
-      headerCheckboxRef.current.checked = numSelected === numUsers && numUsers > 0;
+      const numSelected = selectedUserIds.length
+      const numUsers = users.length
+      headerCheckboxRef.current.checked =
+        numSelected === numUsers && numUsers > 0
       headerCheckboxRef.current.indeterminate =
-        numSelected > 0 && numSelected < numUsers;
+        numSelected > 0 && numSelected < numUsers
     }
-  }, [selectedUserIds, users.length]);
+  }, [selectedUserIds, users.length])
 
   return (
     <div className="mt-4 flow-root">
@@ -70,5 +71,5 @@ export function UsersTable({
         </div>
       </div>
     </div>
-  );
+  )
 }

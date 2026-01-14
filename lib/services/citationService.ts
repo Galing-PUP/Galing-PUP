@@ -6,32 +6,32 @@
  * Includes rate limiting based on subscription tier
  */
 
-import { prisma } from "@/lib/db";
-import { ResourceTypes } from "@/lib/generated/prisma/enums";
-import type { CSLData, CSLPerson, CitationFormats } from "@/types/citation";
-import { Cite } from "@citation-js/core";
-import "@citation-js/plugin-bibtex";
-import "@citation-js/plugin-csl";
+import { prisma } from '@/lib/db'
+import { ResourceTypes } from '@/lib/generated/prisma/enums'
+import type { CSLData, CSLPerson, CitationFormats } from '@/types/citation'
+import { Cite } from '@citation-js/core'
+import '@citation-js/plugin-bibtex'
+import '@citation-js/plugin-csl'
 
 /**
  * Author information for citation formatting
  */
 interface AuthorInfo {
-  firstName: string;
-  middleName?: string | null;
-  lastName: string;
+  firstName: string
+  middleName?: string | null
+  lastName: string
 }
 
 /**
  * Citation data extracted from document
  */
 interface CitationData {
-  authors: AuthorInfo[];
-  year: number;
-  title: string;
-  genre: string;
-  containerTitle: string;
-  publisher: string;
+  authors: AuthorInfo[]
+  year: number
+  title: string
+  genre: string
+  containerTitle: string
+  publisher: string
 }
 
 /**
@@ -39,22 +39,22 @@ interface CitationData {
  * Format: "Last, F., Last, F., & Last, F."
  */
 function formatAuthorsAPA(authors: AuthorInfo[]): string {
-  if (authors.length === 0) return "Unknown Author";
+  if (authors.length === 0) return 'Unknown Author'
 
   const formatted = authors.map((author) => {
-    const firstInitial = author.firstName.charAt(0);
+    const firstInitial = author.firstName.charAt(0)
     const middleInitial = author.middleName
       ? ` ${author.middleName.charAt(0)}.`
-      : "";
-    return `${author.lastName}, ${firstInitial}.${middleInitial}`;
-  });
+      : ''
+    return `${author.lastName}, ${firstInitial}.${middleInitial}`
+  })
 
-  if (formatted.length === 1) return formatted[0];
-  if (formatted.length === 2) return `${formatted[0]}, & ${formatted[1]}`;
+  if (formatted.length === 1) return formatted[0]
+  if (formatted.length === 2) return `${formatted[0]}, & ${formatted[1]}`
 
-  const lastAuthor = formatted[formatted.length - 1];
-  const otherAuthors = formatted.slice(0, -1).join(", ");
-  return `${otherAuthors}, & ${lastAuthor}`;
+  const lastAuthor = formatted[formatted.length - 1]
+  const otherAuthors = formatted.slice(0, -1).join(', ')
+  return `${otherAuthors}, & ${lastAuthor}`
 }
 
 /**
@@ -62,25 +62,25 @@ function formatAuthorsAPA(authors: AuthorInfo[]): string {
  * Format: "Last, First, and First Last"
  */
 function formatAuthorsMLA(authors: AuthorInfo[]): string {
-  if (authors.length === 0) return "Unknown Author";
+  if (authors.length === 0) return 'Unknown Author'
 
   const formatted = authors.map((author, index) => {
-    const middleName = author.middleName ? ` ${author.middleName}` : "";
+    const middleName = author.middleName ? ` ${author.middleName}` : ''
     if (index === 0) {
       // First author: Last, First Middle
-      return `${author.lastName}, ${author.firstName}${middleName}`;
+      return `${author.lastName}, ${author.firstName}${middleName}`
     } else {
       // Other authors: First Middle Last
-      return `${author.firstName}${middleName} ${author.lastName}`;
+      return `${author.firstName}${middleName} ${author.lastName}`
     }
-  });
+  })
 
-  if (formatted.length === 1) return formatted[0];
-  if (formatted.length === 2) return `${formatted[0]}, and ${formatted[1]}`;
+  if (formatted.length === 1) return formatted[0]
+  if (formatted.length === 2) return `${formatted[0]}, and ${formatted[1]}`
 
-  const lastAuthor = formatted[formatted.length - 1];
-  const otherAuthors = formatted.slice(0, -1).join(", ");
-  return `${otherAuthors}, and ${lastAuthor}`;
+  const lastAuthor = formatted[formatted.length - 1]
+  const otherAuthors = formatted.slice(0, -1).join(', ')
+  return `${otherAuthors}, and ${lastAuthor}`
 }
 
 /**
@@ -88,22 +88,22 @@ function formatAuthorsMLA(authors: AuthorInfo[]): string {
  * Format: "F. Last, F. Last, and F. Last"
  */
 function formatAuthorsIEEE(authors: AuthorInfo[]): string {
-  if (authors.length === 0) return "Unknown Author";
+  if (authors.length === 0) return 'Unknown Author'
 
   const formatted = authors.map((author) => {
-    const firstInitial = author.firstName.charAt(0);
+    const firstInitial = author.firstName.charAt(0)
     const middleInitial = author.middleName
       ? ` ${author.middleName.charAt(0)}.`
-      : "";
-    return `${firstInitial}.${middleInitial} ${author.lastName}`;
-  });
+      : ''
+    return `${firstInitial}.${middleInitial} ${author.lastName}`
+  })
 
-  if (formatted.length === 1) return formatted[0];
-  if (formatted.length === 2) return `${formatted[0]} and ${formatted[1]}`;
+  if (formatted.length === 1) return formatted[0]
+  if (formatted.length === 2) return `${formatted[0]} and ${formatted[1]}`
 
-  const lastAuthor = formatted[formatted.length - 1];
-  const otherAuthors = formatted.slice(0, -1).join(", ");
-  return `${otherAuthors}, and ${lastAuthor}`;
+  const lastAuthor = formatted[formatted.length - 1]
+  const otherAuthors = formatted.slice(0, -1).join(', ')
+  return `${otherAuthors}, and ${lastAuthor}`
 }
 
 /**
@@ -111,19 +111,19 @@ function formatAuthorsIEEE(authors: AuthorInfo[]): string {
  * Format: "First Last, First Last, and First Last"
  */
 function formatAuthorsACM(authors: AuthorInfo[]): string {
-  if (authors.length === 0) return "Unknown Author";
+  if (authors.length === 0) return 'Unknown Author'
 
   const formatted = authors.map((author) => {
-    const middleName = author.middleName ? ` ${author.middleName}` : "";
-    return `${author.firstName}${middleName} ${author.lastName}`;
-  });
+    const middleName = author.middleName ? ` ${author.middleName}` : ''
+    return `${author.firstName}${middleName} ${author.lastName}`
+  })
 
-  if (formatted.length === 1) return formatted[0];
-  if (formatted.length === 2) return `${formatted[0]} and ${formatted[1]}`;
+  if (formatted.length === 1) return formatted[0]
+  if (formatted.length === 2) return `${formatted[0]} and ${formatted[1]}`
 
-  const lastAuthor = formatted[formatted.length - 1];
-  const otherAuthors = formatted.slice(0, -1).join(", ");
-  return `${otherAuthors}, and ${lastAuthor}`;
+  const lastAuthor = formatted[formatted.length - 1]
+  const otherAuthors = formatted.slice(0, -1).join(', ')
+  return `${otherAuthors}, and ${lastAuthor}`
 }
 
 /**
@@ -132,47 +132,47 @@ function formatAuthorsACM(authors: AuthorInfo[]): string {
  */
 function formatAuthorsChicago(authors: AuthorInfo[]): string {
   // Chicago author-date style is similar to MLA
-  return formatAuthorsMLA(authors);
+  return formatAuthorsMLA(authors)
 }
 
 /**
  * Generates APA citation
  */
 function generateAPACitation(data: CitationData): string {
-  const authors = formatAuthorsAPA(data.authors);
-  return `${authors} (${data.year}). ${data.title} [${data.genre}]. ${data.publisher}.`;
+  const authors = formatAuthorsAPA(data.authors)
+  return `${authors} (${data.year}). ${data.title} [${data.genre}]. ${data.publisher}.`
 }
 
 /**
  * Generates MLA citation
  */
 function generateMLACitation(data: CitationData): string {
-  const authors = formatAuthorsMLA(data.authors);
-  return `${authors}. "${data.title}." ${data.year}. ${data.genre}. ${data.publisher}.`;
+  const authors = formatAuthorsMLA(data.authors)
+  return `${authors}. "${data.title}." ${data.year}. ${data.genre}. ${data.publisher}.`
 }
 
 /**
  * Generates IEEE citation
  */
 function generateIEEECitation(data: CitationData): string {
-  const authors = formatAuthorsIEEE(data.authors);
-  return `${authors}, "${data.title}," ${data.genre}, ${data.publisher}, ${data.year}.`;
+  const authors = formatAuthorsIEEE(data.authors)
+  return `${authors}, "${data.title}," ${data.genre}, ${data.publisher}, ${data.year}.`
 }
 
 /**
  * Generates ACM citation
  */
 function generateACMCitation(data: CitationData): string {
-  const authors = formatAuthorsACM(data.authors);
-  return `${authors}. ${data.year}. ${data.title}. ${data.genre}. ${data.publisher}.`;
+  const authors = formatAuthorsACM(data.authors)
+  return `${authors}. ${data.year}. ${data.title}. ${data.genre}. ${data.publisher}.`
 }
 
 /**
  * Generates Chicago citation (author-date style)
  */
 function generateChicagoCitation(data: CitationData): string {
-  const authors = formatAuthorsChicago(data.authors);
-  return `${authors}. ${data.year}. "${data.title}." ${data.genre}. ${data.publisher}.`;
+  const authors = formatAuthorsChicago(data.authors)
+  return `${authors}. ${data.year}. "${data.title}." ${data.genre}. ${data.publisher}.`
 }
 
 /**
@@ -180,32 +180,32 @@ function generateChicagoCitation(data: CitationData): string {
  */
 function mapResourceTypeToGenre(resourceType: ResourceTypes): string {
   const genreMap: Record<ResourceTypes, string> = {
-    THESIS: "Thesis",
-    DISSERTATION: "Dissertation",
-    CAPSTONE: "Capstone project",
-    ARTICLE: "Journal article",
-    RESEARCH_PAPER: "Research paper",
-  };
-  return genreMap[resourceType] || "Research paper";
+    THESIS: 'Thesis',
+    DISSERTATION: 'Dissertation',
+    CAPSTONE: 'Capstone project',
+    ARTICLE: 'Journal article',
+    RESEARCH_PAPER: 'Research paper',
+  }
+  return genreMap[resourceType] || 'Research paper'
 }
 
 /**
  * Maps Prisma ResourceTypes enum to CSL type for BibTeX
  */
 function mapResourceTypeToCSLType(
-  resourceType: ResourceTypes
-): "thesis" | "article" | "paper-conference" | "report" {
+  resourceType: ResourceTypes,
+): 'thesis' | 'article' | 'paper-conference' | 'report' {
   const typeMap: Record<
     ResourceTypes,
-    "thesis" | "article" | "paper-conference" | "report"
+    'thesis' | 'article' | 'paper-conference' | 'report'
   > = {
-    THESIS: "thesis",
-    DISSERTATION: "thesis",
-    CAPSTONE: "report",
-    ARTICLE: "article",
-    RESEARCH_PAPER: "paper-conference",
-  };
-  return typeMap[resourceType] || "report";
+    THESIS: 'thesis',
+    DISSERTATION: 'thesis',
+    CAPSTONE: 'report',
+    ARTICLE: 'article',
+    RESEARCH_PAPER: 'paper-conference',
+  }
+  return typeMap[resourceType] || 'report'
 }
 
 /**
@@ -218,12 +218,12 @@ function mapResourceTypeToCSLType(
  */
 export async function checkCitationLimit(
   userId: number,
-  documentId: number
+  documentId: number,
 ): Promise<{
-  allowed: boolean;
-  limit: number | null;
-  used: number;
-  isRecitation: boolean;
+  allowed: boolean
+  limit: number | null
+  used: number
+  isRecitation: boolean
 }> {
   // Fetch user with subscription tier
   const user = await prisma.user.findUnique({
@@ -231,21 +231,21 @@ export async function checkCitationLimit(
     include: {
       subscriptionTier: true,
     },
-  });
+  })
 
   if (!user) {
-    throw new Error("User not found");
+    throw new Error('User not found')
   }
 
   // Get start of today (UTC)
-  const startOfToday = new Date();
-  startOfToday.setUTCHours(0, 0, 0, 0);
+  const startOfToday = new Date()
+  startOfToday.setUTCHours(0, 0, 0, 0)
 
   // Get all unique document IDs cited by this user today
   const citedDocuments = await prisma.activityLog.findMany({
     where: {
       userId: userId,
-      activityType: "CITATION_GENERATED",
+      activityType: 'CITATION_GENERATED',
       createdAt: {
         gte: startOfToday,
       },
@@ -253,19 +253,19 @@ export async function checkCitationLimit(
     select: {
       documentId: true,
     },
-    distinct: ["documentId"],
-  });
+    distinct: ['documentId'],
+  })
 
   // Extract unique document IDs (filter out nulls)
   const uniqueDocumentIds = citedDocuments
     .map((log) => log.documentId)
-    .filter((id): id is number => id !== null);
+    .filter((id): id is number => id !== null)
 
-  const uniqueCount = uniqueDocumentIds.length;
-  const limit = user.subscriptionTier.dailyCitationLimit;
+  const uniqueCount = uniqueDocumentIds.length
+  const limit = user.subscriptionTier.dailyCitationLimit
 
   // Check if current document was already cited today (re-citation)
-  const isRecitation = uniqueDocumentIds.includes(documentId);
+  const isRecitation = uniqueDocumentIds.includes(documentId)
 
   // If it's a re-citation, always allow
   if (isRecitation) {
@@ -274,7 +274,7 @@ export async function checkCitationLimit(
       limit,
       used: uniqueCount,
       isRecitation: true,
-    };
+    }
   }
 
   // If limit is null, it's unlimited - always allow
@@ -284,16 +284,16 @@ export async function checkCitationLimit(
       limit: null,
       used: uniqueCount,
       isRecitation: false,
-    };
+    }
   }
 
   // If it's a new document, check if limit reached
-  const allowed = uniqueCount < limit;
+  const allowed = uniqueCount < limit
 
   if (!allowed) {
     throw new Error(
-      `Daily citation limit reached. You can generate ${limit} unique citations per day with your current tier.`
-    );
+      `Daily citation limit reached. You can generate ${limit} unique citations per day with your current tier.`,
+    )
   }
 
   return {
@@ -301,7 +301,7 @@ export async function checkCitationLimit(
     limit,
     used: uniqueCount,
     isRecitation: false,
-  };
+  }
 }
 
 /**
@@ -311,15 +311,15 @@ export async function checkCitationLimit(
  */
 export async function logCitationActivity(
   userId: number,
-  documentId: number
+  documentId: number,
 ): Promise<void> {
   await prisma.activityLog.create({
     data: {
       userId,
       documentId,
-      activityType: "CITATION_GENERATED",
+      activityType: 'CITATION_GENERATED',
     },
-  });
+  })
 }
 
 /**
@@ -332,15 +332,15 @@ export async function logCitationActivity(
  */
 export async function generateCitations(
   documentId: number,
-  userId: number
+  userId: number,
 ): Promise<{
-  citations: CitationFormats;
-  citationCount: number;
+  citations: CitationFormats
+  citationCount: number
   usage: {
-    used: number;
-    limit: number | null;
-    reset: string;
-  };
+    used: number
+    limit: number | null
+    reset: string
+  }
 }> {
   // Fetch document with all necessary relations
   const document = await prisma.document.findUnique({
@@ -351,7 +351,7 @@ export async function generateCitations(
           author: true,
         },
         orderBy: {
-          authorOrder: "asc",
+          authorOrder: 'asc',
         },
       },
       course: {
@@ -360,24 +360,24 @@ export async function generateCitations(
         },
       },
     },
-  });
+  })
 
   if (!document) {
-    throw new Error(`Document with ID ${documentId} not found`);
+    throw new Error(`Document with ID ${documentId} not found`)
   }
 
   // Extract publication year
-  const publicationDate = document.datePublished || document.submissionDate;
+  const publicationDate = document.datePublished || document.submissionDate
   const publicationYear = publicationDate
     ? publicationDate.getFullYear()
-    : new Date().getFullYear();
+    : new Date().getFullYear()
 
   // Extract author information
   const authors: AuthorInfo[] = document.authors.map((docAuthor) => ({
     firstName: docAuthor.author.firstName,
     middleName: docAuthor.author.middleName,
     lastName: docAuthor.author.lastName,
-  }));
+  }))
 
   // Prepare citation data
   const citationData: CitationData = {
@@ -388,15 +388,15 @@ export async function generateCitations(
     containerTitle: document.course.courseName,
     publisher:
       document.course.college?.collegeName ||
-      "Polytechnic University of the Philippines",
-  };
+      'Polytechnic University of the Philippines',
+  }
 
   // Generate human-readable citations manually
-  const apa = generateAPACitation(citationData);
-  const mla = generateMLACitation(citationData);
-  const ieee = generateIEEECitation(citationData);
-  const acm = generateACMCitation(citationData);
-  const chicago = generateChicagoCitation(citationData);
+  const apa = generateAPACitation(citationData)
+  const mla = generateMLACitation(citationData)
+  const ieee = generateIEEECitation(citationData)
+  const acm = generateACMCitation(citationData)
+  const chicago = generateChicagoCitation(citationData)
 
   // Generate BibTeX using citation-js
   const cslAuthors: CSLPerson[] = authors.map((author) => ({
@@ -404,7 +404,7 @@ export async function generateCitations(
     given: author.middleName
       ? `${author.firstName} ${author.middleName}`
       : author.firstName,
-  }));
+  }))
 
   const cslData: CSLData = {
     id: `document-${documentId}`,
@@ -412,28 +412,28 @@ export async function generateCitations(
     title: document.title,
     author: cslAuthors,
     issued: {
-      "date-parts": [[publicationYear]],
+      'date-parts': [[publicationYear]],
     },
     publisher: citationData.publisher,
-    "container-title": citationData.containerTitle,
+    'container-title': citationData.containerTitle,
     genre: citationData.genre,
     abstract: document.abstract,
-  };
+  }
 
-  const cite = new Cite(cslData);
-  const bibtex = cite.format("bibtex");
+  const cite = new Cite(cslData)
+  const bibtex = cite.format('bibtex')
 
   // Check if this user has EVER cited this document before (all-time)
   const existingCitation = await prisma.activityLog.findFirst({
     where: {
       userId: userId,
       documentId: documentId,
-      activityType: "CITATION_GENERATED",
+      activityType: 'CITATION_GENERATED',
     },
-  });
+  })
 
   // Only increment citation count if this is the user's first time citing this document
-  let updatedDocument;
+  let updatedDocument
   if (!existingCitation) {
     // First-time citation: increment the counter
     updatedDocument = await prisma.document.update({
@@ -446,7 +446,7 @@ export async function generateCitations(
       select: {
         citationCount: true,
       },
-    });
+    })
   } else {
     // Re-citation: just fetch the current count without incrementing
     updatedDocument = await prisma.document.findUnique({
@@ -454,11 +454,11 @@ export async function generateCitations(
       select: {
         citationCount: true,
       },
-    });
+    })
   }
 
   if (!updatedDocument) {
-    throw new Error("Failed to fetch document citation count");
+    throw new Error('Failed to fetch document citation count')
   }
 
   // Get usage stats for this user
@@ -467,21 +467,21 @@ export async function generateCitations(
     include: {
       subscriptionTier: true,
     },
-  });
+  })
 
   if (!user) {
-    throw new Error("User not found");
+    throw new Error('User not found')
   }
 
   // Get start of today (UTC)
-  const startOfToday = new Date();
-  startOfToday.setUTCHours(0, 0, 0, 0);
+  const startOfToday = new Date()
+  startOfToday.setUTCHours(0, 0, 0, 0)
 
   // Get unique documents cited today
   const citedDocuments = await prisma.activityLog.findMany({
     where: {
       userId: userId,
-      activityType: "CITATION_GENERATED",
+      activityType: 'CITATION_GENERATED',
       createdAt: {
         gte: startOfToday,
       },
@@ -489,22 +489,22 @@ export async function generateCitations(
     select: {
       documentId: true,
     },
-    distinct: ["documentId"],
-  });
+    distinct: ['documentId'],
+  })
 
   const uniqueDocumentIds = citedDocuments
     .map((log) => log.documentId)
-    .filter((id): id is number => id !== null);
+    .filter((id): id is number => id !== null)
 
   // Check if current document is already in the list (before logging)
-  const wasAlreadyCited = uniqueDocumentIds.includes(documentId);
+  const wasAlreadyCited = uniqueDocumentIds.includes(documentId)
   const uniqueCount = wasAlreadyCited
     ? uniqueDocumentIds.length
-    : uniqueDocumentIds.length + 1;
+    : uniqueDocumentIds.length + 1
 
   // Calculate next midnight (reset time)
-  const nextMidnight = new Date();
-  nextMidnight.setUTCHours(24, 0, 0, 0);
+  const nextMidnight = new Date()
+  nextMidnight.setUTCHours(24, 0, 0, 0)
 
   // Return citations, count, and usage stats
   return {
@@ -522,5 +522,5 @@ export async function generateCitations(
       limit: user.subscriptionTier.dailyCitationLimit,
       reset: nextMidnight.toISOString(),
     },
-  };
+  }
 }

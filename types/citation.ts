@@ -6,38 +6,38 @@
  * Supported citation formats
  */
 export type CitationFormat =
-  | "apa"
-  | "mla"
-  | "ieee"
-  | "acm"
-  | "chicago"
-  | "bibtex";
+  | 'apa'
+  | 'mla'
+  | 'ieee'
+  | 'acm'
+  | 'chicago'
+  | 'bibtex'
 
 /**
  * Response object containing all citation formats
  */
 export interface CitationFormats {
-  apa: string;
-  mla: string;
-  ieee: string;
-  acm: string;
-  chicago: string;
-  bibtex: string;
+  apa: string
+  mla: string
+  ieee: string
+  acm: string
+  chicago: string
+  bibtex: string
 }
 
 /**
  * CSL-JSON Person object for authors
  */
 export interface CSLPerson {
-  family: string;
-  given: string;
+  family: string
+  given: string
 }
 
 /**
  * CSL-JSON Date object
  */
 export interface CSLDate {
-  "date-parts": [[number]];
+  'date-parts': [[number]]
 }
 
 /**
@@ -45,29 +45,29 @@ export interface CSLDate {
  * Based on Citation Style Language specification
  */
 export interface CSLData {
-  id: string;
-  type: "thesis" | "article" | "paper-conference" | "report";
-  title: string;
-  author: CSLPerson[];
-  issued: CSLDate;
-  publisher?: string;
-  "container-title"?: string;
-  genre?: string;
-  abstract?: string;
-  URL?: string;
+  id: string
+  type: 'thesis' | 'article' | 'paper-conference' | 'report'
+  title: string
+  author: CSLPerson[]
+  issued: CSLDate
+  publisher?: string
+  'container-title'?: string
+  genre?: string
+  abstract?: string
+  URL?: string
 }
 
 /**
  * Service response type for citation generation
  */
 export interface CitationServiceResponse {
-  success: boolean;
-  data?: CitationFormats;
-  citationCount?: number;
+  success: boolean
+  data?: CitationFormats
+  citationCount?: number
   usage?: {
-    used: number;
-    limit: number | null;
-    reset: string;
-  };
-  error?: string;
+    used: number
+    limit: number | null
+    reset: string
+  }
+  error?: string
 }

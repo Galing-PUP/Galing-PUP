@@ -1,10 +1,10 @@
 type KeywordsProps = {
-  keywords: string[];
-};
+  keywords: string[]
+}
 
 export function Keywords({ keywords }: KeywordsProps) {
   if (!keywords || keywords.length === 0) {
-    return null;
+    return null
   }
 
   return (
@@ -23,5 +23,5 @@ export function Keywords({ keywords }: KeywordsProps) {
         ))}
       </div>
     </div>
-  );
+  )
 }

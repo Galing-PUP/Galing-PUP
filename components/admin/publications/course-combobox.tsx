@@ -1,9 +1,6 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -11,18 +8,21 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from '@/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { colleges, courses } from "@/data/collegeCourses";
+} from '@/components/ui/popover'
+import { colleges, courses } from '@/data/collegeCourses'
+import { cn } from '@/lib/utils'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import * as React from 'react'
 
 interface CourseComboboxProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  disabled?: boolean;
+  value: string
+  onValueChange: (value: string) => void
+  disabled?: boolean
 }
 
 /**
@@ -34,16 +34,16 @@ export function CourseCombobox({
   onValueChange,
   disabled = false,
 }: CourseComboboxProps) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
 
   // Find the selected course to display its label
-  const selectedCourse = courses.find((course) => String(course.id) === value);
+  const selectedCourse = courses.find((course) => String(course.id) === value)
 
   // Group courses by college
   const coursesByCollege = colleges.map((college) => ({
     college,
     courses: courses.filter((course) => course.collegeId === college.id),
-  }));
+  }))
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -58,7 +58,7 @@ export function CourseCombobox({
           <span className="truncate text-left">
             {selectedCourse
               ? `${selectedCourse.courseAbbr} - ${selectedCourse.courseName}`
-              : "Select course..."}
+              : 'Select course...'}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -66,7 +66,7 @@ export function CourseCombobox({
       <PopoverContent
         className="p-0"
         align="start"
-        style={{ width: "var(--radix-popover-trigger-width)" }}
+        style={{ width: 'var(--radix-popover-trigger-width)' }}
       >
         <Command>
           <CommandInput
@@ -87,28 +87,28 @@ export function CourseCombobox({
                         key={course.id}
                         value={`${course.courseAbbr} ${course.courseName}`}
                         onSelect={() => {
-                          onValueChange(String(course.id));
-                          setOpen(false);
+                          onValueChange(String(course.id))
+                          setOpen(false)
                         }}
                         className="text-sm"
                       >
                         <Check
                           className={cn(
-                            "mr-2 h-4 w-4",
+                            'mr-2 h-4 w-4',
                             value === String(course.id)
-                              ? "opacity-100"
-                              : "opacity-0"
+                              ? 'opacity-100'
+                              : 'opacity-0',
                           )}
                         />
                         {course.courseAbbr} - {course.courseName}
                       </CommandItem>
                     ))}
                   </CommandGroup>
-                )
+                ),
             )}
           </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
-  );
+  )
 }
