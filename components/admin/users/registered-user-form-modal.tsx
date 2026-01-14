@@ -30,7 +30,7 @@ type RegisteredUserFormModalProps = {
 }
 
 /**
- * Modal for editing Registered/Viewer user details
+ * Modal for editing Registered user details
  * Displays status badge, username as header, and subscription tier management
  */
 export function RegisteredUserFormModal({
@@ -84,16 +84,22 @@ export function RegisteredUserFormModal({
     )
   }
 
-  const getRoleBadgeStyle = (role?: string) => {
-    const r = role?.toUpperCase()
-    if (r === 'REGISTERED') return 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-    return 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-  }
+  const getRoleInfo = (role?: string) => {
+    const normalizedRole = role?.toLowerCase()
 
-  const getDotColor = (role?: string) => {
-    const r = role?.toUpperCase()
-    if (r === 'REGISTERED') return 'bg-green-500'
-    return 'bg-gray-500'
+    if (normalizedRole === 'registered') {
+      return {
+        badgeStyle: 'bg-gray-200 text-gray-700',
+        dotColor: 'bg-green-500',
+        label: 'Registered',
+      }
+    }
+
+    return {
+      badgeStyle: 'bg-gray-200 text-gray-700',
+      dotColor: 'bg-gray-500',
+      label: role || 'User',
+    }
   }
 
   const title = 'Edit User Information'
@@ -110,11 +116,11 @@ export function RegisteredUserFormModal({
         <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <Badge className={`gap-2 ${getRoleBadgeStyle(formData.role)}`}>
+              <Badge className={`gap-2 ${getRoleInfo(formData.role).badgeStyle}`}>
                 <div
-                  className={`w-2 h-2 rounded-full animate-pulse ${getDotColor(formData.role)}`}
+                  className={`w-2 h-2 rounded-full animate-pulse ${getRoleInfo(formData.role).dotColor}`}
                 />
-                {formData.role || 'User'}
+                {getRoleInfo(formData.role).label}
               </Badge>
               <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
                 {formData.name || 'No username set'}
