@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from '@/components/ui/skeleton'
 
 /**
  * Skeleton loading state for BookmarkCard
@@ -37,5 +37,5 @@ export function BookmarkCardSkeleton() {
         </div>
       </div>
     </div>
-  );
+  )
 }

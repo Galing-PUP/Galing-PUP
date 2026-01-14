@@ -1,44 +1,72 @@
-"use client";
+'use client'
 
-
-import { PricingCard } from "@/components/pricing/pricing-card";
-import { BenefitCard } from "@/components/pricing/benefit-card";
-import { FeatureComparisonTable } from "@/components/pricing/feature-comparison-table";
-import { FAQCard } from "@/components/pricing/faq-card";
-import { Crown, Download, Sparkles, Zap } from "lucide-react";
+import { BenefitCard } from '@/components/pricing/benefit-card'
+import { FAQCard } from '@/components/pricing/faq-card'
+import { FeatureComparisonTable } from '@/components/pricing/feature-comparison-table'
+import { PricingCard } from '@/components/pricing/pricing-card'
+import { Crown, Download, Sparkles, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function PricingPage() {
+  const [isLoading, setIsLoading] = useState(false)
   const freeTierFeatures = [
-    { name: "3 downloads per day", included: true },
-    { name: "5 citations per day", included: true },
-    { name: "Up to 5 bookmarks", included: true },
-    { name: "Basic search and browse", included: true },
-    { name: "View abstracts", included: true },
-    { name: "AI-generated summaries", included: true },
-    { name: "Unlimited downloads", included: false },
-  ];
+    { name: '3 downloads per day', included: true },
+    { name: '5 citations per day', included: true },
+    { name: 'Up to 5 bookmarks', included: true },
+    { name: 'Basic search and browse', included: true },
+    { name: 'View abstracts', included: true },
+    { name: 'AI-generated summaries', included: true },
+    { name: 'Unlimited downloads', included: false },
+  ]
 
   const premiumTierFeatures = [
-    { name: "Unlimited downloads", included: true },
-    { name: "Unlimited citations", included: true },
-    { name: "Unlimited bookmarks", included: true },
-    { name: "Advanced search filters", included: true },
-    { name: "Full document access", included: true },
-    { name: "AI-generated summaries", included: true },
-    { name: "Early access to features", included: true },
-  ];
+    { name: 'Unlimited downloads', included: true },
+    { name: 'Unlimited citations', included: true },
+    { name: 'Unlimited bookmarks', included: true },
+    { name: 'Advanced search filters', included: true },
+    { name: 'Full document access', included: true },
+    { name: 'AI-generated summaries', included: true },
+    { name: 'Early access to features', included: true },
+  ]
 
   const comparisonFeatures = [
-    { name: "Daily Downloads", free: "3", premium: "Unlimited" },
-    { name: "Citation Generations", free: "5/day", premium: "Unlimited" },
-    { name: "Bookmarks", free: "5 max", premium: "Unlimited" },
-    { name: "AI Summaries", free: true, premium: true },
-    { name: "Advertisements", free: "20s before download", premium: "None" },
-  ];
+    { name: 'Daily Downloads', free: '3', premium: 'Unlimited' },
+    { name: 'Citation Generations', free: '5/day', premium: 'Unlimited' },
+    { name: 'Bookmarks', free: '5 max', premium: 'Unlimited' },
+    { name: 'AI Summaries', free: true, premium: true },
+    { name: 'Advertisements', free: '20s before download', premium: 'None' },
+  ]
+
+  /**
+   * Handles premium tier upgrade by creating a payment session
+   * and redirecting to Xendit payment page
+   */
+  const handlePremiumUpgrade = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/checkout', { method: 'POST' })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create payment session')
+      }
+
+      // Redirect to Xendit payment page
+      window.location.href = data.paymentUrl
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to create payment session',
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen">
-
       <main>
         <section className="flex flex-col items-center justify-center space-y-6 bg-pup-maroon py-8 text-white">
           <span className="bg-white/20 rounded-full px-3 py-1 flex items-center gap-2">
@@ -67,7 +95,7 @@ export default function PricingPage() {
             buttonText="Get Started Free"
             buttonColor="bg-gray-900 hover:bg-gray-800"
             accentColor="text-green-600"
-            onButtonClick={() => console.log("Free tier clicked")}
+            onButtonClick={() => console.log('Free tier clicked')}
           />
 
           {/* Premium Tier Card */}
@@ -78,13 +106,13 @@ export default function PricingPage() {
             duration="/forever"
             description="Best for active researchers and students"
             features={premiumTierFeatures}
-            buttonText="Upgrade to Premium"
+            buttonText={isLoading ? 'Processing...' : 'Upgrade to Premium'}
             isRecommended={true}
             borderColor="border-yellow-400"
             buttonColor="bg-pup-maroon hover:bg-pup-maroon/80"
             accentColor="text-red-700"
             icon={<Crown className="text-pup-gold-light" />}
-            onButtonClick={() => console.log("Premium tier clicked")}
+            onButtonClick={handlePremiumUpgrade}
           />
         </section>
 
@@ -156,5 +184,5 @@ export default function PricingPage() {
         </section>
       </main>
     </div>
-  );
+  )
 }

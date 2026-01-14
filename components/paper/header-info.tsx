@@ -1,11 +1,11 @@
 type HeaderInfoProps = {
-  title: string;
-  authors: string[];
-  authorEmails: string[];
-  documentType: string;
-  yearPublished: string;
-  courseName: string;
-};
+  title: string
+  authors: string[]
+  authorEmails: string[]
+  documentType: string
+  yearPublished: string
+  courseName: string
+}
 
 export function HeaderInfo({
   title,
@@ -45,10 +45,10 @@ export function HeaderInfo({
             >
               {author}
             </a>
-            {index < authors.length - 1 && ", "}
+            {index < authors.length - 1 && ', '}
           </span>
         ))}
       </p>
     </div>
-  );
+  )
 }

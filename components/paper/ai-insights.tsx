@@ -1,22 +1,22 @@
-"use client";
+'use client'
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Sparkles } from "lucide-react";
-import { ShineBorder } from "@/components/ui/shine-border";
+import { ShineBorder } from '@/components/ui/shine-border'
+import { Sparkles } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useCallback } from 'react'
 
 export function AiInsights() {
-  const router = useRouter();
+  const router = useRouter()
 
   const handleUpgrade = useCallback(() => {
-    router.push("/pricing");
-  }, [router]);
+    router.push('/pricing')
+  }, [router])
 
   return (
     <div className="relative overflow-hidden rounded-lg bg-white shadow-sm">
       <ShineBorder
         className="text-center text-2xl font-bold capitalize"
-        shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+        shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']}
         borderWidth={2}
       />
       <div className="relative z-10 flex flex-col items-start p-6">
@@ -51,5 +51,5 @@ export function AiInsights() {
         </div>
       </div>
     </div>
-  );
+  )
 }

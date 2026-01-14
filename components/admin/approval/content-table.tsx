@@ -1,17 +1,25 @@
-import type { ContentItem } from "@/types/content";
-import { Eye, Check, X, Trash2 } from "lucide-react";
-import { StatusBadge } from "./status-badge";
-import { ResourceTypeBadge } from "./resource-type-badge";
+import type { ContentItem } from '@/types/content'
+import { Check, Eye, RotateCcw, Trash2, X } from 'lucide-react'
+import { ResourceTypeBadge } from './resource-type-badge'
+import { StatusBadge } from './status-badge'
 
 type ContentTableProps = {
-  items: ContentItem[];
-  onView: (item: ContentItem) => void;
-  onAccept: (itemId: string) => void;
-  onReject: (itemId: string) => void;
-  onDeleteRequest: (item: ContentItem) => void;
-};
+  items: ContentItem[]
+  onView: (item: ContentItem) => void
+  onAccept: (itemId: string) => void
+  onReject: (itemId: string) => void
+  onRestore?: (itemId: string) => void
+  onDeleteRequest: (item: ContentItem) => void
+}
 
-export function ContentTable({ items, onView, onAccept, onReject, onDeleteRequest }: ContentTableProps) {
+export function ContentTable({
+  items,
+  onView,
+  onAccept,
+  onReject,
+  onRestore,
+  onDeleteRequest,
+}: ContentTableProps) {
   return (
     <div className="mt-4 flow-root">
       <div className="-mx-6 -my-2 overflow-x-auto">
@@ -34,36 +42,95 @@ export function ContentTable({ items, onView, onAccept, onReject, onDeleteReques
                 key={item.id}
                 className="grid grid-cols-12 items-center gap-3 rounded-lg bg-white px-4 py-3 hover:bg-gray-50"
               >
-                <div className="col-span-1 text-sm text-gray-700">{item.id}</div>
-                <div className="col-span-2"><ResourceTypeBadge type={item.resourceType} /></div>
-                <div className="col-span-3 truncate text-sm font-medium text-gray-800">{item.title}</div>
-                <div className="col-span-2 text-sm text-gray-600">{item.authors}</div>
-                <div className="col-span-1 text-sm text-gray-600">{item.submittedDate}</div>
-                <div className="col-span-1"><StatusBadge status={item.status} /></div>
+                <div className="col-span-1 text-sm text-gray-700">
+                  {item.id}
+                </div>
+                <div className="col-span-2">
+                  <ResourceTypeBadge type={item.resourceType} />
+                </div>
+                <div className="col-span-3 truncate text-sm font-medium text-gray-800">
+                  {item.title}
+                </div>
+                <div className="col-span-2 text-sm text-gray-600">
+                  {item.authors}
+                </div>
+                <div className="col-span-1 text-sm text-gray-600">
+                  {item.submittedDate}
+                </div>
+                <div className="col-span-1">
+                  <StatusBadge status={item.status} />
+                </div>
 
                 <div className="col-span-2 flex justify-center space-x-1">
-                  <button title="View Details" onClick={() => onView(item)} className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors">
+                  <button
+                    title="View Details"
+                    onClick={() => onView(item)}
+                    className="rounded-full p-2 text-blue-600 hover:bg-blue-100 transition-colors"
+                  >
                     <Eye className="h-5 w-5" />
                   </button>
-                  <button
-                    title="Accept"
-                    onClick={() => onAccept(item.id)}
-                    disabled={item.status === 'Accepted'}
-                    className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
-                  >
-                    <Check className="h-5 w-5" />
-                  </button>
-                  <button
-                    title="Reject"
-                    onClick={() => onReject(item.id)}
-                    disabled={item.status === 'Rejected'}
-                    className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                  <button title="Delete" onClick={() => onDeleteRequest(item)} className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors">
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                  {item.status === 'Deleted' ? (
+                    <>
+                      <button
+                        title="Permanently Delete"
+                        onClick={() => onDeleteRequest(item)}
+                        className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  ) : item.status === 'Rejected' ? (
+                    <>
+                      {onRestore && (
+                        <button
+                          title="Restore to Pending"
+                          onClick={() => onRestore(item.id)}
+                          className="rounded-full p-2 text-purple-600 hover:bg-purple-100 transition-colors"
+                        >
+                          <RotateCcw className="h-5 w-5" />
+                        </button>
+                      )}
+                      <button
+                        title="Accept"
+                        onClick={() => onAccept(item.id)}
+                        className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors"
+                      >
+                        <Check className="h-5 w-5" />
+                      </button>
+                      <button
+                        title="Delete"
+                        onClick={() => onDeleteRequest(item)}
+                        className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        title="Accept"
+                        onClick={() => onAccept(item.id)}
+                        disabled={item.status === 'Accepted'}
+                        className="rounded-full p-2 text-green-600 hover:bg-green-100 transition-colors disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
+                      >
+                        <Check className="h-5 w-5" />
+                      </button>
+                      <button
+                        title="Reject"
+                        onClick={() => onReject(item.id)}
+                        className="rounded-full p-2 text-orange-500 hover:bg-orange-100 transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                      <button
+                        title="Delete"
+                        onClick={() => onDeleteRequest(item)}
+                        className="rounded-full p-2 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -71,5 +138,5 @@ export function ContentTable({ items, onView, onAccept, onReject, onDeleteReques
         </div>
       </div>
     </div>
-  );
+  )
 }

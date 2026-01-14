@@ -1,463 +1,645 @@
-"use client";
+'use client'
 
-import React, { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List as ListIcon,
+  Pencil,
+  Search,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
-import { FilterBox, FilterValues } from "@/components/filter-box";
-import SortDropdown from "@/components/sort-dropdown";
+import SortDropdown from '@/components/sort-dropdown'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ResourceTypes } from '@/lib/generated/prisma/enums'
+import { formatResourceType } from '@/lib/utils/format'
 
+// --- Types ---
 type AdminPublication = {
-  id: number;
-  title: string;
-  abstract: string;
-  field: string;
-  date: string;
-};
+  id: number
+  title: string
+  abstract: string
+  field: string
+  date: string
+  author: string
+  resourceType: ResourceTypes | null
+}
 
 // --- Configuration ---
-const ITEMS_PER_PAGE = 10;
+const UNKNOWN_AUTHOR_LABEL = 'Unknown Author'
+const ITEMS_PER_PAGE = 10
 
-const COLORS = {
-  maroon: "#800000",
-  textMain: "#333333",
-  textMuted: "#BC8D90",
-  border: "#E5E5E5",
-};
+type AdminFilterValues = {
+  course: string
+  year: string
+  documentType: ResourceTypes | 'All Types'
+}
 
-export default function PublicationPage() {
-  const router = useRouter();
+type AdminSortOption =
+  | 'Newest to Oldest'
+  | 'Oldest to Newest'
+  | 'Title A-Z'
+  | 'Title Z-A'
+
+export default function AdminPublicationsPage() {
+  const router = useRouter()
 
   // --- State ---
-  const [publications, setPublications] = useState<AdminPublication[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [publications, setPublications] = useState<AdminPublication[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Filter & Sort State
+  const [filters, setFilters] = useState<AdminFilterValues>({
+    course: 'All Courses',
+    year: 'All Years',
+    documentType: 'All Types',
+  })
+  const [sortBy, setSortBy] = useState<AdminSortOption>('Newest to Oldest')
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
   // Modal State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [publicationToDelete, setPublicationToDelete] =
-    useState<AdminPublication | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+    useState<AdminPublication | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const [filters, setFilters] = useState<FilterValues>({
-    course: "All Courses",
-    year: "All Years",
-    documentType: "All Types",
-  });
-
-  type AdminSortOption =
-    | "Newest to Oldest"
-    | "Oldest to Newest"
-    | "Title A-Z"
-    | "Title Z-A";
-
-  const [sortBy, setSortBy] = useState<AdminSortOption>("Newest to Oldest");
-
-  // --- Load publications from backend ---
+  // --- Data Loading ---
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       try {
-        const res = await fetch("/api/browse");
+        const res = await fetch('/api/browse')
         if (!res.ok) {
-          throw new Error(`Failed to load publications: ${res.status}`);
+          throw new Error(`Failed to load publications: ${res.status}`)
         }
+
         const data: {
-          id: number;
-          title: string;
-          abstract: string;
-          field: string;
-          date: string;
-        }[] = await res.json();
+          id: number
+          title: string
+          abstract: string
+          field: string
+          authors: string[]
+          date: string
+          resourceType: string | null
+        }[] = await res.json()
 
-        const mapped: AdminPublication[] = data.map((item) => ({
-          id: item.id,
-          title: item.title,
-          abstract: item.abstract,
-          field: item.field,
-          date: item.date,
-        }));
+        const mapped: AdminPublication[] = data.map((item) => {
+          const primaryAuthor =
+            item.authors && item.authors.length > 0
+              ? item.authors[0]
+              : UNKNOWN_AUTHOR_LABEL
 
-        setPublications(mapped);
+          return {
+            id: item.id,
+            title: item.title,
+            abstract: item.abstract,
+            author: primaryAuthor,
+            field: item.field,
+            date: item.date,
+            resourceType: (item.resourceType as ResourceTypes | null) ?? null,
+          }
+        })
+
+        setPublications(mapped)
       } catch (e) {
-        console.error(e);
-        setError("Failed to load publications from the database.");
+        console.error(e)
+        setError('Failed to load publications from the database.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    load();
-  }, []);
+    load()
+  }, [])
 
-  // --- Logic: Filtering ---
+  // --- Logic: Filtering & Sorting ---
   const filteredData = useMemo(() => {
-    let data = publications;
+    let data = publications
 
-    // Search by title or field
+    // Search
     if (searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase();
+      const lowerQuery = searchQuery.toLowerCase()
       data = data.filter(
         (pub) =>
           pub.title.toLowerCase().includes(lowerQuery) ||
-          pub.field.toLowerCase().includes(lowerQuery),
-      );
+          pub.field.toLowerCase().includes(lowerQuery) ||
+          pub.author.toLowerCase().includes(lowerQuery),
+      )
     }
 
-    // Course filter (maps to field)
-    if (filters.course !== "All Courses") {
-      data = data.filter((pub) => pub.field === filters.course);
+    // Course Filter
+    if (filters.course !== 'All Courses') {
+      data = data.filter((pub) => pub.field === filters.course)
     }
 
-    // Year filter (extract year from formatted date string)
-    if (filters.year !== "All Years") {
-      data = data.filter((pub) => pub.date.includes(filters.year));
+    // Year Filter
+    if (filters.year !== 'All Years') {
+      data = data.filter((pub) => pub.date.includes(filters.year))
     }
 
-    // Document type / campus filters are not wired to DB fields yet
+    // Document Type Filter
+    if (filters.documentType !== 'All Types') {
+      data = data.filter((pub) => pub.resourceType === filters.documentType)
+    }
 
     // Sort
-    const sorted = [...data].sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+    return [...data].sort((a, b) => {
+      const dateA = new Date(a.date).getTime()
+      const dateB = new Date(b.date).getTime()
 
       switch (sortBy) {
-        case "Oldest to Newest":
-          return dateA.getTime() - dateB.getTime();
-        case "Title A-Z":
-          return a.title.localeCompare(b.title);
-        case "Title Z-A":
-          return b.title.localeCompare(a.title);
-        case "Newest to Oldest":
+        case 'Oldest to Newest':
+          return dateA - dateB
+        case 'Title A-Z':
+          return a.title.localeCompare(b.title)
+        case 'Title Z-A':
+          return b.title.localeCompare(a.title)
+        case 'Newest to Oldest':
         default:
-          return dateB.getTime() - dateA.getTime();
+          return dateB - dateA
       }
-    });
+    })
+  }, [publications, searchQuery, filters, sortBy])
 
-    return sorted;
-  }, [publications, searchQuery, filters, sortBy]);
-
+  // Extract unique courses for filter dropdown
   const courseOptions = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>()
     for (const pub of publications) {
-      if (pub.field) set.add(pub.field);
+      if (pub.field) set.add(pub.field)
     }
-    return Array.from(set).sort();
-  }, [publications]);
+    return Array.from(set).sort()
+  }, [publications])
 
   // --- Logic: Pagination ---
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE)
 
   const currentData = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredData.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredData, currentPage]);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredData.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredData, currentPage])
 
-  // --- Handlers ---
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page)
+  }
 
-  // 1. Initiate Delete (Opens Modal)
+  // --- Logic: Actions ---
+  const handleEdit = (id: number) => {
+    router.push(`/admin/publication/edit/${id}`)
+  }
+
   const handleDeleteClick = (pub: AdminPublication) => {
-    setPublicationToDelete(pub);
-    setIsDeleteModalOpen(true);
-  };
+    setPublicationToDelete(pub)
+    setIsDeleteModalOpen(true)
+  }
 
-  // 2. Confirm Delete (Performs Action)
   const confirmDelete = async () => {
-    if (!publicationToDelete || isDeleting) return;
+    if (!publicationToDelete || isDeleting) return
 
-    setIsDeleting(true);
+    setIsDeleting(true)
     try {
       const res = await fetch(
         `/api/admin/documents/${publicationToDelete.id}`,
         {
-          method: "DELETE",
+          method: 'DELETE',
         },
-      );
+      )
 
       if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        throw new Error(error.error || "Failed to delete publication.");
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to delete publication.')
       }
 
       setPublications((prev) =>
         prev.filter((p) => p.id !== publicationToDelete.id),
-      );
+      )
 
+      // Adjust pagination if needed
       if (currentData.length === 1 && currentPage > 1) {
-        setCurrentPage((prev) => prev - 1);
+        setCurrentPage((prev) => prev - 1)
       }
 
-      setIsDeleteModalOpen(false);
-      setPublicationToDelete(null);
+      setIsDeleteModalOpen(false)
+      setPublicationToDelete(null)
+
+      toast.success(
+        'Research deleted. The super admin will be notified about this deletion.',
+      )
     } catch (error) {
-      console.error(error);
-      alert("There was an error deleting this publication. Please try again.");
+      console.error(error)
+      alert('There was an error deleting this publication. Please try again.')
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
+  }
 
-  // 3. Edit Handler
-  const handleEdit = (id: number) => {
-    router.push(`/admin/publication/edit/${id}`);
-  };
-
-  // 4. Search Handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  };
-
-  // 5. Pagination Handler
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
+    setSearchQuery(e.target.value)
+    setCurrentPage(1)
+  }
 
   return (
-    <div className="w-full h-full relative">
-      {/* --- Top Actions --- */}
-      <div className="mb-8 space-y-4">
+    <div className="relative space-y-8 p-4 md:p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-3xl font-semibold text-pup-maroon">
+            Welcome to the Publication Portal!
+          </h1>
+        </div>
+        <p className="text-gray-600">
+          Search, review, and manage approved research. Use the filters below to
+          find items and keep records up to date.
+        </p>
+      </div>
+
+      {/* --- Controls Section --- */}
+      <div className="space-y-4 rounded-3xl bg-white shadow-lg ring-1 ring-pup-maroon/10 p-4 md:p-6">
         {/* Search Bar */}
-        <div className="relative w-full rounded-2xl bg-white/70 shadow-sm ring-1 ring-pup-maroon/20 px-2 py-1">
-          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-            <Search size={20} color={COLORS.maroon} strokeWidth={1.5} />
+        <div className="relative w-full rounded-2xl bg-pup-gold-light/20 ring-1 ring-pup-maroon/20 px-3 py-2">
+          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-pup-maroon">
+            <Search size={18} strokeWidth={1.75} />
           </div>
           <input
             type="text"
-            placeholder="Search publications by title or keywords..."
+            placeholder="Search by title, author, or field..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="block w-full pl-14 pr-6 py-3 text-sm text-gray-800 bg-transparent rounded-full border border-transparent focus:border-pup-maroon focus:ring-0 focus:outline-none transition-all"
+            className="block w-full pl-14 pr-6 py-3 text-sm text-gray-900 bg-transparent rounded-full focus:border-pup-maroon focus:ring-2 focus:ring-pup-maroon/30 focus:outline-none transition-all"
           />
         </div>
 
-        {/* Inline Sort + Filter */}
-        <div className="flex flex-col md:flex-row md:items-center gap-2">
-          <SortDropdown
-            value={sortBy}
-            onChange={(value) => {
-              setSortBy(value as AdminSortOption);
-            }}
-            className="w-full md:w-auto"
-          />
-          <div className="w-full md:w-auto md:min-w-[260px]">
-            <FilterBox
-              courseOptions={courseOptions}
-              onChange={(next) => {
-                setFilters(next);
+        {/* Filters, Sort & View Toggle */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <SortDropdown
+              value={sortBy}
+              onChange={(value) => {
+                setSortBy(value as AdminSortOption)
+                setCurrentPage(1)
               }}
+              className="w-full md:w-56"
             />
-          </div>
-        </div>
-      </div>
 
-      {/* --- Data Table --- */}
-      <div className="overflow-x-auto min-h-[400px]">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b" style={{ borderColor: COLORS.border }}>
-              <th
-                className="py-4 pr-4 text-sm font-medium uppercase tracking-wider"
-                style={{ color: COLORS.textMuted }}
-              >
-                Title
-              </th>
-              <th
-                className="px-6 py-4 text-sm font-medium uppercase tracking-wider whitespace-nowrap"
-                style={{ color: COLORS.textMuted }}
-              >
-                Publication Year
-              </th>
-              <th
-                className="px-6 py-4 text-sm font-medium uppercase tracking-wider whitespace-nowrap"
-                style={{ color: COLORS.textMuted }}
-              >
-                Research Field
-              </th>
-              <th
-                className="px-6 py-4 text-sm font-medium uppercase tracking-wider text-right"
-                style={{ color: COLORS.textMuted }}
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y" style={{ borderColor: COLORS.border }}>
-            {loading ? (
-              <tr>
-                <td colSpan={4} className="py-10 text-center text-gray-500">
-                  Loading publications...
-                </td>
-              </tr>
-            ) : error ? (
-              <tr>
-                <td colSpan={4} className="py-10 text-center text-red-600">
-                  {error}
-                </td>
-              </tr>
-            ) : currentData.length > 0 ? (
-              currentData.map((pub) => {
-                const year = pub.date.split(" ").pop();
-                return (
-                  <tr
-                    key={pub.id}
-                    className="group hover:bg-white/50 transition-colors"
-                  >
-                    <td
-                      className="py-6 pr-6 leading-relaxed font-normal max-w-2xl"
-                      style={{ color: COLORS.textMain }}
-                    >
-                      {pub.title}
-                    </td>
-                    <td
-                      className="px-6 py-6 whitespace-nowrap"
-                      style={{ color: COLORS.textMain }}
-                    >
+            {/* Course Filter */}
+            <Select
+              value={filters.course}
+              onValueChange={(value) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  course: value,
+                }))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-full md:w-56 rounded-full border-pup-maroon/30 text-sm">
+                <SelectValue placeholder="All Courses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Courses">All Courses</SelectItem>
+                {courseOptions.map((course) => (
+                  <SelectItem key={course} value={course}>
+                    {course}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Year Filter */}
+            <Select
+              value={filters.year}
+              onValueChange={(value) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  year: value,
+                }))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-full md:w-40 rounded-full border-pup-maroon/30 text-sm">
+                <SelectValue placeholder="All Years" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Years">All Years</SelectItem>
+                {Array.from(
+                  new Set(
+                    publications
+                      .map((pub) => pub.date.split(' ').pop() || '')
+                      .filter(Boolean),
+                  ),
+                )
+                  .sort()
+                  .map((year) => (
+                    <SelectItem key={year} value={year}>
                       {year}
-                    </td>
-                    <td
-                      className="px-6 py-6"
-                      style={{ color: COLORS.textMain }}
-                    >
-                      <span className="capitalize">{pub.field}</span>
-                    </td>
-                    <td className="px-6 py-6 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end space-x-6">
-                        <button
-                          onClick={() => handleEdit(pub.id)}
-                          className="hover:scale-110 transition-transform"
-                        >
-                          <Pencil
-                            size={22}
-                            color={COLORS.maroon}
-                            strokeWidth={1.5}
-                          />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(pub)} // Changed to open modal
-                          className="hover:scale-110 transition-transform"
-                        >
-                          <Trash2
-                            size={22}
-                            color={COLORS.maroon}
-                            strokeWidth={1.5}
-                          />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={4} className="text-center py-10 text-gray-500">
-                  No publications found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+
+            {/* Document Type Filter */}
+            <Select
+              value={filters.documentType}
+              onValueChange={(value) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  documentType: value as ResourceTypes | 'All Types',
+                }))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-full md:w-44 rounded-full border-pup-maroon/30 text-sm">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Types">All Types</SelectItem>
+                {Object.values(ResourceTypes).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {formatResourceType(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 md:justify-end text-xs md:ml-auto text-gray-600">
+            <div className="hidden md:flex items-center gap-2">
+              <span className="inline-flex items-center justify-center rounded-full bg-pup-gold-light/70 px-3 py-1 text-[11px] font-semibold text-pup-maroon">
+                {filteredData.length}
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-pup-maroon">
+                results
+              </span>
+              <span className="text-[11px] text-gray-500">
+                • Page {currentPage} of {Math.max(totalPages, 1)}
+              </span>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="inline-flex items-center gap-1 rounded-full border border-pup-maroon/20 bg-white px-1 py-1">
+              <button
+                type="button"
+                onClick={() => setViewMode('card')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
+                  viewMode === 'card'
+                    ? 'bg-pup-maroon text-white shadow-sm'
+                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
+                }`}
+                aria-label="Card view"
+              >
+                <LayoutGrid size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
+                  viewMode === 'list'
+                    ? 'bg-pup-maroon text-white shadow-sm'
+                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
+                }`}
+                aria-label="List view"
+              >
+                <ListIcon size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* --- Pagination Controls --- */}
-      {totalPages > 0 && (
-        <div
-          className="flex items-center justify-center space-x-8 mt-12 text-sm font-medium"
-          style={{ color: COLORS.textMuted }}
-        >
-          <button
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="flex items-center hover:text-gray-800 space-x-1 disabled:opacity-30"
-          >
-            <ChevronLeft size={16} /> <span>Previous</span>
-          </button>
-          <div className="flex items-center space-x-3">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNum) => (
-                <button
-                  key={pageNum}
-                  onClick={() => goToPage(pageNum)}
-                  className={`h-8 w-8 flex items-center justify-center rounded shadow-sm transition-colors ${currentPage === pageNum ? "text-white" : "hover:text-gray-800 hover:bg-gray-200"}`}
-                  style={{
-                    backgroundColor:
-                      currentPage === pageNum ? COLORS.maroon : "transparent",
-                  }}
-                >
-                  {pageNum}
-                </button>
-              ),
-            )}
-          </div>
-          <button
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="flex items-center hover:text-gray-800 space-x-1 disabled:opacity-30"
-          >
-            <span>Next</span> <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
+      {/* --- Data Grid --- */}
+      <div className="rounded-3xl border border-pup-maroon/10 bg-white shadow-xl min-h-[400px]">
+        <div className="p-4 md:p-6">
+          {loading ? (
+            <div className="flex h-64 items-center justify-center text-gray-500">
+              Loading publications...
+            </div>
+          ) : error ? (
+            <div className="flex h-64 items-center justify-center text-red-600">
+              {error}
+            </div>
+          ) : currentData.length > 0 ? (
+            <>
+              {viewMode === 'card' ? (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {currentData.map((pub) => {
+                    const yearStr = pub.date.split(' ').pop() // Simple extraction
+                    return (
+                      <div
+                        key={pub.id}
+                        className="group flex h-full flex-col justify-between rounded-2xl border border-pup-maroon/10 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
+                                {pub.title}
+                              </h3>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
+                                By {pub.author}
+                              </p>
+                              <p className="line-clamp-3 text-sm text-gray-700">
+                                {pub.abstract || 'No abstract provided.'}
+                              </p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
+                              {yearStr}
+                            </span>
+                          </div>
+                        </div>
 
-      {/* --- CUSTOM DELETE MODAL --- */}
+                        <div className="mt-4 flex items-center justify-between gap-3 pt-4 border-t border-pup-maroon/5">
+                          <span className="inline-flex max-w-[70%] items-center rounded-full bg-pup-gold-light/80 px-4 py-1 text-xs font-semibold text-pup-maroon shadow-sm">
+                            {pub.field || 'Uncategorized'}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleEdit(pub.id)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                              aria-label="Edit publication"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(pub)}
+                              className="flex h-10 w-10 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                              aria-label="Delete publication"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {currentData.map((pub) => {
+                    const yearStr = pub.date.split(' ').pop() // Simple extraction
+                    return (
+                      <div
+                        key={pub.id}
+                        className="group flex items-center justify-between gap-4 rounded-2xl border border-pup-maroon/10 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-pup-maroon">
+                              {pub.title}
+                            </h3>
+                            <span className="inline-flex items-center rounded-full bg-pup-maroon/10 px-2 py-0.5 text-[10px] font-semibold text-pup-maroon">
+                              {yearStr}
+                            </span>
+                          </div>
+                          <p className="truncate text-xs text-gray-600">
+                            By <span className="font-medium">{pub.author}</span>{' '}
+                            •{' '}
+                            <span className="text-gray-500">
+                              {pub.field || 'Uncategorized'}
+                            </span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => handleEdit(pub.id)}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                            aria-label="Edit publication"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(pub)}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-pup-maroon/20 text-pup-maroon transition hover:border-pup-maroon hover:bg-pup-maroon/10"
+                            aria-label="Delete publication"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-pup-maroon/20 bg-pup-gold-light/10 text-center">
+              <span className="text-lg font-semibold text-gray-800">
+                No publications found
+              </span>
+              <span className="text-sm text-gray-600">
+                Try adjusting your filters or search.
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* --- Pagination Controls --- */}
+        {totalPages > 0 && (
+          <div className="border-t border-pup-maroon/10 bg-gray-50/50 p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center justify-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-pup-maroon transition hover:bg-pup-gold-light/30 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronLeft size={16} /> <span>Previous</span>
+              </button>
+
+              <div className="flex items-center justify-center gap-2 overflow-x-auto px-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                        currentPage === pageNum
+                          ? 'bg-pup-maroon text-white shadow-md'
+                          : 'text-pup-maroon hover:bg-pup-gold-light/50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ),
+                )}
+              </div>
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center justify-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-pup-maroon transition hover:bg-pup-gold-light/30 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <span>Next</span> <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* --- Delete Modal --- */}
       {isDeleteModalOpen && publicationToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div
-            className="bg-[#F9F9F9] rounded-2xl shadow-xl w-full max-w-lg p-8 relative animate-in fade-in zoom-in duration-200"
+            className="relative w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl ring-1 ring-pup-maroon/10 zoom-in-95 duration-200"
             role="dialog"
           >
-            {/* Close Icon */}
             <button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-gray-700 transition-colors"
+              className="absolute top-6 right-6 text-gray-400 transition-colors hover:text-gray-700"
+              aria-label="Close modal"
             >
               <X size={24} />
             </button>
 
-            {/* Modal Content */}
-            <h2 className="text-3xl font-extrabold text-[#1a1a1a] mb-4">
-              Are you sure?
+            <h2 className="mb-2 text-3xl font-extrabold text-pup-maroon">
+              Delete research?
             </h2>
-
-            <p className="text-gray-600 mb-6 text-lg leading-relaxed">
-              The chosen research will be permanently deleted from the database.
-              This action cannot be undone.
+            <p className="mb-6 text-base leading-relaxed text-gray-600">
+              This action cannot be undone. This will permanently remove the
+              record from the database.
             </p>
 
-            <div className="text-gray-600 mb-8 text-lg">
-              Research Title:{" "}
-              <span className="font-bold" style={{ color: COLORS.maroon }}>
+            <div className="mb-8 rounded-xl bg-pup-gold-light/30 px-5 py-4 text-pup-maroon border border-pup-maroon/10">
+              <span className="block text-xs font-bold uppercase tracking-wide opacity-70">
+                Selected Research
+              </span>
+              <span className="block mt-1 font-bold text-lg leading-tight">
                 {publicationToDelete.title}
               </span>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-6 mt-4">
+            <div className="flex items-center justify-end gap-4">
               <button
-                onClick={() => {
-                  if (!isDeleting) setIsDeleteModalOpen(false);
-                }}
-                className="font-bold text-lg hover:underline transition-all"
-                style={{ color: COLORS.maroon }}
+                onClick={() => !isDeleting && setIsDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="text-sm font-semibold text-pup-maroon underline-offset-4 hover:underline disabled:opacity-50"
               >
                 Cancel
               </button>
-
               <button
                 onClick={confirmDelete}
                 disabled={isDeleting}
-                className="text-white px-8 py-3 rounded-full font-bold text-lg shadow-md hover:opacity-90 transition-opacity disabled:opacity-60"
-                style={{ backgroundColor: COLORS.maroon }}
+                className="rounded-full bg-pup-maroon px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-pup-maroon/90 disabled:opacity-70 flex items-center gap-2"
               >
-                {isDeleting ? "Deleting..." : "Delete Research"}
+                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

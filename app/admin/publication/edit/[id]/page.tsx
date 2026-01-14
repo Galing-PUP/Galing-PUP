@@ -1,37 +1,38 @@
-"use client";
+'use client'
 
-import { PublicationForm } from "@/components/admin/publications/publication-form";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { type PublicationFormData } from "@/lib/validations/publication-schema";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { PublicationForm } from '@/components/admin/publications/publication-form'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { type PublicationFormData } from '@/lib/validations/publication-schema'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function Edit() {
-  const params = useParams();
-  const router = useRouter();
-  const documentId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const params = useParams()
+  const router = useRouter()
+  const documentId = Array.isArray(params.id) ? params.id[0] : params.id
 
-  const [initialData, setInitialData] =
-    useState<Partial<PublicationFormData> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [initialData, setInitialData] = useState<
+    (Partial<PublicationFormData> & { documentToken?: string }) | null
+  >(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Fetch existing document data from API
   useEffect(() => {
     if (documentId) {
       const fetchDocumentData = async () => {
         try {
-          const response = await fetch(`/api/admin/documents/${documentId}`);
+          const response = await fetch(`/api/admin/documents/${documentId}`)
 
           if (!response.ok) {
-            throw new Error("Failed to fetch document");
+            throw new Error('Failed to fetch document')
           }
 
-          const data = await response.json();
+          const data = await response.json()
 
           setInitialData({
             title: data.title,
@@ -45,79 +46,80 @@ export default function Edit() {
             fileSize: data.fileSize,
             submissionDate: data.submissionDate,
             filePath: data.filePath,
-          });
+            documentToken: data.documentToken,
+          })
 
-          setIsLoading(false);
+          setIsLoading(false)
         } catch (error) {
-          console.error("Error fetching document:", error);
-          setError("Failed to load document. Please try again.");
-          setIsLoading(false);
+          console.error('Error fetching document:', error)
+          setError('Failed to load document. Please try again.')
+          setIsLoading(false)
         }
-      };
+      }
 
-      fetchDocumentData();
+      fetchDocumentData()
     }
-  }, [documentId]);
+  }, [documentId])
 
   const handleSubmit = async (formData: PublicationFormData) => {
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
-    let promiseResolve: (value: any) => void;
-    let promiseReject: (reason?: any) => void;
+    let promiseResolve: (value: any) => void
+    let promiseReject: (reason?: any) => void
     const submissionPromise = new Promise((resolve, reject) => {
-      promiseResolve = resolve;
-      promiseReject = reject;
-    });
+      promiseResolve = resolve
+      promiseReject = reject
+    })
 
     toast.promise(submissionPromise, {
-      loading: "Updating publication...",
-      success: "Document updated successfully!",
+      loading: 'Updating publication...',
+      success: 'Document updated successfully!',
       error: (err: any) => `Update failed: ${err.message}`,
-    });
+    })
 
     try {
-      const body = new FormData();
-      body.append("title", formData.title);
-      body.append("abstract", formData.abstract);
-      body.append("keywords", formData.keywords.join(", "));
-      body.append("datePublished", formData.datePublished);
-      body.append("resourceType", formData.resourceType);
-      body.append("authors", JSON.stringify(formData.authors));
-      body.append("courseId", formData.courseId);
+      const body = new FormData()
+      body.append('title', formData.title)
+      body.append('abstract', formData.abstract)
+      body.append('keywords', formData.keywords.join(', '))
+      body.append('datePublished', formData.datePublished)
+      body.append('resourceType', formData.resourceType)
+      body.append('authors', JSON.stringify(formData.authors))
+      body.append('courseId', formData.courseId)
 
       if (formData.file) {
-        body.append("file", formData.file);
+        body.append('file', formData.file)
       }
 
       const response = await fetch(`/api/admin/documents/${documentId}`, {
-        method: "PUT",
+        method: 'PUT',
         body,
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to update document");
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to update document')
       }
 
-      promiseResolve!(null);
+      promiseResolve!(null)
 
       // Slight delay for UX
       setTimeout(() => {
-        router.push("/admin/publication");
-      }, 1000);
+        router.push('/admin/publication')
+      }, 1000)
     } catch (error) {
-      console.error("Error updating document:", error);
+      console.error('Error updating document:', error)
       promiseReject!(
-        error instanceof Error ? error : new Error("Unknown error")
-      );
+        error instanceof Error ? error : new Error('Unknown error'),
+      )
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleCancel = () => {
-    router.back();
-  };
+    router.back()
+  }
 
   if (isLoading) {
     return (
@@ -138,7 +140,7 @@ export default function Edit() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   if (error && !initialData) {
@@ -156,7 +158,7 @@ export default function Edit() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -197,8 +199,10 @@ export default function Edit() {
               : undefined
           }
           existingFilePath={initialData.filePath || undefined}
+          documentId={Number(documentId)}
+          documentToken={initialData.documentToken}
         />
       )}
     </div>
-  );
+  )
 }

@@ -1,78 +1,172 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import starLogo from "@/assets/Logo/star-logo-yellow.png";
-import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Button, GoogleIcon } from "@/components/button";
-import { signInWithGooglePopup } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/client";
-import { checkUsernameAvailability, checkUserStatus, createUserInDb } from "@/lib/actions";
+import sideIllustration from '@/assets/Graphics/side-img-user-signin.png'
+import starLogo from '@/assets/Logo/star-logo-yellow.png'
+import { GoogleIcon } from '@/components/button' // Keep custom icon
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  checkUsernameAvailability,
+  checkUserStatus,
+  createUserInDb,
+  getCurrentUser,
+} from '@/lib/actions'
+import { signInWithGooglePopup } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/client'
+import {
+  signUpSchema,
+  type SignUpFormValues,
+} from '@/lib/validations/auth-schema'
+import { useEffect } from 'react'
 
 export default function SignUpPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  const [usernameError, setUsernameError] = useState("");
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session) {
+        const user = await getCurrentUser()
+        if (user) {
+          const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          router.replace(isAdmin ? '/admin/publication' : '/')
+        }
+      }
+    }
+    checkSession()
+  }, [router])
 
-  // Email validation
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const isEmailValid = emailRegex.test(email) || email === "";
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    mode: 'onChange',
+  })
 
-  // Function to validate username format
-  // Rules: No spaces, no special characters except dots
-  const validateUsername = (value: string) => {
-    if (!value) return "";
-    if (/\s/.test(value)) return "Spaces are not allowed";
-    if (!/^[a-zA-Z0-9.]+$/.test(value)) return "Special characters are not allowed";
-    return "";
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form
 
-  // Handle username input changes and update error state
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUsername(value);
-    setUsernameError(validateUsername(value));
-  };
+  const handleGoogleSignUp = async () => {
+    try {
+      const { user, error } = await signInWithGooglePopup()
 
-  // Password validation rules
-  const passwordValidation = {
-    minLength: password.length >= 8,
-    hasUppercase: /[A-Z]/.test(password),
-    hasLowercase: /[a-z]/.test(password),
-    hasNumber: /[0-9]/.test(password),
-    hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-  };
+      if (error) {
+        toast.error(error.message)
+        return
+      }
 
-  const isPasswordValid = Object.values(passwordValidation).every(Boolean);
-  const doPasswordsMatch = password === confirmPassword && confirmPassword !== "";
+      if (user) {
+        const supabase = createClient()
+        await supabase.auth.setSession({
+          access_token: user.session?.access_token || '',
+          refresh_token: user.session?.refresh_token || '',
+        })
 
-  // Generate password error message
-  const getPasswordError = () => {
-    if (!password) return "";
-    const errors = [];
-    if (!passwordValidation.minLength) errors.push("at least 8 characters");
-    if (!passwordValidation.hasUppercase) errors.push("one uppercase letter");
-    if (!passwordValidation.hasLowercase) errors.push("one lowercase letter");
-    if (!passwordValidation.hasNumber) errors.push("one number");
-    if (!passwordValidation.hasSpecial) errors.push("one special character");
+        const status = await checkUserStatus(user.email || '')
 
-    if (errors.length === 0) return "";
-    return `Password must contain ${errors.join(", ")}.`;
-  };
+        if (!status.exists) {
+          await createUserInDb(
+            user.email || '',
+            user.user_metadata.full_name || '',
+            user.id,
+            '', // No password for Google auth
+          )
+        }
 
-  const passwordError = getPasswordError();
+        toast.success('Successfully signed in with Google!')
+        router.push('/')
+        router.refresh()
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sign up with Google')
+    }
+  }
+
+  const onSubmit = async (data: SignUpFormValues) => {
+    setIsLoading(true)
+    const { username, email, password } = data
+
+    try {
+      // Step 1: Check username availability
+      const { exists: usernameExists } =
+        await checkUsernameAvailability(username)
+      if (usernameExists) {
+        toast.error('Username already exists, please login')
+        setIsLoading(false)
+        return
+      }
+
+      // Step 2: Check supabase auth first to see if email is taken there
+      const supabase = createClient()
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              username,
+            },
+          },
+        })
+
+      if (signUpError) {
+        // Handle specific case where user exists but might be unverified/verified
+        if (signUpError.message.includes('already registered')) {
+          const status = await checkUserStatus(email)
+          if (status.exists && !status.isVerified) {
+            toast.error(
+              'User already registered but not verified. Redirecting to verification...',
+            )
+            router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
+          } else {
+            toast.error('User already registered, please login')
+            router.push('/signin')
+          }
+        } else {
+          toast.error(signUpError.message)
+        }
+        setIsLoading(false)
+        return
+      }
+
+      // Step 4: Signup successful, create user in DB and redirect
+      if (signUpData.user) {
+        await createUserInDb(email, username, signUpData.user.id, password)
+      }
+
+      toast.success('Account created! Please verify your email.')
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
+    } catch (error: any) {
+      console.error('Signup error:', error)
+      toast.error(error.message || 'Something went wrong during signup')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
       <div className="flex w-full flex-col px-6 py-6 lg:w-1/2 lg:px-16 lg:py-8">
@@ -103,193 +197,147 @@ export default function SignUpPage() {
             </p>
           </div>
 
-          <form className="flex flex-col gap-4">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
             {/* Username Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="username" className="text-sm font-medium text-neutral-700">
+              <Label
+                htmlFor="username"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Username
-              </label>
-              <input
+              </Label>
+              <Input
                 id="username"
-                type="text"
-                value={username}
-                onChange={handleUsernameChange}
                 placeholder="Enter your username"
-                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${usernameError
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
-                  }`}
+                className="rounded-lg border-neutral-300 px-4 py-2.5 text-base"
+                {...register('username')}
               />
-              {usernameError && (
-                <p className="text-sm text-red-600">{usernameError}</p>
+              {errors.username && (
+                <p className="text-sm text-red-500">
+                  {errors.username.message}
+                </p>
               )}
             </div>
 
             {/* Email Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-neutral-700">
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Email
-              </label>
-              <input
+              </Label>
+              <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="yourname@gmail.com"
-                className={`rounded-lg border px-4 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${!isEmailValid
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
-                  }`}
+                className="rounded-lg border-neutral-300 px-4 py-2.5 text-base"
+                {...register('email')}
               />
-              {!isEmailValid && email !== "" && (
-                <p className="text-sm text-red-600">
-                  Please enter a valid email address
-                </p>
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-neutral-700">
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Password
-              </label>
-              {passwordError && (
-                <p className="text-sm text-red-600">
-                  {passwordError}
-                </p>
-              )}
+              </Label>
               <div className="relative">
-                <input
+                <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-pup-maroon focus:outline-none focus:ring-2 focus:ring-pup-maroon/10"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Create a password"
+                  className="rounded-lg border-neutral-300 px-4 py-2.5 pr-12 text-base"
+                  {...register('password')}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 transition hover:text-neutral-600"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="h-5 w-5 text-neutral-400" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-5 w-5 text-neutral-400" />
                   )}
-                </button>
+                  <span className="sr-only">
+                    {showPassword ? 'Hide password' : 'Show password'}
+                  </span>
+                </Button>
               </div>
+
+              {/* Password Requirements Checklist */}
+
+              {errors.password && (
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Confirm Password Field */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmPassword" className="text-sm font-medium text-neutral-700">
+              <Label
+                htmlFor="confirmPassword"
+                className="text-sm font-medium text-neutral-700"
+              >
                 Confirm Password
-              </label>
+              </Label>
               <div className="relative">
-                <input
+                <Input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
-                  className={`w-full rounded-lg border px-4 py-2.5 pr-12 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 ${doPasswordsMatch
-                    ? "border-green-500 focus:border-green-500 focus:ring-green-500/10"
-                    : confirmPassword
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
-                      : "border-neutral-300 focus:border-pup-maroon focus:ring-pup-maroon/10"
-                    }`}
+                  className="rounded-lg border-neutral-300 px-4 py-2.5 pr-12 text-base"
+                  {...register('confirmPassword')}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 transition hover:text-neutral-600"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="h-5 w-5 text-neutral-400" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-5 w-5 text-neutral-400" />
                   )}
-                </button>
+                  <span className="sr-only">
+                    {showConfirmPassword ? 'Hide password' : 'Show password'}
+                  </span>
+                </Button>
               </div>
-              {confirmPassword && !doPasswordsMatch && (
-                <p className="text-sm text-red-600">
-                  Passwords do not match
-                </p>
-              )}
-              {doPasswordsMatch && (
-                <p className="text-sm text-green-600">
-                  ✓ Passwords match
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">
+                  {errors.confirmPassword.message}
                 </p>
               )}
             </div>
 
-            {/* Sign Up Button */}
             <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              fullWidth
-              shape="rounded"
-              disabled={!username || !email || !password || !confirmPassword || !isEmailValid || !isPasswordValid || !doPasswordsMatch || !!usernameError || loading}
-              onClick={async () => {
-                setLoading(true);
-                try {
-                  // Step 1: Check if username is already taken in the database
-                  const { exists: usernameExists } = await checkUsernameAvailability(username);
-                  if (usernameExists) {
-                    toast.error("Username already exists, please login");
-                    setLoading(false);
-                    return;
-                  }
-
-                  // Step 2: Create the user account in Supabase
-                  const supabase = createClient();
-                  const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                      emailRedirectTo: `${window.location.origin}/auth/callback`,
-                      data: {
-                        username,
-                      },
-                    },
-                  });
-
-                  // Step 3: Handle potential errors during signup
-                  if (error) {
-                    if (error.message.includes("already registered")) {
-                      // If user exists, check if they are verified
-                      const status = await checkUserStatus(email);
-                      if (status.exists && !status.isVerified) {
-                        // If unverified, redirect to OTP page to finish setup
-                        toast.error("User already registered but not verified. Redirecting to verification...");
-                        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
-                      } else {
-                        // If verified, ask them to login
-                        toast.error("User already registered, please login");
-                      }
-                    } else {
-                      toast.error(error.message);
-                    }
-                    return;
-                  }
-
-                  // Step 4: Signup successful, create user in DB and redirect
-                  if (data.user) {
-                    await createUserInDb(email, username, data.user.id, password);
-                  }
-
-                  toast.success("Account created! Please verify your email.");
-                  router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
-                } catch (error: any) {
-                  toast.error("An unexpected error occurred");
-                } finally {
-                  setLoading(false);
-                }
-              }}
+              type="submit"
+              className="mt-4 w-full rounded-lg bg-[#7C1D1D] py-6 text-base hover:bg-[#5a1515]"
+              disabled={isLoading}
             >
-              {loading ? "Creating Account..." : "Sign Up"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
 
             <div className="flex items-center gap-4 text-sm font-medium text-neutral-400">
@@ -301,25 +349,16 @@ export default function SignUpPage() {
             <button
               type="button"
               className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
-              onClick={async () => {
-                try {
-                  await signInWithGooglePopup("signup");
-                  toast.success("Account created successfully");
-                  router.push("/");
-                  router.refresh();
-                } catch (error: any) {
-                  toast.error(error.message || "Sign up failed");
-                }
-              }}
+              onClick={handleGoogleSignUp}
             >
-              <GoogleIcon />
+              <GoogleIcon className="h-5 w-5" />
             </button>
           </form>
         </div>
 
-        <div className="mt-auto flex justify-center">
+        <div className="mt-auto flex justify-center pt-8">
           <p className="text-sm text-neutral-500">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link
               href="/signin"
               className="font-semibold text-pup-maroon transition hover:underline"
@@ -341,5 +380,5 @@ export default function SignUpPage() {
         />
       </div>
     </div>
-  );
+  )
 }

@@ -1,22 +1,48 @@
-import type { UserRole } from "@/types/users";
+import type { UserRole } from '@/types/users'
 
 type RoleBadgeProps = {
-  role: UserRole;
-};
+  role: UserRole
+}
 
+/**
+ * Renders a styled badge for user roles
+ * Displays role with appropriate color scheme matching the design
+ */
 export function RoleBadge({ role }: RoleBadgeProps) {
-  const styles: Record<UserRole, string> = {
-    Superadmin: "bg-pup-gold-light text-pup-maroon font-bold",
-    Admin: "bg-pup-maroon text-white",
-    Registered: "bg-gray-200 text-gray-800",
-    Viewer: "bg-gray-100 text-gray-800",
-  };
+  // Normalize role to handle different cases
+  const normalizedRole = role?.toString().toLowerCase()
+
+  const getStyle = () => {
+    if (normalizedRole === 'superadmin') {
+      return 'bg-pup-maroon text-white'
+    }
+    if (normalizedRole === 'admin') {
+      return 'bg-pup-gold-light text-gray-900'
+    }
+    if (normalizedRole === 'registered') {
+      return 'bg-gray-200 text-gray-700'
+    }
+    return 'bg-gray-100 text-gray-600'
+  }
+
+  const getLabel = () => {
+    if (normalizedRole === 'superadmin') {
+      return 'Super Admin'
+    }
+    if (normalizedRole === 'admin') {
+      return 'Admin'
+    }
+    if (normalizedRole === 'registered') {
+      return 'Registered'
+    }
+    return role
+  }
 
   return (
     <span
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${styles[role]}`}
+      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStyle()}`}
     >
-      {role}
+      {getLabel()}
     </span>
-  );
+  )
 }

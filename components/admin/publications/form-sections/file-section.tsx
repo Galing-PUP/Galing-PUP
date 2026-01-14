@@ -1,26 +1,28 @@
-"use client";
+'use client'
 
-import FileUpload05 from "@/components/file-upload-05";
+import FileUpload05 from '@/components/file-upload-05'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { formatFileSize } from "@/lib/utils";
-import { PublicationFormData } from "@/lib/validations/publication-schema";
-import { FileText, Info, Upload } from "lucide-react";
+} from '@/components/ui/card'
+import { formatFileSize } from '@/lib/utils'
+import { PublicationFormData } from '@/lib/validations/publication-schema'
+import { FileText, Info, Upload } from 'lucide-react'
 
 interface FileSectionProps {
-  formData: PublicationFormData;
-  setFormData: React.Dispatch<React.SetStateAction<PublicationFormData>>;
-  uploadedFiles: File[];
-  setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  existingFileName?: string;
-  existingFileSize?: number;
-  existingFileDate?: string;
-  existingFilePath?: string;
+  formData: PublicationFormData
+  setFormData: React.Dispatch<React.SetStateAction<PublicationFormData>>
+  uploadedFiles: File[]
+  setUploadedFiles: React.Dispatch<React.SetStateAction<File[]>>
+  existingFileName?: string
+  existingFileSize?: number
+  existingFileDate?: string
+  existingFilePath?: string
+  documentId?: number
+  documentToken?: string
 }
 
 export function FileSection({
@@ -32,6 +34,8 @@ export function FileSection({
   existingFileSize,
   existingFileDate,
   existingFilePath,
+  documentId,
+  documentToken,
 }: FileSectionProps) {
   return (
     <Card>
@@ -64,7 +68,11 @@ export function FileSection({
 
             {existingFilePath ? (
               <a
-                href={existingFilePath}
+                href={
+                  documentToken
+                    ? `/api/pdf/${encodeURIComponent(documentToken)}`
+                    : existingFilePath
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors group cursor-pointer"
@@ -111,11 +119,11 @@ export function FileSection({
           value={uploadedFiles[0] || formData.file}
           onValueChange={(file: File | null) => {
             if (file) {
-              setUploadedFiles([file]);
-              setFormData((prev) => ({ ...prev, file }));
+              setUploadedFiles([file])
+              setFormData((prev) => ({ ...prev, file }))
             } else {
-              setUploadedFiles([]);
-              setFormData((prev) => ({ ...prev, file: null }));
+              setUploadedFiles([])
+              setFormData((prev) => ({ ...prev, file: null }))
             }
           }}
           accept=".pdf"
@@ -123,5 +131,5 @@ export function FileSection({
         />
       </CardContent>
     </Card>
-  );
+  )
 }

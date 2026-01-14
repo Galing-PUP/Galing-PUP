@@ -1,29 +1,31 @@
-"use client";
+'use client'
 
-import { useId } from "react";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Search } from 'lucide-react'
+import { useId } from 'react'
 
 type LibrarySearchInputProps = {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-};
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  className?: string
+  disabled?: boolean
+}
 
 export function LibrarySearchInput({
   value,
   onChange,
-  placeholder = "Search your bookmarks...",
-  className = "",
+  placeholder = 'Search your bookmarks...',
+  className = '',
   disabled = false,
 }: LibrarySearchInputProps) {
-  const id = useId();
+  const id = useId()
 
   return (
-    <div className={`w-full space-y-2 ${className} ${disabled ? "opacity-50" : ""}`}>
+    <div
+      className={`w-full space-y-2 ${className} ${disabled ? 'opacity-50' : ''}`}
+    >
       <Label htmlFor={id} className="sr-only">
         Search bookmarks
       </Label>
@@ -43,5 +45,5 @@ export function LibrarySearchInput({
         />
       </div>
     </div>
-  );
+  )
 }

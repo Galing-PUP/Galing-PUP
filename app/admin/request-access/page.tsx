@@ -1,135 +1,130 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { colleges } from "@/data/collegeCourses";
+import { colleges } from '@/data/collegeCourses'
+import { getCurrentUser } from '@/lib/actions'
+import { createClient } from '@/lib/supabase/client'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useId, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import sideIllustration from "@/assets/Graphics/side-img-staff-registration.png";
+import sideIllustration from '@/assets/Graphics/side-img-staff-registration.png'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  requestAccessSchema,
+  type RequestAccessFormValues,
+} from '@/lib/validations/request-access-schema'
 
 export default function RequestAccessPage() {
-  const router = useRouter();
-  // State to track form values
-  const [formData, setFormData] = useState({
-    fullName: "",
-    college: "",
-    email: "",
-    idNumber: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const id = useId()
 
-  const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState("No file chosen");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-  // State for password visibility toggles
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Handle text input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Handle file input changes
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      // Basic Frontend Validation for file size (5MB)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB");
-        return;
+  useEffect(() => {
+    const checkSession = async () => {
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session) {
+        const user = await getCurrentUser()
+        if (user) {
+          const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          router.replace(isAdmin ? '/admin/publication' : '/')
+        }
       }
-      setFile(selectedFile);
-      setFileName(selectedFile.name);
-    } else {
-      setFile(null);
-      setFileName("No file chosen");
     }
-  };
+    checkSession()
+  }, [router])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isFormValid || isSubmitting) return;
+  const form = useForm<RequestAccessFormValues>({
+    resolver: zodResolver(requestAccessSchema),
+    defaultValues: {
+      username: '',
+      college: 0,
+      email: '',
+      idNumber: '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
 
-    setIsSubmitting(true);
-    const toastId = toast.loading("Submitting your request...");
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    trigger,
+    formState: { errors },
+  } = form
+
+  // Manual file handling since RHF doesn't control file inputs well directly
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setValue('idImage', file)
+      await trigger('idImage')
+    }
+  }
+
+  const onSubmit = async (data: RequestAccessFormValues) => {
+    setIsSubmitting(true)
+    const toastId = toast.loading('Submitting your request...')
 
     try {
-      const submissionData = new FormData();
-      submissionData.append("fullName", formData.fullName);
-      submissionData.append("college", formData.college);
-      submissionData.append("email", formData.email);
-      submissionData.append("idNumber", formData.idNumber);
-      submissionData.append("password", formData.password);
-      if (file) {
-        submissionData.append("idImage", file);
-      }
+      const submissionData = new FormData()
+      submissionData.append('username', data.username)
+      submissionData.append('college', data.college.toString())
+      submissionData.append('email', data.email)
+      submissionData.append('idNumber', data.idNumber)
+      submissionData.append('password', data.password)
+      submissionData.append('idImage', data.idImage)
 
-      const response = await fetch("/api/admin/request-access", {
-        method: "POST",
+      const response = await fetch('/api/admin/request-access', {
+        method: 'POST',
         body: submissionData,
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to submit request");
+        throw new Error(result.error || 'Failed to submit request')
       }
 
       toast.success(
-        "Your request is kindly processing, Please wait for the admin approval",
-        { id: toastId, duration: 5000 }
-      );
+        'Your request is kindly processing, Please wait for the admin approval',
+        { id: toastId, duration: 5000 },
+      )
 
-      // Reset form
-      setFormData({
-        fullName: "",
-        college: "",
-        email: "",
-        idNumber: "",
-        password: "",
-        confirmPassword: "",
-      });
-      setFile(null);
-      setFileName("No file chosen");
+      form.reset()
 
       // Optional: Redirect after a delay
       setTimeout(() => {
-        router.push("/admin/signin");
-      }, 3000);
-
+        router.push('/admin/signin')
+      }, 3000)
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong", { id: toastId });
+      toast.error(error.message || 'Something went wrong', { id: toastId })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  // Logic to determine if the button should be enabled
-  const doPasswordsMatch =
-    formData.password && formData.password === formData.confirmPassword;
-
-  const areAllFieldsFilled =
-    formData.fullName.trim() !== "" &&
-    formData.college !== "" &&
-    formData.email.trim() !== "" &&
-    formData.idNumber.trim() !== "" &&
-    formData.password.trim() !== "" &&
-    formData.confirmPassword.trim() !== "";
-
-  const isFormValid = doPasswordsMatch && areAllFieldsFilled && file !== null;
+  const idImageValue = watch('idImage')
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -167,247 +162,214 @@ export default function RequestAccessPage() {
                 Request your staff account
               </h1>
               <p className="text-sm text-neutral-500">
-                Fill out the form to apply for a staff account and begin your journey with us.
+                Fill out the form to apply for a staff account and begin your
+                journey with us.
               </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Full Name Field */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="fullName"
-                  className="block text-sm font-medium text-neutral-900"
-                >
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+              <div className="space-y-2">
+                <Label htmlFor="username">Full Name</Label>
+                <Input
+                  id="username"
+                  placeholder="Enter your full name"
+                  {...register('username')}
                 />
+                {errors.username && (
+                  <p className="text-sm text-red-500">
+                    {errors.username.message}
+                  </p>
+                )}
               </div>
 
               {/* College Dropdown */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="college"
-                  className="block text-sm font-medium text-neutral-900"
+              <div className="space-y-2 w-full">
+                <Label htmlFor="college">College</Label>
+                <Select
+                  onValueChange={(value) =>
+                    setValue('college', parseInt(value, 10), {
+                      shouldValidate: true,
+                    })
+                  }
                 >
-                  College
-                </label>
-                <div className="relative">
-                  <select
-                    id="college"
-                    name="college"
-                    value={formData.college}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full appearance-none rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    <option value="">Select your college or department</option>
+                  <SelectTrigger id="college" className="w-full">
+                    <SelectValue placeholder="Select your college or department" />
+                  </SelectTrigger>
+                  <SelectContent>
                     {colleges.map((college) => (
-                      <option key={college.id} value={college.collegeAbbr}>
-                        {college.collegeName} ({college.collegeName})
-                      </option>
+                      <SelectItem
+                        key={college.id}
+                        value={college.id.toString()}
+                      >
+                        {college.collegeName} ({college.collegeAbbr})
+                      </SelectItem>
                     ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <svg
-                      className="h-4 w-4 text-neutral-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
+                  </SelectContent>
+                </Select>
+                {errors.college && (
+                  <p className="text-sm text-red-500">
+                    {errors.college.message}
+                  </p>
+                )}
               </div>
 
               {/* Email Address and ID Number Row */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-neutral-900"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
                     id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
+                    type="email"
                     placeholder="Enter your official email address"
-                    className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    {...register('email')}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-500">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="idNumber"
-                    className="block text-sm font-medium text-neutral-900"
-                  >
-                    ID Number
-                  </label>
-                  <input
-                    type="text"
+                <div className="space-y-2">
+                  <Label htmlFor="idNumber">ID Number</Label>
+                  <Input
                     id="idNumber"
-                    name="idNumber"
-                    value={formData.idNumber}
-                    onChange={handleInputChange}
-                    required
                     placeholder="Enter your ID number"
-                    className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    {...register('idNumber')}
                   />
+                  {errors.idNumber && (
+                    <p className="text-sm text-red-500">
+                      {errors.idNumber.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Password and Confirm Password Row */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Password Field */}
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-neutral-900"
-                  >
-                    Password
-                  </label>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
                   <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
+                    <Input
                       id="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      required
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
-                      className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 pr-10 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                      className="pr-9"
+                      {...register('password')}
                     />
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 focus:outline-none"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
-                    </button>
+                      <span className="sr-only">
+                        {showPassword ? 'Hide password' : 'Show password'}
+                      </span>
+                    </Button>
                   </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-500">
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Confirm Password Field */}
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-neutral-900"
-                  >
-                    Confirm Password
-                  </label>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <div className="relative">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
+                    <Input
                       id="confirmPassword"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      required
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
-                      className={`w-full rounded-md border px-3.5 py-2.5 pr-10 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 
-                        ${formData.confirmPassword && !doPasswordsMatch
-                          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 focus:border-neutral-400 focus:ring-neutral-400"
-                        }
-                      `}
+                      className="pr-9"
+                      {...register('confirmPassword')}
                     />
-                    <button
+                    <Button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-600 focus:outline-none"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
-                    </button>
-                    {/* Visual hint if passwords don't match */}
-                    {formData.confirmPassword && !doPasswordsMatch && (
-                      <p className="absolute -bottom-5 left-0 text-xs text-red-600">
-                        Passwords do not match
-                      </p>
-                    )}
+                      <span className="sr-only">
+                        {showConfirmPassword
+                          ? 'Hide password'
+                          : 'Show password'}
+                      </span>
+                    </Button>
                   </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-red-500">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* ID Image Upload */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="idImage"
-                  className="block text-sm font-medium text-neutral-900"
-                >
-                  ID Image (Max 5MB)
-                </label>
-                <div className="flex items-stretch gap-0">
-                  <label
-                    htmlFor="idImage"
-                    className="flex cursor-pointer items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-100 px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-200"
-                  >
-                    Upload File
-                  </label>
-                  <input
-                    type="file"
+              <div className="space-y-2">
+                <Label htmlFor="idImage">ID Image (Max 5MB)</Label>
+                <div className="flex items-center gap-4">
+                  <Input
                     id="idImage"
-                    name="idImage"
+                    type="file"
                     accept="image/png, image/jpeg, image/webp"
+                    className="cursor-pointer"
                     onChange={handleFileChange}
-                    className="hidden"
                   />
-                  <div className="flex flex-1 items-center rounded-r-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-400 truncate">
-                    {fileName}
-                  </div>
                 </div>
+                {errors.idImage && (
+                  <p className="text-sm text-red-500">
+                    {errors.idImage.message as string}
+                  </p>
+                )}
               </div>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-6">
-                <Link
-                  href="/admin/signin"
-                  className="px-6 py-2.5 text-sm font-semibold text-neutral-700 transition hover:text-neutral-900"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => router.push('/admin/signin')}
                 >
                   Cancel
-                </Link>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={!isFormValid || isSubmitting}
-                  className={`rounded-md px-6 py-2.5 text-sm font-semibold text-white transition 
-                    ${isFormValid && !isSubmitting
-                      ? "bg-[#7C1D1D] hover:bg-[#5a1515] cursor-pointer"
-                      : "bg-neutral-400 cursor-not-allowed opacity-70"
-                    }
-                  `}
+                  disabled={isSubmitting}
+                  className="bg-[#7C1D1D] hover:bg-[#5a1515]"
                 >
-                  {isSubmitting ? "Processing..." : "Create Account Request"}
-                </button>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Create Account Request'
+                  )}
+                </Button>
               </div>
             </form>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
