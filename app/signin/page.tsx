@@ -66,7 +66,7 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const { user, error } = await signInWithGooglePopup()
+      const { user, error } = await signInWithGooglePopup('signin')
       if (error) {
         toast.error(error.message)
         return
