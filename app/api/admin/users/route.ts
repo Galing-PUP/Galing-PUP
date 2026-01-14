@@ -5,6 +5,36 @@ import { hash } from 'bcryptjs'
 import { NextResponse } from 'next/server'
 
 /**
+ * Normalizes database role enum to TypeScript UserRole type
+ */
+function normalizeRole(role: RoleName): 'Registered' | 'Admin' | 'Superadmin' {
+  switch (role) {
+    case RoleName.ADMIN:
+      return 'Admin'
+    case RoleName.SUPERADMIN:
+      return 'Superadmin'
+    case RoleName.REGISTERED:
+    default:
+      return 'Registered'
+  }
+}
+
+/**
+ * Normalizes database status enum to display format
+ */
+function normalizeStatus(status: UserStatus): 'Accepted' | 'Pending' | 'Delete' {
+  switch (status) {
+    case UserStatus.APPROVED:
+      return 'Accepted'
+    case UserStatus.DELETED:
+      return 'Delete'
+    case UserStatus.PENDING:
+    default:
+      return 'Pending'
+  }
+}
+
+/**
  * fetch all users
  * @returns nextjs formatted response of all users
  */
@@ -21,23 +51,17 @@ export async function GET() {
       },
     })
 
-    const formattedUsers = users.map((user) => {
-      let statusDisplay = 'Pending'
-      if (user.status === UserStatus.APPROVED) statusDisplay = 'Accepted'
-      else if (user.status === UserStatus.DELETED) statusDisplay = 'Delete'
-
-      return {
-        id: user.id.toString(),
-        name: user.username,
-        email: user.email,
-        role: user.role,
-        status: statusDisplay,
-        subscriptionTier: user.tierId,
-        collegeId: user.collegeId || undefined,
-        idImagePath: user.idImagePath || undefined,
-        registrationDate: user.registrationDate.toISOString().split('T')[0],
-      }
-    })
+    const formattedUsers = users.map((user) => ({
+      id: user.id.toString(),
+      name: user.username,
+      email: user.email,
+      role: normalizeRole(user.role),
+      status: normalizeStatus(user.status),
+      subscriptionTier: user.tierId,
+      collegeId: user.collegeId || undefined,
+      idImagePath: user.idImagePath || undefined,
+      registrationDate: user.registrationDate.toISOString().split('T')[0],
+    }))
 
     return NextResponse.json(formattedUsers)
   } catch (error) {
@@ -179,14 +203,11 @@ export async function POST(request: Request) {
         id: newUser.id.toString(),
         name: newUser.username,
         email: newUser.email,
-        role: newUser.role,
-        status:
-          newUser.status === UserStatus.APPROVED
-            ? 'Accepted'
-            : newUser.status === UserStatus.DELETED
-              ? 'Delete'
-              : 'Pending',
+        role: normalizeRole(newUser.role),
+        status: normalizeStatus(newUser.status),
         subscriptionTier: newUser.tierId,
+        collegeId: newUser.collegeId || undefined,
+        idImagePath: newUser.idImagePath || undefined,
         registrationDate: newUser.registrationDate.toISOString().split('T')[0],
       },
       { status: 201 },

@@ -1,7 +1,9 @@
 'use client'
 
 import { colleges } from '@/data/collegeCourses'
+import { getCurrentUser } from '@/lib/actions'
 
+import { AddUserModal } from '@/components/admin/users/add-user-modal'
 import { AdminUserFormModal } from '@/components/admin/users/admin-user-form-modal'
 import { RegisteredUserFormModal } from '@/components/admin/users/registered-user-form-modal'
 import { UserManagementHeader } from '@/components/admin/users/user-management-header'
@@ -27,6 +29,7 @@ import { toast } from 'sonner'
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
+  const [currentUser, setCurrentUser] = useState<{ role: string } | null>(null)
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [deletingUser, setDeletingUser] = useState<User | null>(null)
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([])
@@ -38,10 +41,23 @@ export default function UserManagementPage() {
     user: User | null
   }>({ isOpen: false, user: null })
 
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false)
+
   const [duplicateWarning, setDuplicateWarning] = useState<{
     isOpen: boolean
     message: string
   }>({ isOpen: false, message: '' })
+
+  // Debug: Log modal state changes
+  useEffect(() => {
+    if (modalState.isOpen && modalState.user) {
+      console.log('Modal opened for user:', {
+        name: modalState.user.name,
+        role: modalState.user.role,
+        email: modalState.user.email,
+      })
+    }
+  }, [modalState])
 
   // Fetch users and stats from API
   const fetchStats = async () => {
@@ -57,6 +73,17 @@ export default function UserManagementPage() {
   }
 
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await getCurrentUser()
+        if (user) {
+          setCurrentUser({ role: user.role })
+        }
+      } catch (error) {
+        console.error('Error loading current user:', error)
+      }
+    }
+
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/admin/users')
@@ -68,9 +95,25 @@ export default function UserManagementPage() {
       }
     }
 
+    fetchCurrentUser()
     fetchUsers()
     fetchStats()
   }, [])
+
+  /**
+   * Refetches users and stats after adding a new user
+   */
+  const handleUserAdded = async () => {
+    try {
+      const response = await fetch('/api/admin/users')
+      if (!response.ok) throw new Error('Failed to fetch users')
+      const data = await response.json()
+      setUsers(data)
+      await fetchStats()
+    } catch (error) {
+      console.error('Error reloading users:', error)
+    }
+  }
 
   // Filter users based on selected statuses, roles, and search query
   const filteredUsers = useMemo(() => {
@@ -223,9 +266,8 @@ export default function UserManagementPage() {
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <UserManagementHeader
-          onAddNewUser={() =>
-            toast.info('Add new user functionality coming soon')
-          }
+          onAddNewUser={() => setAddUserModalOpen(true)}
+          showAddButton={currentUser?.role === 'OWNER'}
         />
         <UserToolbar
           selectedStatuses={selectedStatuses}
@@ -257,9 +299,9 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {modalState.user &&
-      (modalState.user.role === 'Admin' ||
-        modalState.user.role === 'Superadmin') ? (
+      {/* Conditional Modal Rendering Based on User Role */}
+      {(modalState.user?.role === 'Admin' ||
+        modalState.user?.role === 'Superadmin') ? (
         <AdminUserFormModal
           isOpen={modalState.isOpen}
           onClose={() => setModalState({ isOpen: false, user: null })}
@@ -275,6 +317,12 @@ export default function UserManagementPage() {
           user={modalState.user}
         />
       )}
+
+      <AddUserModal
+        isOpen={addUserModalOpen}
+        onClose={() => setAddUserModalOpen(false)}
+        onUserAdded={handleUserAdded}
+      />
 
       <AlertDialog
         open={!!deletingUser}
