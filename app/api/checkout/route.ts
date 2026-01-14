@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { createClient } from '@/lib/supabase/server'
+import { getSiteUrl } from '@/lib/utils/get-site-url'
 import { createPaymentSession } from '@/lib/xendit'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -45,11 +46,9 @@ export async function POST(request: NextRequest) {
     const referenceId = `upgrade_${dbUser.id}_${Date.now()}`
 
     // 5. Create Xendit payment session
-    // Note: Xendit requires HTTPS URLs. For localhost, we use a placeholder HTTPS URL
-    // since we're using the "Verify on Return" pattern and manually handling redirects
-    const httpsVercelUrl = 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL
-    const appUrl = httpsVercelUrl || process.env.NEXT_PUBLIC_APP_URL
-    console.log('APP_URL from env:', process.env.NEXT_PUBLIC_APP_URL)
+    // Note: Xendit requires HTTPS URLs
+    const appUrl = getSiteUrl()
+
     console.log('Using appUrl:', appUrl)
     console.log('Success URL:', `${appUrl}/pricing/success?ref=${referenceId}`)
 

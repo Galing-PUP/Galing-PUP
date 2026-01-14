@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/input-otp'
 import { verifyUserInDb } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/utils/get-site-url'
 import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -92,7 +93,7 @@ function VerifyOtpContent() {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${getSiteUrl()}/auth/callback`,
         },
       })
 

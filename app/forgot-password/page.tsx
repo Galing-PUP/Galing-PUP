@@ -2,6 +2,7 @@
 
 import { checkUserStatus } from '@/lib/actions'
 import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/utils/get-site-url'
 import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -30,7 +31,7 @@ export default function ForgotPasswordPage() {
 
       const supabase = createClient()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
+        redirectTo: `${getSiteUrl()}/auth/callback?next=/update-password`,
       })
 
       if (error) {
