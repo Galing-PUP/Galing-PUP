@@ -90,6 +90,7 @@ export async function PATCH(request: Request) {
       select: {
         supabaseAuthId: true,
         passwordHash: true, // Fetch current password hash for comparison
+        username: true, // Fetch current username to check for changes
       },
     });
 
@@ -111,27 +112,36 @@ export async function PATCH(request: Request) {
       user_metadata?: { username?: string };
     } = {};
 
+    // Track if there are actual changes
+    let hasChanges = false;
+
     if (typeof username === "string" && username.trim().length > 0) {
       const trimmedUsername = username.trim();
 
-      // Check if username is already taken by another user
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          username: trimmedUsername,
-          id: { not: userId }, // Exclude current user
-        },
-        select: { id: true },
-      });
+      // Check if username actually changed
+      if (trimmedUsername === dbUser.username) {
+        // Username is the same, skip this update
+      } else {
+        // Check if username is already taken by another user
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            username: trimmedUsername,
+            id: { not: userId }, // Exclude current user
+          },
+          select: { id: true },
+        });
 
-      if (existingUser) {
-        return NextResponse.json(
-          { error: "Username is already taken" },
-          { status: 409 }
-        );
+        if (existingUser) {
+          return NextResponse.json(
+            { error: "Username is already taken" },
+            { status: 409 }
+          );
+        }
+
+        updateData.username = trimmedUsername;
+        authUpdatePayload.user_metadata = { username: trimmedUsername };
+        hasChanges = true;
       }
-
-      updateData.username = trimmedUsername;
-      authUpdatePayload.user_metadata = { username: trimmedUsername };
     }
 
     if (typeof newPassword === "string" && newPassword.trim().length > 0) {
@@ -151,6 +161,15 @@ export async function PATCH(request: Request) {
       authUpdatePayload.password = newPassword;
       const passwordHash = await hash(newPassword, 10);
       updateData.passwordHash = passwordHash;
+      hasChanges = true;
+    }
+
+    // If no actual changes detected, return early
+    if (!hasChanges) {
+      return NextResponse.json(
+        { error: "No changes detected" },
+        { status: 400 }
+      );
     }
 
     // Update Supabase Auth if we have an auth ID and something to update

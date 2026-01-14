@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -63,7 +63,19 @@ export function UserPreferencesModal({
     formState: { errors },
     reset,
     setError,
+    watch,
   } = form;
+
+  // Watch form values to detect changes
+  const watchedValues = watch();
+
+  // Check if there are actual changes
+  const hasChanges = useMemo(() => {
+    const usernameChanged = watchedValues.username?.trim() !== initialUsername;
+    const passwordChanged =
+      watchedValues.newPassword && watchedValues.newPassword.length > 0;
+    return usernameChanged || passwordChanged;
+  }, [watchedValues.username, watchedValues.newPassword, initialUsername]);
 
   // Reset form when modal opens or initialUsername changes
   useEffect(() => {
@@ -163,8 +175,10 @@ export function UserPreferencesModal({
       if (isPasswordChanged) {
         const supabase = createClient();
         await supabase.auth.signOut();
-        
-        toast.success("Password changed. Please sign in with your new password.");
+
+        toast.success(
+          "Password changed. Please sign in with your new password."
+        );
         router.push("/");
         router.refresh();
       }
@@ -332,7 +346,7 @@ export function UserPreferencesModal({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !hasChanges}
               className="inline-flex items-center rounded-full bg-pup-maroon px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pup-maroon/90 disabled:opacity-60"
             >
               {isSubmitting ? (
