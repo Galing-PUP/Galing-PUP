@@ -1,4 +1,3 @@
-import { getSiteUrl } from '@/lib/utils/get-site-url'
 import { createClient } from '@/lib/supabase/client'
 
 /**
@@ -11,12 +10,11 @@ export const signInWithGoogle = async (
   intent: 'signin' | 'signup' = 'signin',
 ) => {
   const supabase = createClient()
-  const siteUrl = getSiteUrl()
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${siteUrl}/auth/callback?intent=${intent}`,
+      redirectTo: `${location.origin}/auth/callback?intent=${intent}`,
     },
   })
 

@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/db'
 import { createClient } from '@/lib/supabase/server'
-import { getSiteUrl } from '@/lib/utils/get-site-url'
 import { createPaymentSession } from '@/lib/xendit'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -47,10 +46,7 @@ export async function POST(request: NextRequest) {
 
     // 5. Create Xendit payment session
     // Note: Xendit requires HTTPS URLs
-    const appUrl = getSiteUrl()
-
-    console.log('Using appUrl:', appUrl)
-    console.log('Success URL:', `${appUrl}/pricing/success?ref=${referenceId}`)
+    console.log('Success URL:', `${location.origin}/pricing/success?ref=${referenceId}`)
 
     const sessionResponse = await createPaymentSession({
       reference_id: referenceId,
@@ -59,8 +55,8 @@ export async function POST(request: NextRequest) {
       amount: PREMIUM_TIER_AMOUNT,
       currency: 'PHP',
       country: 'PH',
-      success_return_url: `${appUrl}/pricing/success?ref=${referenceId}`,
-      cancel_return_url: `${appUrl}/pricing`,
+      success_return_url: `${location.origin}/pricing/success?ref=${referenceId}`,
+      cancel_return_url: `${location.origin}/pricing`,
     })
 
     // 6. Save transaction record in database
