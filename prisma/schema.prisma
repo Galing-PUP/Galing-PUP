@@ -8,26 +8,26 @@ datasource db {
 }
 
 model User {
-  id                   Int                    @id @default(autoincrement()) @map("user_id")
-  username             String?                @unique
-  email                String                 @unique
-  passwordHash         String?                @map("password_hash")
-  registrationDate     DateTime               @map("registration_date") @db.Date
-  tierId               Int                    @map("tier_id")
-  supabaseAuthId       String?                @unique @map("supabase_uid") @db.Uuid
-  collegeId            Int?                   @map("college_id")
-  idNumber             String?                @map("id_number")
-  updatedDate          DateTime?              @map("updated_date") @db.Date
-  idImagePath          String?                @map("id_image")
-  role                 RoleName               @default(REGISTERED)
-  status               UserStatus             @default(PENDING) @map("status")
-  submissionDate       DateTime?              @map("submission_date") @db.Date
+  id                   Int                  @id @default(autoincrement()) @map("user_id")
+  username             String?              @unique
+  email                String               @unique
+  passwordHash         String?              @map("password_hash")
+  registrationDate     DateTime             @map("registration_date") @db.Date
+  tierId               Int                  @map("tier_id")
+  supabaseAuthId       String?              @unique @map("supabase_uid") @db.Uuid
+  collegeId            Int?                 @map("college_id")
+  idNumber             String?              @map("id_number")
+  updatedDate          DateTime?            @map("updated_date") @db.Date
+  idImagePath          String?              @map("id_image")
+  role                 RoleName             @default(REGISTERED)
+  status               UserStatus           @default(PENDING) @map("status")
+  submissionDate       DateTime?            @map("submission_date") @db.Date
   activityLogs         ActivityLog[]
-  documents            Document[]             @relation("UserUploads")
-  payment_transactions payment_transactions[]
+  documents            Document[]           @relation("UserUploads")
+  payment_transactions PaymentTransaction[]
   userBookmarks        UserBookmark[]
-  college              College?               @relation(fields: [collegeId], references: [id])
-  subscriptionTier     SubscriptionTier       @relation(fields: [tierId], references: [id])
+  college              College?             @relation(fields: [collegeId], references: [id])
+  subscriptionTier     SubscriptionTier     @relation(fields: [tierId], references: [id])
 
   @@map("users")
 }
@@ -158,17 +158,20 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-model payment_transactions {
-  transaction_id Int           @id @default(autoincrement())
-  reference_id   String        @unique
-  session_id     String        @unique
-  user_id        Int
-  amount         Int
-  currency       String        @default("PHP")
-  status         PaymentStatus @default(PENDING)
-  created_at     DateTime      @default(now())
-  updated_at     DateTime
-  users          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+model PaymentTransaction {
+  id          Int           @id @default(autoincrement()) @map("transaction_id")
+  referenceId String        @unique @map("reference_id")
+  sessionId   String        @unique @map("session_id")
+  userId      Int           @map("user_id")
+  amount      Int
+  currency    String        @default("PHP")
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("payment_transactions")
 }
 
 enum RoleName {
