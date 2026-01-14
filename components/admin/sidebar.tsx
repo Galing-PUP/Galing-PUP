@@ -22,9 +22,9 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Submit Publication', href: '/admin/upload', icon: Upload },
-  { label: 'Published Works', href: '/admin/publication', icon: Archive },
-  { label: 'User Role Manager', href: '/admin/users', icon: User },
+  { label: 'Publication List', href: '/admin/publication', icon: Archive },
   { label: 'Content Approval', href: '/admin/approval', icon: FileText },
+  { label: 'User Role Manager', href: '/admin/users', icon: User },
 ]
 
 const SIGN_OUT_ITEM: NavItem = {
@@ -140,7 +140,7 @@ export function Sidebar({ role }: { role?: RoleName }) {
     }
     return NAV_ITEMS.filter(
       (item) =>
-        item.label === 'Submit Publication' || item.label === 'Published Works',
+        item.label === 'Submit Publication' || item.label === 'Publication List',
     )
   }, [role])
 
@@ -163,23 +163,11 @@ export function Sidebar({ role }: { role?: RoleName }) {
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true)
-
-      // Show toast notification
       toast.loading('Signing out...', { id: 'signout' })
-
-      // Perform sign out
       await signOut()
-
-      // Update toast to success
       toast.success('Signed out successfully', { id: 'signout' })
-
-      // Add a small delay for smooth transition before refreshing
       await new Promise((resolve) => setTimeout(resolve, 800))
-
-      // Refresh the router to update the page
       router.refresh()
-
-      // Redirect to home page after refresh
       router.push('/')
     } catch (error) {
       console.error('Error signing out:', error)
