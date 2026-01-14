@@ -1,30 +1,34 @@
-"use client";
+'use client'
 
-export type TabStatus = "Pending" | "Rejected" | "Deleted";
+export type TabStatus = 'Pending' | 'Rejected' | 'Deleted'
 
 interface ContentTabsProps {
-  activeTab: TabStatus;
-  onTabChange: (tab: TabStatus) => void;
+  activeTab: TabStatus
+  onTabChange: (tab: TabStatus) => void
   counts: {
-    pending: number;
-    rejected: number;
-    deleted: number;
-  };
+    pending: number
+    rejected: number
+    deleted: number
+  }
 }
 
-export function ContentTabs({ activeTab, onTabChange, counts }: ContentTabsProps) {
+export function ContentTabs({
+  activeTab,
+  onTabChange,
+  counts,
+}: ContentTabsProps) {
   const getTabStyle = (tab: TabStatus) => {
     return activeTab === tab
-      ? "border-red-800 bg-red-50 text-red-800"
-      : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50";
-  };
+      ? 'border-red-800 bg-red-50 text-red-800'
+      : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+  }
 
   return (
     <div className="mt-6 flex flex-wrap items-center gap-4 border-b border-gray-200 pb-4">
       <button
-        onClick={() => onTabChange("Pending")}
+        onClick={() => onTabChange('Pending')}
         className={`flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${getTabStyle(
-          "Pending"
+          'Pending',
         )}`}
       >
         Pending Review
@@ -34,9 +38,9 @@ export function ContentTabs({ activeTab, onTabChange, counts }: ContentTabsProps
       </button>
 
       <button
-        onClick={() => onTabChange("Rejected")}
+        onClick={() => onTabChange('Rejected')}
         className={`flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${getTabStyle(
-          "Rejected"
+          'Rejected',
         )}`}
       >
         Rejected
@@ -46,9 +50,9 @@ export function ContentTabs({ activeTab, onTabChange, counts }: ContentTabsProps
       </button>
 
       <button
-        onClick={() => onTabChange("Deleted")}
+        onClick={() => onTabChange('Deleted')}
         className={`flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${getTabStyle(
-          "Deleted"
+          'Deleted',
         )}`}
       >
         Deleted
@@ -57,5 +61,5 @@ export function ContentTabs({ activeTab, onTabChange, counts }: ContentTabsProps
         </span>
       </button>
     </div>
-  );
+  )
 }

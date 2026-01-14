@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getAuthenticatedUserId } from "@/lib/auth/server";
+import { getAuthenticatedUserId } from '@/lib/auth/server'
+import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * GET /api/user/tier
@@ -9,16 +9,17 @@ import { getAuthenticatedUserId } from "@/lib/auth/server";
 export async function GET(request: NextRequest) {
   try {
     // Get authenticated user ID
-    const userId = await getAuthenticatedUserId();
-    
+    const userId = await getAuthenticatedUserId()
+
     if (!userId) {
       return NextResponse.json(
         {
           success: false,
-          message: "Unauthorized. Please sign in to view your tier information.",
+          message:
+            'Unauthorized. Please sign in to view your tier information.',
         },
-        { status: 401 }
-      );
+        { status: 401 },
+      )
     }
 
     // Fetch user with their subscription tier
@@ -29,16 +30,16 @@ export async function GET(request: NextRequest) {
       include: {
         subscriptionTier: true,
       },
-    });
+    })
 
     if (!user) {
       return NextResponse.json(
         {
           success: false,
-          message: "User not found",
+          message: 'User not found',
         },
-        { status: 404 }
-      );
+        { status: 404 },
+      )
     }
 
     return NextResponse.json({
@@ -49,16 +50,16 @@ export async function GET(request: NextRequest) {
       dailyCitationLimit: user.subscriptionTier.dailyCitationLimit,
       hasAds: user.subscriptionTier.hasAds,
       hasAiInsights: user.subscriptionTier.hasAiInsights,
-    });
+    })
   } catch (error) {
-    console.error("Error fetching user tier:", error);
+    console.error('Error fetching user tier:', error)
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to fetch user tier information",
-        error: error instanceof Error ? error.message : "Unknown error",
+        message: 'Failed to fetch user tier information',
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }

@@ -1,66 +1,68 @@
-"use client";
+'use client'
 
-import { colleges } from "@/data/collegeCourses";
-import { getCurrentUser } from "@/lib/actions";
-import { createClient } from "@/lib/supabase/client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useId, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { colleges } from '@/data/collegeCourses'
+import { getCurrentUser } from '@/lib/actions'
+import { createClient } from '@/lib/supabase/client'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useId, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import sideIllustration from "@/assets/Graphics/side-img-staff-registration.png";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import sideIllustration from '@/assets/Graphics/side-img-staff-registration.png'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 import {
   requestAccessSchema,
   type RequestAccessFormValues,
-} from "@/lib/validations/request-access-schema";
+} from '@/lib/validations/request-access-schema'
 
 export default function RequestAccessPage() {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const id = useId();
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const id = useId()
 
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (session) {
-        const user = await getCurrentUser();
+        const user = await getCurrentUser()
         if (user) {
-          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
-          router.replace(isAdmin ? "/admin/publication" : "/");
+          const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          router.replace(isAdmin ? '/admin/publication' : '/')
         }
       }
-    };
-    checkSession();
-  }, [router]);
+    }
+    checkSession()
+  }, [router])
 
   const form = useForm<RequestAccessFormValues>({
     resolver: zodResolver(requestAccessSchema),
     defaultValues: {
-      username: "",
+      username: '',
       college: 0,
-      email: "",
-      idNumber: "",
-      password: "",
-      confirmPassword: "",
+      email: '',
+      idNumber: '',
+      password: '',
+      confirmPassword: '',
     },
-  });
+  })
 
   const {
     register,
@@ -69,60 +71,60 @@ export default function RequestAccessPage() {
     watch,
     trigger,
     formState: { errors },
-  } = form;
+  } = form
 
   // Manual file handling since RHF doesn't control file inputs well directly
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setValue("idImage", file);
-      await trigger("idImage");
+      setValue('idImage', file)
+      await trigger('idImage')
     }
-  };
+  }
 
   const onSubmit = async (data: RequestAccessFormValues) => {
-    setIsSubmitting(true);
-    const toastId = toast.loading("Submitting your request...");
+    setIsSubmitting(true)
+    const toastId = toast.loading('Submitting your request...')
 
     try {
-      const submissionData = new FormData();
-      submissionData.append("username", data.username);
-      submissionData.append("college", data.college.toString());
-      submissionData.append("email", data.email);
-      submissionData.append("idNumber", data.idNumber);
-      submissionData.append("password", data.password);
-      submissionData.append("idImage", data.idImage);
+      const submissionData = new FormData()
+      submissionData.append('username', data.username)
+      submissionData.append('college', data.college.toString())
+      submissionData.append('email', data.email)
+      submissionData.append('idNumber', data.idNumber)
+      submissionData.append('password', data.password)
+      submissionData.append('idImage', data.idImage)
 
-      const response = await fetch("/api/admin/request-access", {
-        method: "POST",
+      const response = await fetch('/api/admin/request-access', {
+        method: 'POST',
         body: submissionData,
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to submit request");
+        throw new Error(result.error || 'Failed to submit request')
       }
 
       toast.success(
-        "Your request is kindly processing, Please wait for the admin approval",
-        { id: toastId, duration: 5000 }
-      );
+        'Your request is kindly processing, Please wait for the admin approval',
+        { id: toastId, duration: 5000 },
+      )
 
-      form.reset();
+      form.reset()
 
       // Optional: Redirect after a delay
       setTimeout(() => {
-        router.push("/admin/signin");
-      }, 3000);
+        router.push('/admin/signin')
+      }, 3000)
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong", { id: toastId });
+      toast.error(error.message || 'Something went wrong', { id: toastId })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const idImageValue = watch("idImage");
+  const idImageValue = watch('idImage')
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
@@ -173,7 +175,7 @@ export default function RequestAccessPage() {
                 <Input
                   id="username"
                   placeholder="Enter your full name"
-                  {...register("username")}
+                  {...register('username')}
                 />
                 {errors.username && (
                   <p className="text-sm text-red-500">
@@ -187,7 +189,9 @@ export default function RequestAccessPage() {
                 <Label htmlFor="college">College</Label>
                 <Select
                   onValueChange={(value) =>
-                    setValue("college", parseInt(value, 10), { shouldValidate: true })
+                    setValue('college', parseInt(value, 10), {
+                      shouldValidate: true,
+                    })
                   }
                 >
                   <SelectTrigger id="college" className="w-full">
@@ -195,7 +199,10 @@ export default function RequestAccessPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {colleges.map((college) => (
-                      <SelectItem key={college.id} value={college.id.toString()}>
+                      <SelectItem
+                        key={college.id}
+                        value={college.id.toString()}
+                      >
                         {college.collegeName} ({college.collegeAbbr})
                       </SelectItem>
                     ))}
@@ -216,7 +223,7 @@ export default function RequestAccessPage() {
                     id="email"
                     type="email"
                     placeholder="Enter your official email address"
-                    {...register("email")}
+                    {...register('email')}
                   />
                   {errors.email && (
                     <p className="text-sm text-red-500">
@@ -229,7 +236,7 @@ export default function RequestAccessPage() {
                   <Input
                     id="idNumber"
                     placeholder="Enter your ID number"
-                    {...register("idNumber")}
+                    {...register('idNumber')}
                   />
                   {errors.idNumber && (
                     <p className="text-sm text-red-500">
@@ -247,10 +254,10 @@ export default function RequestAccessPage() {
                   <div className="relative">
                     <Input
                       id="password"
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       className="pr-9"
-                      {...register("password")}
+                      {...register('password')}
                     />
                     <Button
                       type="button"
@@ -265,7 +272,7 @@ export default function RequestAccessPage() {
                         <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
                       <span className="sr-only">
-                        {showPassword ? "Hide password" : "Show password"}
+                        {showPassword ? 'Hide password' : 'Show password'}
                       </span>
                     </Button>
                   </div>
@@ -282,10 +289,10 @@ export default function RequestAccessPage() {
                   <div className="relative">
                     <Input
                       id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
                       className="pr-9"
-                      {...register("confirmPassword")}
+                      {...register('confirmPassword')}
                     />
                     <Button
                       type="button"
@@ -303,8 +310,8 @@ export default function RequestAccessPage() {
                       )}
                       <span className="sr-only">
                         {showConfirmPassword
-                          ? "Hide password"
-                          : "Show password"}
+                          ? 'Hide password'
+                          : 'Show password'}
                       </span>
                     </Button>
                   </div>
@@ -340,7 +347,7 @@ export default function RequestAccessPage() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => router.push("/admin/signin")}
+                  onClick={() => router.push('/admin/signin')}
                 >
                   Cancel
                 </Button>
@@ -355,7 +362,7 @@ export default function RequestAccessPage() {
                       Processing...
                     </>
                   ) : (
-                    "Create Account Request"
+                    'Create Account Request'
                   )}
                 </Button>
               </div>
@@ -364,5 +371,5 @@ export default function RequestAccessPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

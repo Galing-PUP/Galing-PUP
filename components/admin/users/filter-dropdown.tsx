@@ -1,20 +1,20 @@
-"use client";
+'use client'
 
-import { useState, useRef, useEffect } from "react";
-import { Filter, Check } from "lucide-react";
-import { Button } from "@/components/button";
+import { Button } from '@/components/button'
+import { Check, Filter } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 type FilterOption<T = string> = {
-  label: string;
-  value: T;
-};
+  label: string
+  value: T
+}
 
 type FilterDropdownProps<T = string> = {
-  label: string;
-  options: FilterOption<T>[];
-  selectedValues: T[];
-  onChange: (values: T[]) => void;
-};
+  label: string
+  options: FilterOption<T>[]
+  selectedValues: T[]
+  onChange: (values: T[]) => void
+}
 
 export function FilterDropdown<T extends string = string>({
   label,
@@ -22,41 +22,42 @@ export function FilterDropdown<T extends string = string>({
   selectedValues,
   onChange,
 }: FilterDropdownProps<T>) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
       }
-    };
+    }
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const handleToggle = (value: T) => {
     if (selectedValues.includes(value)) {
-      onChange(selectedValues.filter((v) => v !== value));
+      onChange(selectedValues.filter((v) => v !== value))
     } else {
-      onChange([...selectedValues, value]);
+      onChange([...selectedValues, value])
     }
-  };
+  }
 
   const handleClearAll = () => {
-    onChange([]);
-  };
+    onChange([])
+  }
 
   const displayLabel =
-    selectedValues.length > 0
-      ? `${label} (${selectedValues.length})`
-      : label;
+    selectedValues.length > 0 ? `${label} (${selectedValues.length})` : label
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -67,7 +68,9 @@ export function FilterDropdown<T extends string = string>({
         icon={<Filter className="h-4 w-4" />}
         iconPosition="left"
         className={`border-gray-300 ${
-          selectedValues.length > 0 ? "border-pup-maroon bg-pup-maroon/30 text-pup-maroon" : ""
+          selectedValues.length > 0
+            ? 'border-pup-maroon bg-pup-maroon/30 text-pup-maroon'
+            : ''
         }`}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -91,7 +94,7 @@ export function FilterDropdown<T extends string = string>({
           </div>
           <div className="py-2">
             {options.map((option) => {
-              const isSelected = selectedValues.includes(option.value);
+              const isSelected = selectedValues.includes(option.value)
               return (
                 <button
                   key={option.value}
@@ -99,15 +102,13 @@ export function FilterDropdown<T extends string = string>({
                   className="flex w-full items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <span>{option.label}</span>
-                  {isSelected && (
-                    <Check className="h-4 w-4 text-pup-maroon" />
-                  )}
+                  {isSelected && <Check className="h-4 w-4 text-pup-maroon" />}
                 </button>
-              );
+              )
             })}
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

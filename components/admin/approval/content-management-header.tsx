@@ -8,5 +8,5 @@ export function ContentManagementHeader() {
         Review, approve, reject, or delete user-uploaded content
       </p>
     </div>
-  );
+  )
 }

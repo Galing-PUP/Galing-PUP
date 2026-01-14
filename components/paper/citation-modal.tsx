@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 /**
  * CitationModal Component
@@ -13,20 +13,20 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import type { CitationFormats } from "@/types/citation";
-import { Check, Copy, Download, Loader2, Quote } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+} from '@/components/ui/dialog'
+import type { CitationFormats } from '@/types/citation'
+import { Check, Copy, Download, Loader2, Quote } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
-type CitationFormat = "apa" | "mla" | "ieee" | "acm" | "chicago" | "bibtex";
+type CitationFormat = 'apa' | 'mla' | 'ieee' | 'acm' | 'chicago' | 'bibtex'
 
 interface CitationModalProps {
-  documentId: number;
-  isOpen: boolean;
-  onClose: () => void;
+  documentId: number
+  isOpen: boolean
+  onClose: () => void
 }
 
 /**
@@ -40,151 +40,151 @@ export function CitationModal({
   isOpen,
   onClose,
 }: CitationModalProps) {
-  const router = useRouter();
-  const [citations, setCitations] = useState<CitationFormats | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLimitError, setIsLimitError] = useState(false);
-  const [selectedFormat, setSelectedFormat] = useState<CitationFormat>("apa");
-  const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null);
+  const router = useRouter()
+  const [citations, setCitations] = useState<CitationFormats | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isLimitError, setIsLimitError] = useState(false)
+  const [selectedFormat, setSelectedFormat] = useState<CitationFormat>('apa')
+  const [copiedFormat, setCopiedFormat] = useState<CitationFormat | null>(null)
   const [usage, setUsage] = useState<{
-    used: number;
-    limit: number | null;
-    reset: string;
-  } | null>(null);
+    used: number
+    limit: number | null
+    reset: string
+  } | null>(null)
 
   // Citation format display names
   const formatLabels: Record<CitationFormat, string> = {
-    apa: "APA",
-    mla: "MLA",
-    ieee: "IEEE",
-    acm: "ACM",
-    chicago: "Chicago",
-    bibtex: "BibTeX",
-  };
+    apa: 'APA',
+    mla: 'MLA',
+    ieee: 'IEEE',
+    acm: 'ACM',
+    chicago: 'Chicago',
+    bibtex: 'BibTeX',
+  }
 
   /**
    * Fetches citation data from the API
    */
   const fetchCitations = async () => {
-    setIsLoading(true);
-    setError(null);
-    setIsLimitError(false);
-    let limitReached = false;
+    setIsLoading(true)
+    setError(null)
+    setIsLimitError(false)
+    let limitReached = false
 
     try {
-      const response = await fetch(`/api/citations/${documentId}`);
-      const result = await response.json();
+      const response = await fetch(`/api/citations/${documentId}`)
+      const result = await response.json()
 
       if (!response.ok) {
         // Check if it's a rate limit error (429 or 403)
         if (response.status === 429 || response.status === 403) {
-          setIsLimitError(true);
-          limitReached = true;
+          setIsLimitError(true)
+          limitReached = true
         }
-        throw new Error(result.error || "Failed to generate citations");
+        throw new Error(result.error || 'Failed to generate citations')
       }
 
       if (result.success && result.data) {
-        setCitations(result.data);
+        setCitations(result.data)
         // Set usage stats if available
         if (result.usage) {
-          setUsage(result.usage);
+          setUsage(result.usage)
         }
         // Refresh server components to update citation count
-        router.refresh();
+        router.refresh()
       } else {
-        throw new Error("Invalid response format");
+        throw new Error('Invalid response format')
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to load citations";
-      setError(errorMessage);
+        err instanceof Error ? err.message : 'Failed to load citations'
+      setError(errorMessage)
 
       // Only show toast if it's NOT a limit error
       if (!limitReached) {
-        toast.error(errorMessage);
+        toast.error(errorMessage)
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   /**
    * Fetch citations when modal opens
    */
   useEffect(() => {
     if (isOpen && !citations) {
-      fetchCitations();
+      fetchCitations()
     }
-  }, [isOpen, documentId]);
+  }, [isOpen, documentId])
 
   /**
    * Copies citation to clipboard
    * @param format - The citation format to copy
    */
   const handleCopy = async (format: CitationFormat) => {
-    if (!citations) return;
+    if (!citations) return
 
-    const citationText = citations[format];
+    const citationText = citations[format]
 
     try {
-      await navigator.clipboard.writeText(citationText);
-      setCopiedFormat(format);
-      toast.success(`${formatLabels[format]} citation copied to clipboard`);
+      await navigator.clipboard.writeText(citationText)
+      setCopiedFormat(format)
+      toast.success(`${formatLabels[format]} citation copied to clipboard`)
 
       // Reset copied state after 2 seconds
       setTimeout(() => {
-        setCopiedFormat(null);
-      }, 2000);
+        setCopiedFormat(null)
+      }, 2000)
     } catch (err) {
-      toast.error("Failed to copy citation");
+      toast.error('Failed to copy citation')
     }
-  };
+  }
 
   /**
    * Downloads BibTeX citation as a .bib file
    */
   const handleDownloadBib = () => {
-    if (!citations) return;
+    if (!citations) return
 
-    const bibtexContent = citations.bibtex;
+    const bibtexContent = citations.bibtex
 
     try {
       // Create a Blob with the BibTeX content
-      const blob = new Blob([bibtexContent], { type: "application/x-bibtex" });
+      const blob = new Blob([bibtexContent], { type: 'application/x-bibtex' })
 
       // Create a temporary anchor element
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `citation-${documentId}.bib`;
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `citation-${documentId}.bib`
 
       // Trigger download
-      document.body.appendChild(link);
-      link.click();
+      document.body.appendChild(link)
+      link.click()
 
       // Cleanup
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
 
-      toast.success("BibTeX file downloaded");
+      toast.success('BibTeX file downloaded')
     } catch (err) {
-      toast.error("Failed to download BibTeX file");
+      toast.error('Failed to download BibTeX file')
     }
-  };
+  }
 
   /**
    * Handles modal close and resets state
    */
   const handleClose = () => {
-    onClose();
+    onClose()
     // Reset state after animation completes
     setTimeout(() => {
-      setSelectedFormat("apa");
-      setCopiedFormat(null);
-    }, 300);
-  };
+      setSelectedFormat('apa')
+      setCopiedFormat(null)
+    }, 300)
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -251,13 +251,13 @@ export function CitationModal({
                         onClick={() => setSelectedFormat(format)}
                         className={`rounded-full px-4 py-2 text-sm font-medium border transition-colors ${
                           selectedFormat === format
-                            ? "bg-pup-maroon text-white border-pup-maroon"
-                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                            ? 'bg-pup-maroon text-white border-pup-maroon'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                         }`}
                       >
                         {formatLabels[format]}
                       </button>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -270,7 +270,7 @@ export function CitationModal({
                   </label>
                   <div className="flex items-center gap-2">
                     {/* Download button - only visible for BibTeX */}
-                    {selectedFormat === "bibtex" && (
+                    {selectedFormat === 'bibtex' && (
                       <button
                         type="button"
                         onClick={handleDownloadBib}
@@ -316,16 +316,16 @@ export function CitationModal({
                         Daily Quota:
                       </span>
                       <span className="font-semibold text-pup-maroon">
-                        {usage.used} /{" "}
-                        {usage.limit === null ? "Unlimited" : usage.limit}
+                        {usage.used} /{' '}
+                        {usage.limit === null ? 'Unlimited' : usage.limit}
                       </span>
                     </div>
                     <div className="text-gray-500 text-xs">
-                      Resets at{" "}
-                      {new Date(usage.reset).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZoneName: "short",
+                      Resets at{' '}
+                      {new Date(usage.reset).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZoneName: 'short',
                       })}
                     </div>
                   </div>
@@ -363,5 +363,5 @@ export function CitationModal({
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

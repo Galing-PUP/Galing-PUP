@@ -1,81 +1,81 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import BackgroundGraphic from "@/assets/Graphics/background-homepage.png";
-import LogoDefault from "@/assets/Logo/logo-default.png";
-import { SearchBar } from "@/components/search-bar";
-import { ChevronRight } from "lucide-react";
+import BackgroundGraphic from '@/assets/Graphics/background-homepage.png'
+import LogoDefault from '@/assets/Logo/logo-default.png'
+import { SearchBar } from '@/components/search-bar'
+import { ChevronRight } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 type HomeSearchResult = {
-  id: number;
-  title: string;
-};
+  id: number
+  title: string
+}
 
 export default function Home() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<HomeSearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<HomeSearchResult[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const goToSearchResults = () => {
-    const trimmed = query.trim();
-    if (!trimmed) return;
-    const params = new URLSearchParams({ q: trimmed });
-    router.push(`/browse?${params.toString()}`);
-  };
+    const trimmed = query.trim()
+    if (!trimmed) return
+    const params = new URLSearchParams({ q: trimmed })
+    router.push(`/browse?${params.toString()}`)
+  }
 
   // Live search under the bar (like instant results)
   useEffect(() => {
-    let abort = false;
+    let abort = false
 
     const run = async () => {
-      const trimmed = query.trim();
+      const trimmed = query.trim()
       if (!trimmed) {
-        setResults([]);
-        setLoading(false);
-        setError(null);
-        return;
+        setResults([])
+        setLoading(false)
+        setError(null)
+        return
       }
 
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       try {
-        const params = new URLSearchParams();
-        params.set("q", trimmed);
-        const url = `/api/browse?${params.toString()}`;
+        const params = new URLSearchParams()
+        params.set('q', trimmed)
+        const url = `/api/browse?${params.toString()}`
 
-        const res = await fetch(url);
+        const res = await fetch(url)
         if (!res.ok) {
-          throw new Error(`Search failed: ${res.status}`);
+          throw new Error(`Search failed: ${res.status}`)
         }
-        const data: HomeSearchResult[] = await res.json();
+        const data: HomeSearchResult[] = await res.json()
         if (!abort) {
-          setResults(data);
+          setResults(data)
         }
       } catch (e) {
-        console.error(e);
+        console.error(e)
         if (!abort) {
-          setError("Something went wrong while searching.");
+          setError('Something went wrong while searching.')
         }
       } finally {
         if (!abort) {
-          setLoading(false);
+          setLoading(false)
         }
       }
-    };
+    }
 
     // Debounce the search by 1 second
-    const handle = setTimeout(run, 1000);
+    const handle = setTimeout(run, 1000)
 
     return () => {
-      abort = true;
-      clearTimeout(handle);
-    };
-  }, [query]);
+      abort = true
+      clearTimeout(handle)
+    }
+  }, [query])
 
   return (
     <>
@@ -102,9 +102,7 @@ export default function Home() {
               {loading && (
                 <p className="text-sm text-gray-500">Loading studies...</p>
               )}
-              {error && (
-                <p className="text-sm text-red-600">{error}</p>
-              )}
+              {error && <p className="text-sm text-red-600">{error}</p>}
               {!loading && !error && results.length > 0 && (
                 <div className="rounded-lg border border-gray-200 bg-white shadow-sm max-h-80 overflow-y-auto">
                   <ul className="divide-y divide-gray-100">
@@ -129,7 +127,7 @@ export default function Home() {
             className="mt-8 rounded-full bg-pup-maroon px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-pup-maroon/80"
             onClick={() => {
               // Go to the main search results page showing all studies
-              router.push("/browse");
+              router.push('/browse')
             }}
           >
             <span className="inline-flex items-center gap-2 pl-2">
@@ -143,11 +141,11 @@ export default function Home() {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-[80vh] bg-no-repeat bg-bottom opacity-40"
           style={{
             backgroundImage: `url(${BackgroundGraphic.src})`,
-            backgroundPosition: "center calc(100% + 180px)",
-            backgroundSize: "125% auto",
+            backgroundPosition: 'center calc(100% + 180px)',
+            backgroundSize: '125% auto',
           }}
         />
       </div>
     </>
-  );
+  )
 }

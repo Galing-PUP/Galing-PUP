@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { ArrowDownAZ, ArrowUpAZ, Calendar, Clock } from "lucide-react";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,64 +8,68 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dropdown-menu'
+import { ArrowDownAZ, ArrowUpAZ, Calendar, Clock } from 'lucide-react'
 
 export type LibrarySortOption =
-  | "title-asc"
-  | "title-desc"
-  | "date-newest"
-  | "date-oldest"
-  | "bookmarked-newest"
-  | "bookmarked-oldest";
+  | 'title-asc'
+  | 'title-desc'
+  | 'date-newest'
+  | 'date-oldest'
+  | 'bookmarked-newest'
+  | 'bookmarked-oldest'
 
 type SortDropdownProps = {
-  value: LibrarySortOption;
-  onChange: (value: LibrarySortOption) => void;
-  disabled?: boolean;
-};
+  value: LibrarySortOption
+  onChange: (value: LibrarySortOption) => void
+  disabled?: boolean
+}
 
 const sortOptions = [
   {
-    value: "title-asc" as LibrarySortOption,
-    label: "Title (A-Z)",
+    value: 'title-asc' as LibrarySortOption,
+    label: 'Title (A-Z)',
     icon: ArrowDownAZ,
-    group: "alphabetical",
+    group: 'alphabetical',
   },
   {
-    value: "title-desc" as LibrarySortOption,
-    label: "Title (Z-A)",
+    value: 'title-desc' as LibrarySortOption,
+    label: 'Title (Z-A)',
     icon: ArrowUpAZ,
-    group: "alphabetical",
+    group: 'alphabetical',
   },
   {
-    value: "date-newest" as LibrarySortOption,
-    label: "Publication Date (Newest)",
+    value: 'date-newest' as LibrarySortOption,
+    label: 'Publication Date (Newest)',
     icon: Calendar,
-    group: "publication",
+    group: 'publication',
   },
   {
-    value: "date-oldest" as LibrarySortOption,
-    label: "Publication Date (Oldest)",
+    value: 'date-oldest' as LibrarySortOption,
+    label: 'Publication Date (Oldest)',
     icon: Calendar,
-    group: "publication",
+    group: 'publication',
   },
   {
-    value: "bookmarked-newest" as LibrarySortOption,
-    label: "Recently Bookmarked",
+    value: 'bookmarked-newest' as LibrarySortOption,
+    label: 'Recently Bookmarked',
     icon: Clock,
-    group: "bookmarked",
+    group: 'bookmarked',
   },
   {
-    value: "bookmarked-oldest" as LibrarySortOption,
-    label: "Oldest Bookmarked",
+    value: 'bookmarked-oldest' as LibrarySortOption,
+    label: 'Oldest Bookmarked',
     icon: Clock,
-    group: "bookmarked",
+    group: 'bookmarked',
   },
-];
+]
 
-export function LibrarySortDropdown({ value, onChange, disabled = false }: SortDropdownProps) {
-  const currentOption = sortOptions.find((opt) => opt.value === value);
+export function LibrarySortDropdown({
+  value,
+  onChange,
+  disabled = false,
+}: SortDropdownProps) {
+  const currentOption = sortOptions.find((opt) => opt.value === value)
 
   return (
     <DropdownMenu>
@@ -77,73 +81,73 @@ export function LibrarySortDropdown({ value, onChange, disabled = false }: SortD
         >
           {currentOption && <currentOption.icon className="h-4 w-4" />}
           <span className="hidden sm:inline">Sort:</span>
-          <span className="font-medium">{currentOption?.label || "Sort"}</span>
+          <span className="font-medium">{currentOption?.label || 'Sort'}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Sort by</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         {/* Alphabetical */}
         <DropdownMenuLabel className="text-xs font-normal text-gray-500">
           Alphabetical
         </DropdownMenuLabel>
         {sortOptions
-          .filter((opt) => opt.group === "alphabetical")
+          .filter((opt) => opt.group === 'alphabetical')
           .map((option) => (
             <DropdownMenuItem
               key={option.value}
               onClick={() => onChange(option.value)}
               className={
                 value === option.value
-                  ? "bg-yellow-50 text-[#6b0504] font-medium"
-                  : ""
+                  ? 'bg-yellow-50 text-[#6b0504] font-medium'
+                  : ''
               }
             >
               <option.icon className="mr-2 h-4 w-4" />
               {option.label}
             </DropdownMenuItem>
           ))}
-        
+
         <DropdownMenuSeparator />
-        
+
         {/* Publication Date */}
         <DropdownMenuLabel className="text-xs font-normal text-gray-500">
           Publication Date
         </DropdownMenuLabel>
         {sortOptions
-          .filter((opt) => opt.group === "publication")
+          .filter((opt) => opt.group === 'publication')
           .map((option) => (
             <DropdownMenuItem
               key={option.value}
               onClick={() => onChange(option.value)}
               className={
                 value === option.value
-                  ? "bg-yellow-50 text-[#6b0504] font-medium"
-                  : ""
+                  ? 'bg-yellow-50 text-[#6b0504] font-medium'
+                  : ''
               }
             >
               <option.icon className="mr-2 h-4 w-4" />
               {option.label}
             </DropdownMenuItem>
           ))}
-        
+
         <DropdownMenuSeparator />
-        
+
         {/* Bookmarked Date */}
         <DropdownMenuLabel className="text-xs font-normal text-gray-500">
           Bookmarked Date
         </DropdownMenuLabel>
         {sortOptions
-          .filter((opt) => opt.group === "bookmarked")
+          .filter((opt) => opt.group === 'bookmarked')
           .map((option) => (
             <DropdownMenuItem
               key={option.value}
               onClick={() => onChange(option.value)}
               className={
                 value === option.value
-                  ? "bg-yellow-50 text-[#6b0504] font-medium"
-                  : ""
+                  ? 'bg-yellow-50 text-[#6b0504] font-medium'
+                  : ''
               }
             >
               <option.icon className="mr-2 h-4 w-4" />
@@ -152,5 +156,5 @@ export function LibrarySortDropdown({ value, onChange, disabled = false }: SortD
           ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

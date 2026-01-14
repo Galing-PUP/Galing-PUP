@@ -1,77 +1,93 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
+import { Button } from '@/components/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/button";
-import { formatResourceType } from "@/lib/utils/format";
-import { ResourceTypes } from "@/lib/generated/prisma/enums";
-import { Skeleton } from "@/components/ui/skeleton";
-import { User, Mail, Users, FileText, Tag, File, Calendar } from "lucide-react";
+} from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ResourceTypes } from '@/lib/generated/prisma/enums'
+import { formatResourceType } from '@/lib/utils/format'
+import { Calendar, File, FileText, Mail, Tag, User, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface ViewPublicationModalProps {
-  documentId: string;
-  isOpen: boolean;
-  onClose: () => void;
-  onAccept: (id: string) => void;
-  onReject: (id: string) => void;
-  onRestore?: (id: string) => void;
-  onDeleteRequest?: (id: string) => void;
-  documentStatus?: "Pending" | "Accepted" | "Rejected" | "Deleted";
+  documentId: string
+  isOpen: boolean
+  onClose: () => void
+  onAccept: (id: string) => void
+  onReject: (id: string) => void
+  onRestore?: (id: string) => void
+  onDeleteRequest?: (id: string) => void
+  documentStatus?: 'Pending' | 'Accepted' | 'Rejected' | 'Deleted'
 }
 
 interface DocumentDetails {
-  id: number;
-  title: string;
-  abstract: string;
-  datePublished: string;
-  resourceType: ResourceTypes;
-  courseId: string;
-  filePath: string;
-  originalFileName: string;
-  fileSize: number | null;
-  mimeType: string | null;
-  status?: "Pending" | "Accepted" | "Rejected" | "Deleted";
+  id: number
+  title: string
+  abstract: string
+  datePublished: string
+  resourceType: ResourceTypes
+  courseId: string
+  filePath: string
+  originalFileName: string
+  fileSize: number | null
+  mimeType: string | null
+  status?: 'Pending' | 'Accepted' | 'Rejected' | 'Deleted'
   authors: Array<{
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    email: string | null;
-  }>;
-  keywords: string[];
+    firstName: string
+    middleName: string
+    lastName: string
+    email: string | null
+  }>
+  keywords: string[]
   course?: {
-    courseName: string;
+    courseName: string
     college?: {
-      collegeName: string;
-    };
-  };
-  submissionDate?: string;
+      collegeName: string
+    }
+  }
+  submissionDate?: string
 }
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
-    <p className="text-gray-800">{value || "N/A"}</p>
+    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      {label}
+    </p>
+    <p className="text-gray-800">{value || 'N/A'}</p>
   </div>
-);
+)
 
-export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, onReject, onRestore, onDeleteRequest, documentStatus }: ViewPublicationModalProps) {
-  const [document, setDocument] = useState<DocumentDetails | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function ViewPublicationModal({
+  documentId,
+  isOpen,
+  onClose,
+  onAccept,
+  onReject,
+  onRestore,
+  onDeleteRequest,
+  documentStatus,
+}: ViewPublicationModalProps) {
+  const [document, setDocument] = useState<DocumentDetails | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   /**
    * Gets the current document status, preferring the prop over the fetched document
    */
-  const getCurrentStatus = (): "Pending" | "Accepted" | "Rejected" | "Deleted" | undefined => {
-    return documentStatus || document?.status;
-  };
+  const getCurrentStatus = ():
+    | 'Pending'
+    | 'Accepted'
+    | 'Rejected'
+    | 'Deleted'
+    | undefined => {
+    return documentStatus || document?.status
+  }
 
   /**
    * Fetches document details from the API when modal opens
@@ -79,57 +95,65 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
   useEffect(() => {
     if (isOpen && documentId) {
       const fetchDocument = async () => {
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
         try {
-          const res = await fetch(`/api/admin/documents/${documentId}`);
+          const res = await fetch(`/api/admin/documents/${documentId}`)
           if (!res.ok) {
-            const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
-            throw new Error(errorData.error || `Failed to fetch document details (${res.status})`);
+            const errorData = await res
+              .json()
+              .catch(() => ({ error: 'Unknown error' }))
+            throw new Error(
+              errorData.error ||
+                `Failed to fetch document details (${res.status})`,
+            )
           }
-          const data = await res.json();
-          setDocument(data);
+          const data = await res.json()
+          setDocument(data)
         } catch (e) {
-          console.error("Error fetching document:", e);
-          const errorMessage = e instanceof Error ? e.message : "Failed to load document details. Please try again.";
-          setError(errorMessage);
+          console.error('Error fetching document:', e)
+          const errorMessage =
+            e instanceof Error
+              ? e.message
+              : 'Failed to load document details. Please try again.'
+          setError(errorMessage)
         } finally {
-          setLoading(false);
+          setLoading(false)
         }
-      };
+      }
 
-      fetchDocument();
+      fetchDocument()
     } else {
       // Reset state when modal closes
-      setDocument(null);
-      setError(null);
-      setLoading(false);
+      setDocument(null)
+      setError(null)
+      setLoading(false)
     }
-  }, [isOpen, documentId]);
+  }, [isOpen, documentId])
 
   /**
    * Formats author name from individual components
    */
-  const formatAuthorName = (author: DocumentDetails["authors"][0]) => {
+  const formatAuthorName = (author: DocumentDetails['authors'][0]) => {
     return [author.firstName, author.middleName, author.lastName]
       .filter(Boolean)
-      .join(" ");
-  };
+      .join(' ')
+  }
 
   /**
    * Formats file size in bytes to human-readable format
    */
   const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return "N/A";
-    const units = ["B", "KB", "MB", "GB"];
-    let size = bytes;
-    let unitIndex = 0;
+    if (!bytes) return 'N/A'
+    const units = ['B', 'KB', 'MB', 'GB']
+    let size = bytes
+    let unitIndex = 0
     while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
+      size /= 1024
+      unitIndex++
     }
-    return `${size.toFixed(2)} ${units[unitIndex]}`;
-  };
+    return `${size.toFixed(2)} ${units[unitIndex]}`
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -150,17 +174,25 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
           ) : document ? (
             <>
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg text-red-800 border-b pb-2">Basic Information</h3>
+                <h3 className="font-semibold text-lg text-red-800 border-b pb-2">
+                  Basic Information
+                </h3>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Publication Title</p>
-                  <p className="text-gray-800 font-bold mt-1">{document.title}</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Publication Title
+                  </p>
+                  <p className="text-gray-800 font-bold mt-1">
+                    {document.title}
+                  </p>
                 </div>
-                
+
                 {/* Abstract Section */}
                 <div>
                   <div className="mb-3 flex items-center gap-2">
                     <FileText className="h-4 w-4 text-gray-500" />
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Abstract</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Abstract
+                    </p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
                     <p className="text-sm leading-7 text-gray-700 whitespace-pre-wrap">
@@ -174,7 +206,10 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
                   <div className="mb-3 flex items-center gap-2">
                     <Tag className="h-4 w-4 text-gray-500" />
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Keywords {document.keywords && document.keywords.length > 0 && `(${document.keywords.length})`}
+                      Keywords{' '}
+                      {document.keywords &&
+                        document.keywords.length > 0 &&
+                        `(${document.keywords.length})`}
                     </p>
                   </div>
                   {document.keywords && document.keywords.length > 0 ? (
@@ -190,22 +225,33 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
                     </div>
                   ) : (
                     <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                      <p className="text-sm text-gray-500 italic">No keywords provided</p>
+                      <p className="text-sm text-gray-500 italic">
+                        No keywords provided
+                      </p>
                     </div>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <InfoRow
                     label="Date Published"
-                    value={document.datePublished ? new Date(document.datePublished).toLocaleDateString() : "N/A"}
+                    value={
+                      document.datePublished
+                        ? new Date(document.datePublished).toLocaleDateString()
+                        : 'N/A'
+                    }
                   />
-                  <InfoRow label="Resource Type" value={formatResourceType(document.resourceType)} />
+                  <InfoRow
+                    label="Resource Type"
+                    value={formatResourceType(document.resourceType)}
+                  />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg text-red-800 border-b pb-2">Authorship & Academic Details</h3>
-                
+                <h3 className="font-semibold text-lg text-red-800 border-b pb-2">
+                  Authorship & Academic Details
+                </h3>
+
                 {/* Authors Section */}
                 <div>
                   <div className="mb-3 flex items-center gap-2">
@@ -216,7 +262,7 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
                   </div>
                   <div className="space-y-2">
                     {document.authors.map((author, index) => {
-                      const authorName = formatAuthorName(author);
+                      const authorName = formatAuthorName(author)
                       return (
                         <div
                           key={index}
@@ -228,7 +274,9 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 shrink-0 text-gray-400" />
-                              <p className="font-medium text-gray-900">{authorName}</p>
+                              <p className="font-medium text-gray-900">
+                                {authorName}
+                              </p>
                             </div>
                             {author.email && (
                               <div className="mt-1 flex items-center gap-2">
@@ -244,22 +292,30 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
                             )}
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
 
                 {document.course && (
                   <div className="grid grid-cols-2 gap-4">
-                    <InfoRow label="College" value={document.course.college?.collegeName || "N/A"} />
-                    <InfoRow label="Course/Department" value={document.course.courseName || "N/A"} />
+                    <InfoRow
+                      label="College"
+                      value={document.course.college?.collegeName || 'N/A'}
+                    />
+                    <InfoRow
+                      label="Course/Department"
+                      value={document.course.courseName || 'N/A'}
+                    />
                   </div>
                 )}
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg text-red-800 border-b pb-2">Submitted File</h3>
-                
+                <h3 className="font-semibold text-lg text-red-800 border-b pb-2">
+                  Submitted File
+                </h3>
+
                 <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
                   <div className="flex items-start gap-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-100">
@@ -267,20 +323,30 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="mb-2">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">File Name</p>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                          File Name
+                        </p>
                         <p className="text-sm font-medium text-gray-900 break-words">
-                          {document.originalFileName || document.filePath.split("/").pop() || "N/A"}
+                          {document.originalFileName ||
+                            document.filePath.split('/').pop() ||
+                            'N/A'}
                         </p>
                       </div>
                       {document.submissionDate && (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Calendar className="h-4 w-4 shrink-0" />
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1">Submitted:</span>
-                          <span>{new Date(document.submissionDate).toLocaleDateString("en-US", { 
-                            year: "numeric", 
-                            month: "long", 
-                            day: "numeric" 
-                          })}</span>
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1">
+                            Submitted:
+                          </span>
+                          <span>
+                            {new Date(
+                              document.submissionDate,
+                            ).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -298,9 +364,11 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
 
         <DialogFooter className="pt-4 border-t">
           <DialogClose asChild>
-            <Button variant="outline" shape="rounded">Close</Button>
+            <Button variant="outline" shape="rounded">
+              Close
+            </Button>
           </DialogClose>
-          {getCurrentStatus() === "Rejected" ? (
+          {getCurrentStatus() === 'Rejected' ? (
             <>
               {onRestore && (
                 <Button
@@ -344,5 +412,5 @@ export function ViewPublicationModal({ documentId, isOpen, onClose, onAccept, on
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

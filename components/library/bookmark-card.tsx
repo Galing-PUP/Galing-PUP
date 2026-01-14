@@ -1,8 +1,5 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Link from "next/link";
-import { Trash2, Eye, Download } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,74 +9,84 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
+import { Download, Eye, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 
 type SearchResult = {
-  id: number;
-  title: string;
-  authors: string[];
-  field: string;
-  college?: string;
-  year: number;
-  abstract: string;
-  citations?: number;
-  downloads?: number;
-  type?: string;
-  dateBookmarked?: Date | string;
-};
+  id: number
+  title: string
+  authors: string[]
+  field: string
+  college?: string
+  year: number
+  abstract: string
+  citations?: number
+  downloads?: number
+  type?: string
+  dateBookmarked?: Date | string
+}
 
 type BookmarkCardProps = {
-  result: SearchResult;
-  onRemove?: () => void;
-  onError?: (message: string) => void;
-  removeBookmark?: (id: number) => Promise<{ success: boolean; message: string }>;
-};
+  result: SearchResult
+  onRemove?: () => void
+  onError?: (message: string) => void
+  removeBookmark?: (
+    id: number,
+  ) => Promise<{ success: boolean; message: string }>
+}
 
-export function BookmarkCard({ result, onRemove, onError, removeBookmark }: BookmarkCardProps) {
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
+export function BookmarkCard({
+  result,
+  onRemove,
+  onError,
+  removeBookmark,
+}: BookmarkCardProps) {
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
 
   const handleRemoveClick = () => {
-    setShowConfirm(true);
-  };
+    setShowConfirm(true)
+  }
 
   const handleConfirmRemove = async () => {
     if (!removeBookmark) {
       if (onError) {
-        onError("Remove function not provided");
+        onError('Remove function not provided')
       }
-      return;
+      return
     }
 
-    setIsRemoving(true);
-    const response = await removeBookmark(result.id);
-    setIsRemoving(false);
+    setIsRemoving(true)
+    const response = await removeBookmark(result.id)
+    setIsRemoving(false)
 
     if (response.success) {
-      setShowConfirm(false);
+      setShowConfirm(false)
       // Call the callback to refresh the list
       if (onRemove) {
-        onRemove();
+        onRemove()
       }
     } else {
       // Show error via callback or fallback to alert
       if (onError) {
-        onError(response.message);
+        onError(response.message)
       } else {
-        alert(response.message);
+        alert(response.message)
       }
-      setShowConfirm(false);
+      setShowConfirm(false)
     }
-  };
+  }
 
   // Determine document type
   const getDocumentType = () => {
-    if (result.type) return result.type;
-    if (result.title.toLowerCase().includes("thesis")) return "Thesis";
-    if (result.title.toLowerCase().includes("dissertation"))
-      return "Dissertation";
-    return "Research Paper";
-  };
+    if (result.type) return result.type
+    if (result.title.toLowerCase().includes('thesis')) return 'Thesis'
+    if (result.title.toLowerCase().includes('dissertation'))
+      return 'Dissertation'
+    return 'Research Paper'
+  }
 
   return (
     <>
@@ -96,13 +103,13 @@ export function BookmarkCard({ result, onRemove, onError, removeBookmark }: Book
             <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
-                e.preventDefault();
-                handleConfirmRemove();
+                e.preventDefault()
+                handleConfirmRemove()
               }}
               disabled={isRemoving}
               className="bg-pup-maroon hover:bg-pup-maroon/80 focus:ring-red-600"
             >
-              {isRemoving ? "Removing..." : "Remove"}
+              {isRemoving ? 'Removing...' : 'Remove'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -135,7 +142,7 @@ export function BookmarkCard({ result, onRemove, onError, removeBookmark }: Book
               {result.authors.slice(0, 3).map((author, index) => (
                 <span key={index}>
                   <span className="font-medium">{author}</span>
-                  {index < Math.min(result.authors.length - 1, 2) && " • "}
+                  {index < Math.min(result.authors.length - 1, 2) && ' • '}
                 </span>
               ))}
               {result.authors.length > 3 && (
@@ -165,7 +172,7 @@ export function BookmarkCard({ result, onRemove, onError, removeBookmark }: Book
               className="flex items-center justify-center gap-2 rounded-lg border border-pup-maroon bg-white px-4 py-2 text-sm font-medium text-pup-maroon hover:bg-pup-maroon/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="h-4 w-4" />
-              <span>{isRemoving ? "Removing..." : "Remove"}</span>
+              <span>{isRemoving ? 'Removing...' : 'Remove'}</span>
             </button>
             <Link
               href={`/paper/${result.id}`}
@@ -185,5 +192,5 @@ export function BookmarkCard({ result, onRemove, onError, removeBookmark }: Book
         </div>
       </div>
     </>
-  );
+  )
 }

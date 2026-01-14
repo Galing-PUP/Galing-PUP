@@ -1,107 +1,108 @@
-"use client";
+'use client'
 
-import React, { useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
-  Search,
-  Pencil,
-  Trash2,
   ChevronLeft,
   ChevronRight,
-  X,
   LayoutGrid,
   List as ListIcon,
-} from "lucide-react";
-import { toast } from "sonner";
+  Pencil,
+  Search,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
-import SortDropdown from "@/components/sort-dropdown";
+import SortDropdown from '@/components/sort-dropdown'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { ResourceTypes } from "@/lib/generated/prisma/enums";
-import { formatResourceType } from "@/lib/utils/format";
+} from '@/components/ui/select'
+import { ResourceTypes } from '@/lib/generated/prisma/enums'
+import { formatResourceType } from '@/lib/utils/format'
 
 // --- Types ---
 type AdminPublication = {
-  id: number;
-  title: string;
-  abstract: string;
-  field: string;
-  date: string;
-  author: string;
-  resourceType: ResourceTypes | null;
-};
+  id: number
+  title: string
+  abstract: string
+  field: string
+  date: string
+  author: string
+  resourceType: ResourceTypes | null
+}
 
 // --- Configuration ---
-const UNKNOWN_AUTHOR_LABEL = "Unknown Author";
-const ITEMS_PER_PAGE = 10;
+const UNKNOWN_AUTHOR_LABEL = 'Unknown Author'
+const ITEMS_PER_PAGE = 10
 
 type AdminFilterValues = {
-  course: string;
-  year: string;
-  documentType: ResourceTypes | "All Types";
-};
+  course: string
+  year: string
+  documentType: ResourceTypes | 'All Types'
+}
 
 type AdminSortOption =
-  | "Newest to Oldest"
-  | "Oldest to Newest"
-  | "Title A-Z"
-  | "Title Z-A";
+  | 'Newest to Oldest'
+  | 'Oldest to Newest'
+  | 'Title A-Z'
+  | 'Title Z-A'
 
 export default function AdminPublicationsPage() {
-  const router = useRouter();
+  const router = useRouter()
 
   // --- State ---
-  const [publications, setPublications] = useState<AdminPublication[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [publications, setPublications] = useState<AdminPublication[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Filter & Sort State
   const [filters, setFilters] = useState<AdminFilterValues>({
-    course: "All Courses",
-    year: "All Years",
-    documentType: "All Types",
-  });
-  const [sortBy, setSortBy] = useState<AdminSortOption>("Newest to Oldest");
-  const [viewMode, setViewMode] = useState<"card" | "list">("card");
+    course: 'All Courses',
+    year: 'All Years',
+    documentType: 'All Types',
+  })
+  const [sortBy, setSortBy] = useState<AdminSortOption>('Newest to Oldest')
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
   // Modal State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [publicationToDelete, setPublicationToDelete] = useState<AdminPublication | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [publicationToDelete, setPublicationToDelete] =
+    useState<AdminPublication | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // --- Data Loading ---
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       try {
-        const res = await fetch("/api/browse");
+        const res = await fetch('/api/browse')
         if (!res.ok) {
-          throw new Error(`Failed to load publications: ${res.status}`);
+          throw new Error(`Failed to load publications: ${res.status}`)
         }
-        
+
         const data: {
-          id: number;
-          title: string;
-          abstract: string;
-          field: string;
-          authors: string[];
-          date: string;
-          resourceType: string | null;
-        }[] = await res.json();
+          id: number
+          title: string
+          abstract: string
+          field: string
+          authors: string[]
+          date: string
+          resourceType: string | null
+        }[] = await res.json()
 
         const mapped: AdminPublication[] = data.map((item) => {
           const primaryAuthor =
             item.authors && item.authors.length > 0
               ? item.authors[0]
-              : UNKNOWN_AUTHOR_LABEL;
+              : UNKNOWN_AUTHOR_LABEL
 
           return {
             id: item.id,
@@ -111,139 +112,145 @@ export default function AdminPublicationsPage() {
             field: item.field,
             date: item.date,
             resourceType: (item.resourceType as ResourceTypes | null) ?? null,
-          };
-        });
+          }
+        })
 
-        setPublications(mapped);
+        setPublications(mapped)
       } catch (e) {
-        console.error(e);
-        setError("Failed to load publications from the database.");
+        console.error(e)
+        setError('Failed to load publications from the database.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    load();
-  }, []);
+    load()
+  }, [])
 
   // --- Logic: Filtering & Sorting ---
   const filteredData = useMemo(() => {
-    let data = publications;
+    let data = publications
 
     // Search
     if (searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase();
-      data = data.filter((pub) =>
-        pub.title.toLowerCase().includes(lowerQuery) ||
-        pub.field.toLowerCase().includes(lowerQuery) ||
-        pub.author.toLowerCase().includes(lowerQuery)
-      );
+      const lowerQuery = searchQuery.toLowerCase()
+      data = data.filter(
+        (pub) =>
+          pub.title.toLowerCase().includes(lowerQuery) ||
+          pub.field.toLowerCase().includes(lowerQuery) ||
+          pub.author.toLowerCase().includes(lowerQuery),
+      )
     }
 
     // Course Filter
-    if (filters.course !== "All Courses") {
-      data = data.filter((pub) => pub.field === filters.course);
+    if (filters.course !== 'All Courses') {
+      data = data.filter((pub) => pub.field === filters.course)
     }
 
     // Year Filter
-    if (filters.year !== "All Years") {
-      data = data.filter((pub) => pub.date.includes(filters.year));
+    if (filters.year !== 'All Years') {
+      data = data.filter((pub) => pub.date.includes(filters.year))
     }
 
     // Document Type Filter
-    if (filters.documentType !== "All Types") {
-      data = data.filter(
-        (pub) => pub.resourceType === filters.documentType
-      );
+    if (filters.documentType !== 'All Types') {
+      data = data.filter((pub) => pub.resourceType === filters.documentType)
     }
 
     // Sort
     return [...data].sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
+      const dateA = new Date(a.date).getTime()
+      const dateB = new Date(b.date).getTime()
 
       switch (sortBy) {
-        case "Oldest to Newest":
-          return dateA - dateB;
-        case "Title A-Z":
-          return a.title.localeCompare(b.title);
-        case "Title Z-A":
-          return b.title.localeCompare(a.title);
-        case "Newest to Oldest":
+        case 'Oldest to Newest':
+          return dateA - dateB
+        case 'Title A-Z':
+          return a.title.localeCompare(b.title)
+        case 'Title Z-A':
+          return b.title.localeCompare(a.title)
+        case 'Newest to Oldest':
         default:
-          return dateB - dateA;
+          return dateB - dateA
       }
-    });
-  }, [publications, searchQuery, filters, sortBy]);
+    })
+  }, [publications, searchQuery, filters, sortBy])
 
   // Extract unique courses for filter dropdown
   const courseOptions = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>()
     for (const pub of publications) {
-      if (pub.field) set.add(pub.field);
+      if (pub.field) set.add(pub.field)
     }
-    return Array.from(set).sort();
-  }, [publications]);
+    return Array.from(set).sort()
+  }, [publications])
 
   // --- Logic: Pagination ---
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE)
 
   const currentData = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredData.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredData, currentPage]);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredData.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredData, currentPage])
 
   const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
+    if (page >= 1 && page <= totalPages) setCurrentPage(page)
+  }
 
   // --- Logic: Actions ---
   const handleEdit = (id: number) => {
-    router.push(`/admin/publication/edit/${id}`);
-  };
+    router.push(`/admin/publication/edit/${id}`)
+  }
 
   const handleDeleteClick = (pub: AdminPublication) => {
-    setPublicationToDelete(pub);
-    setIsDeleteModalOpen(true);
-  };
+    setPublicationToDelete(pub)
+    setIsDeleteModalOpen(true)
+  }
 
   const confirmDelete = async () => {
-    if (!publicationToDelete || isDeleting) return;
+    if (!publicationToDelete || isDeleting) return
 
-    setIsDeleting(true);
+    setIsDeleting(true)
     try {
-      const res = await fetch(`/api/admin/documents/${publicationToDelete.id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/admin/documents/${publicationToDelete.id}`,
+        {
+          method: 'DELETE',
+        },
+      )
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to delete publication.");
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to delete publication.')
       }
 
-      setPublications((prev) => prev.filter((p) => p.id !== publicationToDelete.id));
+      setPublications((prev) =>
+        prev.filter((p) => p.id !== publicationToDelete.id),
+      )
 
       // Adjust pagination if needed
       if (currentData.length === 1 && currentPage > 1) {
-        setCurrentPage((prev) => prev - 1);
+        setCurrentPage((prev) => prev - 1)
       }
 
-      setIsDeleteModalOpen(false);
-      setPublicationToDelete(null);
+      setIsDeleteModalOpen(false)
+      setPublicationToDelete(null)
 
-      toast.success("Research deleted. The super admin will be notified about this deletion.");
+      toast.success(
+        'Research deleted. The super admin will be notified about this deletion.',
+      )
     } catch (error) {
-      console.error(error);
-      alert("There was an error deleting this publication. Please try again.");
+      console.error(error)
+      alert('There was an error deleting this publication. Please try again.')
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
+  }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  };
+    setSearchQuery(e.target.value)
+    setCurrentPage(1)
+  }
 
   return (
     <div className="relative space-y-8 p-4 md:p-8">
@@ -282,8 +289,8 @@ export default function AdminPublicationsPage() {
             <SortDropdown
               value={sortBy}
               onChange={(value) => {
-                setSortBy(value as AdminSortOption);
-                setCurrentPage(1);
+                setSortBy(value as AdminSortOption)
+                setCurrentPage(1)
               }}
               className="w-full md:w-56"
             />
@@ -295,8 +302,8 @@ export default function AdminPublicationsPage() {
                 setFilters((prev) => ({
                   ...prev,
                   course: value,
-                }));
-                setCurrentPage(1);
+                }))
+                setCurrentPage(1)
               }}
             >
               <SelectTrigger className="w-full md:w-56 rounded-full border-pup-maroon/30 text-sm">
@@ -319,8 +326,8 @@ export default function AdminPublicationsPage() {
                 setFilters((prev) => ({
                   ...prev,
                   year: value,
-                }));
-                setCurrentPage(1);
+                }))
+                setCurrentPage(1)
               }}
             >
               <SelectTrigger className="w-full md:w-40 rounded-full border-pup-maroon/30 text-sm">
@@ -331,9 +338,9 @@ export default function AdminPublicationsPage() {
                 {Array.from(
                   new Set(
                     publications
-                      .map((pub) => pub.date.split(" ").pop() || "")
-                      .filter(Boolean)
-                  )
+                      .map((pub) => pub.date.split(' ').pop() || '')
+                      .filter(Boolean),
+                  ),
                 )
                   .sort()
                   .map((year) => (
@@ -350,9 +357,9 @@ export default function AdminPublicationsPage() {
               onValueChange={(value) => {
                 setFilters((prev) => ({
                   ...prev,
-                  documentType: value as ResourceTypes | "All Types",
-                }));
-                setCurrentPage(1);
+                  documentType: value as ResourceTypes | 'All Types',
+                }))
+                setCurrentPage(1)
               }}
             >
               <SelectTrigger className="w-full md:w-44 rounded-full border-pup-maroon/30 text-sm">
@@ -386,11 +393,11 @@ export default function AdminPublicationsPage() {
             <div className="inline-flex items-center gap-1 rounded-full border border-pup-maroon/20 bg-white px-1 py-1">
               <button
                 type="button"
-                onClick={() => setViewMode("card")}
+                onClick={() => setViewMode('card')}
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
-                  viewMode === "card"
-                    ? "bg-pup-maroon text-white shadow-sm"
-                    : "text-pup-maroon hover:bg-pup-gold-light/60"
+                  viewMode === 'card'
+                    ? 'bg-pup-maroon text-white shadow-sm'
+                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
                 }`}
                 aria-label="Card view"
               >
@@ -398,11 +405,11 @@ export default function AdminPublicationsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("list")}
+                onClick={() => setViewMode('list')}
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
-                  viewMode === "list"
-                    ? "bg-pup-maroon text-white shadow-sm"
-                    : "text-pup-maroon hover:bg-pup-gold-light/60"
+                  viewMode === 'list'
+                    ? 'bg-pup-maroon text-white shadow-sm'
+                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
                 }`}
                 aria-label="List view"
               >
@@ -426,10 +433,10 @@ export default function AdminPublicationsPage() {
             </div>
           ) : currentData.length > 0 ? (
             <>
-              {viewMode === "card" ? (
+              {viewMode === 'card' ? (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {currentData.map((pub) => {
-                    const yearStr = pub.date.split(" ").pop(); // Simple extraction
+                    const yearStr = pub.date.split(' ').pop() // Simple extraction
                     return (
                       <div
                         key={pub.id}
@@ -445,7 +452,7 @@ export default function AdminPublicationsPage() {
                                 By {pub.author}
                               </p>
                               <p className="line-clamp-3 text-sm text-gray-700">
-                                {pub.abstract || "No abstract provided."}
+                                {pub.abstract || 'No abstract provided.'}
                               </p>
                             </div>
                             <span className="shrink-0 rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
@@ -456,7 +463,7 @@ export default function AdminPublicationsPage() {
 
                         <div className="mt-4 flex items-center justify-between gap-3 pt-4 border-t border-pup-maroon/5">
                           <span className="inline-flex max-w-[70%] items-center rounded-full bg-pup-gold-light/80 px-4 py-1 text-xs font-semibold text-pup-maroon shadow-sm">
-                            {pub.field || "Uncategorized"}
+                            {pub.field || 'Uncategorized'}
                           </span>
                           <div className="flex items-center gap-3">
                             <button
@@ -476,13 +483,13 @@ export default function AdminPublicationsPage() {
                           </div>
                         </div>
                       </div>
-                    );
+                    )
                   })}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {currentData.map((pub) => {
-                    const yearStr = pub.date.split(" ").pop(); // Simple extraction
+                    const yearStr = pub.date.split(' ').pop() // Simple extraction
                     return (
                       <div
                         key={pub.id}
@@ -498,9 +505,10 @@ export default function AdminPublicationsPage() {
                             </span>
                           </div>
                           <p className="truncate text-xs text-gray-600">
-                            By <span className="font-medium">{pub.author}</span> •{" "}
+                            By <span className="font-medium">{pub.author}</span>{' '}
+                            •{' '}
                             <span className="text-gray-500">
-                              {pub.field || "Uncategorized"}
+                              {pub.field || 'Uncategorized'}
                             </span>
                           </p>
                         </div>
@@ -522,15 +530,19 @@ export default function AdminPublicationsPage() {
                           </button>
                         </div>
                       </div>
-                    );
+                    )
                   })}
                 </div>
               )}
             </>
           ) : (
             <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-pup-maroon/20 bg-pup-gold-light/10 text-center">
-              <span className="text-lg font-semibold text-gray-800">No publications found</span>
-              <span className="text-sm text-gray-600">Try adjusting your filters or search.</span>
+              <span className="text-lg font-semibold text-gray-800">
+                No publications found
+              </span>
+              <span className="text-sm text-gray-600">
+                Try adjusting your filters or search.
+              </span>
             </div>
           )}
         </div>
@@ -546,21 +558,23 @@ export default function AdminPublicationsPage() {
               >
                 <ChevronLeft size={16} /> <span>Previous</span>
               </button>
-              
+
               <div className="flex items-center justify-center gap-2 overflow-x-auto px-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    onClick={() => goToPage(pageNum)}
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-                      currentPage === pageNum
-                        ? "bg-pup-maroon text-white shadow-md"
-                        : "text-pup-maroon hover:bg-pup-gold-light/50"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                        currentPage === pageNum
+                          ? 'bg-pup-maroon text-white shadow-md'
+                          : 'text-pup-maroon hover:bg-pup-gold-light/50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ),
+                )}
               </div>
 
               <button
@@ -578,7 +592,7 @@ export default function AdminPublicationsPage() {
       {/* --- Delete Modal --- */}
       {isDeleteModalOpen && publicationToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div 
+          <div
             className="relative w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl ring-1 ring-pup-maroon/10 zoom-in-95 duration-200"
             role="dialog"
           >
@@ -594,12 +608,17 @@ export default function AdminPublicationsPage() {
               Delete research?
             </h2>
             <p className="mb-6 text-base leading-relaxed text-gray-600">
-              This action cannot be undone. This will permanently remove the record from the database.
+              This action cannot be undone. This will permanently remove the
+              record from the database.
             </p>
 
             <div className="mb-8 rounded-xl bg-pup-gold-light/30 px-5 py-4 text-pup-maroon border border-pup-maroon/10">
-              <span className="block text-xs font-bold uppercase tracking-wide opacity-70">Selected Research</span>
-              <span className="block mt-1 font-bold text-lg leading-tight">{publicationToDelete.title}</span>
+              <span className="block text-xs font-bold uppercase tracking-wide opacity-70">
+                Selected Research
+              </span>
+              <span className="block mt-1 font-bold text-lg leading-tight">
+                {publicationToDelete.title}
+              </span>
             </div>
 
             <div className="flex items-center justify-end gap-4">
@@ -615,12 +634,12 @@ export default function AdminPublicationsPage() {
                 disabled={isDeleting}
                 className="rounded-full bg-pup-maroon px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-pup-maroon/90 disabled:opacity-70 flex items-center gap-2"
               >
-                {isDeleting ? "Deleting..." : "Confirm Delete"}
+                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }
