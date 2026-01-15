@@ -188,7 +188,7 @@ model DocumentChunk {
   charEnd   Int     @map("char_end")
   section   String? @db.Text
 
-  document Document @relation(fields: [documentId], references: [id])
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@map("document_chunks")
 }
