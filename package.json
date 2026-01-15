@@ -6,14 +6,16 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx",
-    "format": "prettier --write .",
+    "lint": "eslint . --cache",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,prisma}\" --ignore-unknown",
     "db:owner": "bun run prisma/owner.ts"
   },
   "prettier": {
     "semi": false,
     "singleQuote": true,
     "trailingComma": "all",
+    "bracketSpacing": true,
+    "arrowParens": "always",
     "plugins": [
       "prettier-plugin-tailwindcss",
       "prettier-plugin-organize-imports",
