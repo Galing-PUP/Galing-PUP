@@ -125,7 +125,7 @@ export default async function PaperPage(props: PaperPageProps) {
 
             {/* TODO: use AI Insights Section only if user.role != premium */}
             <div>
-              <AiInsights />
+              <AiInsights documentId={id} />
             </div>
 
             {/* Keywords Section tags*/}

@@ -68,6 +68,7 @@ model Document {
   originalFileName String? @map("original_file_name") @db.Text
   fileSize         Int?    @map("file_size")
   mimeType         String? @map("mime_type") @db.Text
+  fileHash         String? @map("file_hash") @db.Text
 
   // Foreign Keys
   uploaderId Int @map("uploader_id")
@@ -77,10 +78,11 @@ model Document {
   uploader User   @relation("UserUploads", fields: [uploaderId], references: [id])
   course   Course @relation(fields: [courseId], references: [id])
 
-  bookmarks    UserBookmark[]
-  authors      DocumentAuthor[]
-  keywords     DocumentKeyword[]
-  activityLogs ActivityLog[]
+  bookmarks      UserBookmark[]
+  authors        DocumentAuthor[]
+  keywords       DocumentKeyword[]
+  activityLogs   ActivityLog[]
+  documentChunks DocumentChunk[]
 
   @@index([title])
   @@map("documents")
@@ -169,6 +171,26 @@ model ActivityLog {
   user         User      @relation(fields: [userId], references: [id])
 
   @@map("activity_logs")
+}
+
+model DocumentChunk {
+  id         BigInt @id @default(autoincrement())
+  documentId Int    @map("document_id")
+
+  content String @db.Text
+  phrase  String @db.Text
+
+  embedding Unsupported("vector(384)")?
+
+  pageStart Int     @map("page_start")
+  pageEnd   Int     @map("page_end")
+  charStart Int     @map("char_start")
+  charEnd   Int     @map("char_end")
+  section   String? @db.Text
+
+  document Document @relation(fields: [documentId], references: [id])
+
+  @@map("document_chunks")
 }
 
 enum RoleName {
