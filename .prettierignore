@@ -1,0 +1,23 @@
+# Build Outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Prisma
+prisma/migrations/
+
+# Debug and Config
+.env
+.env.*
+*.log
+bun.lockb
+
+# AI
+.gemini/
+.github/skills/
+AGENTS.md
+GEMINI.md
