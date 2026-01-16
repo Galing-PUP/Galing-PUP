@@ -23,6 +23,8 @@ export const dynamic = 'force-dynamic'
 
 import { HeaderWrapper } from '@/components/header-wrapper'
 
+import { HeaderWrapper } from "@/components/header-wrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
