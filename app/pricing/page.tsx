@@ -1,60 +1,42 @@
-'use client'
-
 import { BenefitCard } from '@/components/pricing/benefit-card'
 import { FAQCard } from '@/components/pricing/faq-card'
 import { PricingCard } from '@/components/pricing/pricing-card'
+import { PricingClientWrapper } from '@/components/pricing/pricing-client-wrapper'
+import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/db'
 import { Crown, Download, Sparkles, Zap } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
 
-export default function PricingPage() {
-  const [isLoading, setIsLoading] = useState(false)
+export default async function PricingPage() {
+  // Fetch user authentication and tier status
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  let isPremiumUser = false
+  
+  if (user) {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseAuthId: user.id },
+      include: { subscriptionTier: true },
+    })
+    isPremiumUser = dbUser?.subscriptionTier.tierName === 'PAID'
+  }
   const freeTierFeatures = [
     { name: '10 downloads per day', included: true },
     { name: '10 citations per day', included: true },
     { name: 'Up to 10 bookmarks', included: true },
-    { name: 'Basic search and browse', included: true },
     { name: 'View abstracts', included: true },
+    { name: 'Full document access', included: false },
     { name: 'AI-generated summaries', included: false },
-    { name: 'Unlimited downloads', included: false },
   ]
 
   const premiumTierFeatures = [
     { name: 'Unlimited downloads', included: true },
     { name: 'Unlimited citations', included: true },
     { name: 'Unlimited bookmarks', included: true },
-    { name: 'Advanced search filters', included: true },
+    { name: 'View abstracts', included: true },
     { name: 'Full document access', included: true },
     { name: 'AI-generated summaries', included: true },
-    { name: 'Early access to features', included: true },
   ]
-
-  /**
-   * Handles premium tier upgrade by creating a payment session
-   * and redirecting to Xendit payment page
-   */
-  const handlePremiumUpgrade = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch('/api/checkout', { method: 'POST' })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create payment session')
-      }
-
-      // Redirect to Xendit payment page
-      window.location.href = data.paymentUrl
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to create payment session',
-      )
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen">
@@ -86,24 +68,14 @@ export default function PricingPage() {
             buttonText="Get Started Free"
             buttonColor="bg-gray-900 hover:bg-gray-800"
             accentColor="text-green-600"
-            onButtonClick={() => console.log('Free tier clicked')}
+            disabled={isPremiumUser}
           />
 
           {/* Premium Tier Card */}
-          <PricingCard
-            title="Premium Tier"
-            price={299}
-            currency="₱"
-            duration="/forever"
-            description="Best for active researchers and students"
-            features={premiumTierFeatures}
-            buttonText={isLoading ? 'Processing...' : 'Upgrade to Premium'}
-            isRecommended={true}
-            borderColor="border-yellow-400"
-            buttonColor="bg-pup-maroon hover:bg-pup-maroon/80"
-            accentColor="text-red-700"
-            icon={<Crown className="text-pup-gold-light" />}
-            onButtonClick={handlePremiumUpgrade}
+          <PricingClientWrapper
+            isPremiumUser={isPremiumUser}
+            freeTierFeatures={freeTierFeatures}
+            premiumTierFeatures={premiumTierFeatures}
           />
         </section>
 
