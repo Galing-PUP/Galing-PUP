@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
 import { Prisma } from '@/lib/generated/prisma/client'
+import { encryptId } from '@/lib/obfuscation'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 type SearchResult = {
@@ -13,10 +15,27 @@ type SearchResult = {
   abstract: string
   resourceType: string | null
   pdfUrl?: string
+  downloadToken?: string
 }
 
 export async function GET(req: NextRequest) {
   try {
+    // Check authentication status
+    const supabase = await createClient()
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+
+    // Get user ID for token generation if authenticated
+    let userId: number | undefined
+    if (authUser) {
+      const user = await prisma.user.findUnique({
+        where: { supabaseAuthId: authUser.id },
+        select: { id: true },
+      })
+      userId = user?.id
+    }
+
     const { searchParams } = new URL(req.url)
 
     const q = searchParams.get('q')?.trim() ?? ''
@@ -161,6 +180,7 @@ export async function GET(req: NextRequest) {
         abstract: doc.abstract,
         resourceType: doc.resourceType ?? null,
         pdfUrl: undefined,
+        downloadToken: userId ? encryptId(doc.id, userId) : undefined,
       }
     })
 
