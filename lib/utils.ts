@@ -21,7 +21,7 @@ export function formatFileSize(bytes: number): string {
  * @returns A sanitized string safe for use as a filename
  *
  * @example
- * sanitizeFilename('My Document: Test/Draft #1') // Returns: 'My Document - Test-Draft #1'
+ * sanitizeFilename('My Document: Test/Draft #1') // Returns: 'My Document Test Draft #1'
  * sanitizeFilename('Report<2024>') // Returns: 'Report(2024)'
  */
 export function sanitizeFilename(filename: string): string {
@@ -29,14 +29,13 @@ export function sanitizeFilename(filename: string): string {
     filename
       // Replace problematic characters with safe alternatives
       .replace(/[<>]/g, (match) => (match === '<' ? '(' : ')')) // Angle brackets to parentheses
-      .replace(/:/g, ' -') // Colons to dash with space
-      .replace(/["/\\|?*]/g, '-') // Slashes, quotes, pipes, wildcards to dash
+      .replace(/[:"\/\\|?*]/g, ' ') // Colons, slashes, quotes, pipes, wildcards to space
       // Remove control characters and other invalid characters
       .replace(/[\x00-\x1F\x7F]/g, '')
+      // Normalize multiple spaces/dashes to single space
+      .replace(/[\s-]+/g, ' ')
       // Trim whitespace and dots from start/end (Windows doesn't allow)
       .replace(/^[\s.]+|[\s.]+$/g, '')
-      // Replace multiple spaces/dashes with single dash
-      .replace(/[\s-]+/g, ' ')
       .trim() || 'document' // Fallback if result is empty
   )
 }
