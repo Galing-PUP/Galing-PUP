@@ -36,6 +36,10 @@ export async function saveDocumentChunks(
     const batch = chunks.slice(i, i + BATCH_SIZE);
 
     for (const chunk of batch) {
+      if (!chunk.embedding) {
+        console.warn(`[VectorStore] Skipping chunk ${chunk.pageStart}-${chunk.pageEnd} due to missing embedding.`);
+        continue;
+      }
       // Format vector as string "[0.1,0.2,...]"
       const vectorStr = `[${chunk.embedding.join(",")}]`;
 

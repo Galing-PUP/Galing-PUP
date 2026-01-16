@@ -36,6 +36,11 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
             }
 
             const data = await response.json();
+
+            if (!data.embedding) {
+                throw new Error("Invalid response from embed function: missing embedding field");
+            }
+
             return data.embedding as number[];
         });
 
