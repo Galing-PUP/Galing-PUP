@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { toast } from 'sonner'
 
+import { sanitizeFilename } from '@/lib/utils'
+
 type SearchResult = {
   id: number
   title: string
@@ -110,7 +112,7 @@ export function SearchResultCard({
                 // Try to get filename from header
                 const contentDisposition = res.headers.get('Content-Disposition')
                 let filename = result.title
-                  ? `${result.title}.pdf`
+                  ? `${sanitizeFilename(result.title)}.pdf`
                   : `document-${result.id}.pdf`
 
                 if (contentDisposition) {
