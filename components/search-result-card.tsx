@@ -118,7 +118,8 @@ export function SearchResultCard({
                 if (contentDisposition) {
                   const match = contentDisposition.match(/filename="?([^"]+)"?/)
                   if (match && match[1]) {
-                    filename = match[1]
+                    // Sanitize filename from header to prevent malicious filenames
+                    filename = sanitizeFilename(match[1])
                   }
                 }
 
