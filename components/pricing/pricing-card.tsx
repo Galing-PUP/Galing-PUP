@@ -42,7 +42,7 @@ export function PricingCard({
 }: PricingCardProps) {
   return (
     <div
-      className={`relative flex flex-col rounded-2xl p-8 transition-all duration-300 ${
+      className={`relative flex flex-col rounded-2xl p-8 transition-all duration-300 min-h-[600px] ${
         isRecommended
           ? `border-4 ${borderColor} shadow-lg`
           : 'border border-gray-200 bg-white'
