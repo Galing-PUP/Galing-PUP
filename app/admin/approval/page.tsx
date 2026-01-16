@@ -18,6 +18,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import type { ContentItem } from '@/types/content'
+import { Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -37,6 +38,8 @@ export default function ContentApprovalPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [selectedContentIds, setSelectedContentIds] = useState<string[]>([])
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false)
 
   /**
    * Fetches all documents for approval from the API
@@ -217,6 +220,77 @@ export default function ContentApprovalPage() {
   }
 
   /**
+   * Toggles selection of a content item
+   * @param contentId - The ID of the content to select/deselect
+   */
+  const handleSelectContent = (contentId: string) => {
+    setSelectedContentIds((prev) =>
+      prev.includes(contentId)
+        ? prev.filter((id) => id !== contentId)
+        : [...prev, contentId],
+    )
+  }
+
+  /**
+   * Toggles selection of all visible content items
+   */
+  const handleSelectAll = () => {
+    setSelectedContentIds(
+      selectedContentIds.length === paginatedItems.length
+        ? []
+        : paginatedItems.map((item) => item.id),
+    )
+  }
+
+  /**
+   * Opens the bulk delete confirmation dialog
+   */
+  const handleDeleteSelected = () => {
+    if (selectedContentIds.length === 0) return
+    setShowBulkDeleteDialog(true)
+  }
+
+  /**
+   * Handles the actual bulk deletion after confirmation
+   */
+  const confirmDeleteSelected = async () => {
+    if (selectedContentIds.length === 0) return
+
+    try {
+      // Delete each selected document
+      const deletePromises = selectedContentIds.map((id) =>
+        fetch(`/api/admin/documents/${id}?permanent=true`, {
+          method: 'DELETE',
+        }),
+      )
+
+      const results = await Promise.all(deletePromises)
+
+      // Check if all deletions were successful
+      const failedDeletions = results.filter((res) => !res.ok)
+      if (failedDeletions.length > 0) {
+        throw new Error(
+          `Failed to delete ${failedDeletions.length} document(s)`,
+        )
+      }
+
+      // Update local state
+      setAllContentItems((prevItems) =>
+        prevItems.filter((item) => !selectedContentIds.includes(item.id)),
+      )
+      setSelectedContentIds([])
+      toast.success(
+        `${selectedContentIds.length} document(s) deleted successfully`,
+      )
+    } catch (error) {
+      console.error('Error deleting documents:', error)
+      toast.error(
+        'There was an error deleting some documents. Please try again.',
+      )
+    }
+  }
+
+  /**
    * Filters items based on the active tab
    */
   const filteredItems = useMemo(() => {
@@ -224,10 +298,11 @@ export default function ContentApprovalPage() {
   }, [allContentItems, activeTab])
 
   /**
-   * Resets to page 1 when tab changes
+   * Resets to page 1 and clears selection when tab changes
    */
   useEffect(() => {
     setCurrentPage(1)
+    setSelectedContentIds([])
   }, [activeTab])
 
   /**
@@ -298,6 +373,19 @@ export default function ContentApprovalPage() {
 
   return (
     <>
+      {/* Delete Confirmation Dialog - handles both single and bulk deletion */}
+      <DeleteConfirmationDialog
+        isOpen={showBulkDeleteDialog || !!itemToDelete}
+        onClose={() => {
+          setShowBulkDeleteDialog(false)
+          setItemToDelete(null)
+        }}
+        onConfirm={showBulkDeleteDialog ? confirmDeleteSelected : handleDelete}
+        item={itemToDelete}
+        itemCount={showBulkDeleteDialog ? selectedContentIds.length : undefined}
+        itemType="document"
+      />
+
       {/* View Modal */}
       {viewingDocumentId && (
         <ViewPublicationModal
@@ -320,16 +408,6 @@ export default function ContentApprovalPage() {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      {itemToDelete && (
-        <DeleteConfirmationDialog
-          isOpen={!!itemToDelete}
-          item={itemToDelete}
-          onClose={() => setItemToDelete(null)}
-          onConfirm={handleDelete}
-        />
-      )}
-
       <div className="space-y-8">
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <ContentManagementHeader />
@@ -346,8 +424,25 @@ export default function ContentApprovalPage() {
             <div className="mt-6 py-10 text-center text-red-600">{error}</div>
           ) : (
             <>
+              {selectedContentIds.length > 0 && (
+                <div className="mt-4 flex items-center justify-between rounded-lg bg-red-50 px-4 py-3">
+                  <span className="text-sm font-medium text-gray-700">
+                    {selectedContentIds.length} document(s) selected
+                  </span>
+                  <button
+                    onClick={handleDeleteSelected}
+                    className="flex items-center gap-2 rounded-lg bg-pup-maroon px-4 py-2 text-sm font-medium text-white hover:bg-pup-maroon/90 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete all
+                  </button>
+                </div>
+              )}
               <ContentTable
                 items={paginatedItems}
+                selectedContentIds={selectedContentIds}
+                onSelectAll={handleSelectAll}
+                onSelectContent={handleSelectContent}
                 onView={handleView}
                 onAccept={handleAccept}
                 onReject={handleReject}
