@@ -11,12 +11,12 @@ import { toast } from 'sonner'
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const freeTierFeatures = [
-    { name: '3 downloads per day', included: true },
-    { name: '5 citations per day', included: true },
-    { name: 'Up to 5 bookmarks', included: true },
+    { name: '10 downloads per day', included: true },
+    { name: '10 citations per day', included: true },
+    { name: 'Up to 10 bookmarks', included: true },
     { name: 'Basic search and browse', included: true },
     { name: 'View abstracts', included: true },
-    { name: 'AI-generated summaries', included: true },
+    { name: 'AI-generated summaries', included: false },
     { name: 'Unlimited downloads', included: false },
   ]
 
