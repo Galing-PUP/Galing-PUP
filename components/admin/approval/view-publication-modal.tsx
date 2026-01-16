@@ -11,9 +11,21 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResourceTypes } from '@/lib/generated/prisma/enums'
+import { encryptId } from '@/lib/obfuscation'
 import { formatResourceType } from '@/lib/utils/format'
-import { Calendar, File, FileText, Mail, Tag, User, Users } from 'lucide-react'
+import {
+  Calendar,
+  Download,
+  Eye,
+  File,
+  FileText,
+  Mail,
+  Tag,
+  User,
+  Users,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 interface ViewPublicationModalProps {
   documentId: string
@@ -153,6 +165,62 @@ export function ViewPublicationModal({
       unitIndex++
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
+  }
+
+  /**
+   * Handles viewing the submitted PDF file
+   */
+  const handleViewFile = () => {
+    if (!document) return
+
+    // Generate encrypted token for the document
+    const documentToken = encryptId(document.id)
+    const pdfUrl = `/api/pdf/${encodeURIComponent(documentToken)}`
+
+    // Open PDF in a new tab
+    window.open(pdfUrl, '_blank')
+  }
+
+  /**
+   * Handles downloading the submitted PDF file
+   */
+  const handleDownloadFile = async () => {
+    if (!document) return
+
+    try {
+      const toastId = toast.loading('Preparing Download...')
+
+      // Generate encrypted token for the document
+      const documentToken = encryptId(document.id)
+      const pdfUrl = `/api/pdf/${encodeURIComponent(documentToken)}`
+
+      // Fetch the PDF file
+      const response = await fetch(pdfUrl)
+      if (!response.ok) {
+        throw new Error('Failed to download file')
+      }
+
+      // Convert response to blob
+      const blob = await response.blob()
+
+      // Create a download link and trigger download
+      const url = window.URL.createObjectURL(blob)
+      const downloadLink = window.document.createElement('a')
+      downloadLink.href = url
+      downloadLink.download =
+        document.originalFileName || `document-${document.id}.pdf`
+      window.document.body.appendChild(downloadLink)
+      downloadLink.click()
+
+      // Clean up
+      window.document.body.removeChild(downloadLink)
+      window.URL.revokeObjectURL(url)
+
+      toast.success('Download complete!', { id: toastId })
+    } catch (error) {
+      console.error('Download error:', error)
+      toast.error('Failed to download file. Please try again.')
+    }
   }
 
   return (
@@ -316,7 +384,7 @@ export function ViewPublicationModal({
                   Submitted File
                 </h3>
 
-                <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
+                <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-start gap-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-100">
                       <File className="h-6 w-6 text-red-600" />
@@ -349,6 +417,22 @@ export function ViewPublicationModal({
                           </span>
                         </div>
                       )}
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          onClick={handleViewFile}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-pup-maroon hover:bg-pup-maroon/90 rounded-md transition-colors"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View File
+                        </button>
+                        <button
+                          onClick={handleDownloadFile}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-pup-maroon bg-white border border-pup-maroon hover:bg-pup-maroon/5 rounded-md transition-colors"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Download
+                        </button>
+                      </div>
                     </div>
                     <div className="shrink-0">
                       <span className="inline-flex items-center rounded-md bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-800">

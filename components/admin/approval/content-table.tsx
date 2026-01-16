@@ -1,10 +1,16 @@
+'use client'
+
 import type { ContentItem } from '@/types/content'
 import { Check, Eye, RotateCcw, Trash2, X } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { ResourceTypeBadge } from './resource-type-badge'
 import { StatusBadge } from './status-badge'
 
 type ContentTableProps = {
   items: ContentItem[]
+  selectedContentIds: string[]
+  onSelectAll: () => void
+  onSelectContent: (contentId: string) => void
   onView: (item: ContentItem) => void
   onAccept: (itemId: string) => void
   onReject: (itemId: string) => void
@@ -14,19 +20,41 @@ type ContentTableProps = {
 
 export function ContentTable({
   items,
+  selectedContentIds,
+  onSelectAll,
+  onSelectContent,
   onView,
   onAccept,
   onReject,
   onRestore,
   onDeleteRequest,
 }: ContentTableProps) {
+  const headerCheckboxRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      const numSelected = selectedContentIds.length
+      const numItems = items.length
+      headerCheckboxRef.current.checked =
+        numSelected === numItems && numItems > 0
+      headerCheckboxRef.current.indeterminate =
+        numSelected > 0 && numSelected < numItems
+    }
+  }, [selectedContentIds, items.length])
   return (
     <div className="mt-4 flow-root">
       <div className="-mx-6 -my-2 overflow-x-auto">
-        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+        <div className="inline-block min-w-[1200px] w-full py-2 align-middle sm:px-6 lg:px-8">
           <div className="mb-2 rounded-lg bg-gray-100 px-4 py-3">
             <div className="grid grid-cols-12 items-center gap-3 text-left text-sm font-semibold text-gray-600">
-              <div className="col-span-1">ID</div>
+              <div className="col-span-1 flex items-center">
+                <input
+                  type="checkbox"
+                  ref={headerCheckboxRef}
+                  onChange={onSelectAll}
+                  className="h-4 w-4 rounded border-gray-400 text-pup-maroon focus:ring-pup-maroon"
+                />
+              </div>
               <div className="col-span-2">Resource Type</div>
               <div className="col-span-3">Publication Title</div>
               <div className="col-span-2">Author</div>
@@ -40,10 +68,19 @@ export function ContentTable({
             {items.map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-12 items-center gap-3 rounded-lg bg-white px-4 py-3 hover:bg-gray-50"
+                className={`grid grid-cols-12 items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
+                  selectedContentIds.includes(item.id)
+                    ? 'bg-red-50'
+                    : 'bg-white hover:bg-gray-50'
+                }`}
               >
-                <div className="col-span-1 text-sm text-gray-700">
-                  {item.id}
+                <div className="col-span-1 flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedContentIds.includes(item.id)}
+                    onChange={() => onSelectContent(item.id)}
+                    className="h-4 w-4 rounded border-gray-400 text-pup-maroon focus:ring-pup-maroon"
+                  />
                 </div>
                 <div className="col-span-2">
                   <ResourceTypeBadge type={item.resourceType} />
@@ -51,10 +88,10 @@ export function ContentTable({
                 <div className="col-span-3 truncate text-sm font-medium text-gray-800">
                   {item.title}
                 </div>
-                <div className="col-span-2 text-sm text-gray-600">
+                <div className="col-span-2 truncate text-sm text-gray-600">
                   {item.authors}
                 </div>
-                <div className="col-span-1 text-sm text-gray-600">
+                <div className="col-span-1 whitespace-nowrap text-sm text-gray-600">
                   {item.submittedDate}
                 </div>
                 <div className="col-span-1">
