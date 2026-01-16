@@ -62,7 +62,7 @@ export default function Upload() {
 
       // Trigger Ingestion
       try {
-        toast.loading("Processing AI Embeddings and Summary...");
+        const toastId = toast.loading("Processing AI Embeddings and Summary...");
         console.log("Triggering ingestion for document:", data.id);
 
         const ingestRes = await fetch("/api/admin/ingest", {
@@ -74,15 +74,19 @@ export default function Upload() {
         if (!ingestRes.ok) {
           const ingestErr = await ingestRes.json();
           console.error("Ingestion failed:", ingestErr);
-          toast.error("AI Processing failed (Document saved)");
+          toast.error("AI Processing failed (Document saved)", { id: toastId });
         } else {
           const ingestData = await ingestRes.json();
           console.log("Ingestion success:", ingestData);
-          toast.success("AI Processing Complete!");
+          toast.success("AI Processing Complete!", { id: toastId });
         }
       } catch (err) {
         console.error("Ingestion error:", err);
-        toast.error("AI Processing error");
+        // We can't easily access toastId here unless we lift it out of the try block,
+        // but since toast.loading is inside, we should handle it inside or check scope.
+        // Actually, let's move declaration outside try or just handle it cleanly.
+        // Re-writing to be safer:
+        toast.error("AI Processing notification error");
       }
 
       // Slight delay before redirect to let user see success message

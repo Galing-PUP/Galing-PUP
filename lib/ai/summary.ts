@@ -1,5 +1,5 @@
-import { DocumentChunkParams } from "./chunker";
-import { runGemini } from "./gemini";
+import { DocumentChunkParams } from "@/lib/ai/chunker";
+import { runGemini } from "@/lib/ai/gemini";
 
 interface SummaryContext {
     chunks: (DocumentChunkParams & { embedding?: number[] })[];

@@ -16,6 +16,15 @@ export interface SearchResult {
  * Saves document chunks to the database using raw SQL.
  * Prisma Client does not support 'Unsupported' types in create/update.
  */
+export function cleanText(text: string): string {
+  // Remove null bytes and replace lone surrogates/malformed unicode
+  return text.replace(/\0/g, "").toWellFormed();
+}
+
+/**
+ * Saves document chunks to the database using raw SQL.
+ * Prisma Client does not support 'Unsupported' types in create/update.
+ */
 export async function saveDocumentChunks(
   documentId: number,
   chunks: (DocumentChunkParams & { embedding: number[] })[]
@@ -26,26 +35,16 @@ export async function saveDocumentChunks(
   for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
     const batch = chunks.slice(i, i + BATCH_SIZE);
 
-    const values: string[] = [];
-
     for (const chunk of batch) {
       // Format vector as string "[0.1,0.2,...]"
       const vectorStr = `[${chunk.embedding.join(",")}]`;
-
-      // Escape strings to prevent SQL injection (basic manual escaping or use numbered params)
-      // Using numbered params is safer but complex with dynamic batch insert.
-      // Better to use a series of executeRaw calls or constructed query with params.
-      // Since vector is long, let's do one insert per chunk or small batch with params.
-
-      // Actually, for safety, let's use $executeRaw per chunk or use a more advanced builder.
-      // Given the constraints, a loop with $executeRaw is safest and simplest.
 
       await prisma.$executeRaw`
         INSERT INTO "document_chunks" (
           "document_id", "content", "phrase", "embedding", 
           "page_start", "page_end", "char_start", "char_end"
         ) VALUES (
-          ${documentId}, ${chunk.content}, ${chunk.phrase}, ${vectorStr}::vector,
+          ${documentId}, ${cleanText(chunk.content)}, ${cleanText(chunk.phrase)}, ${vectorStr}::vector,
           ${chunk.pageStart}, ${chunk.pageEnd}, ${chunk.charStart}, ${chunk.charEnd}
         );
       `;

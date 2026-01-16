@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Lock, FileText } from "lucide-react";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { Skeleton } from "@/components/ui/skeleton";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css"; // Ensure you can import CSS like this, or add to globals.css
 
 interface AiInsightsProps {
   documentId: number;
@@ -100,9 +105,34 @@ export function AiInsights({ documentId }: AiInsightsProps) {
             </div>
           </>
         ) : (
-          <div className="w-full prose prose-sm max-w-none text-gray-700">
+          <div className="w-full prose prose-sm max-w-none text-gray-700 prose-p:leading-relaxed prose-pre:p-0">
             {summary ? (
-              <div className="whitespace-pre-wrap">{summary}</div>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+                components={{
+                  p: ({ node, ...props }) => <p className="mb-4 last:mb-0" {...props} />,
+                  h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4 mt-6 text-pup-maroon" {...props} />,
+                  h2: ({ node, ...props }) => <h2 className="text-xl font-bold mb-3 mt-5 text-gray-800" {...props} />,
+                  h3: ({ node, ...props }) => <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-800" {...props} />,
+                  strong: ({ node, ...props }) => <strong className="font-bold text-gray-900" {...props} />,
+                  em: ({ node, ...props }) => <em className="italic" {...props} />,
+                  blockquote: ({ node, ...props }) => (
+                    <blockquote className="border-l-4 border-pup-maroon/20 pl-4 py-1 my-4 bg-gray-50 italic text-gray-700" {...props} />
+                  ),
+                  a: ({ node, ...props }) => (
+                    <a target="_blank" rel="noopener noreferrer" className="text-pup-maroon hover:underline" {...props} />
+                  ),
+                  ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-4 space-y-1" {...props} />,
+                  ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-4 space-y-1" {...props} />,
+                  li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                  code: ({ node, ...props }) => (
+                    <code className="bg-gray-100 rounded px-1.5 py-0.5 text-sm font-mono text-pup-maroon" {...props} />
+                  ),
+                }}
+              >
+                {summary}
+              </ReactMarkdown>
             ) : (
               <p className="text-gray-500 italic">No AI summary generated for this document yet.</p>
             )}
