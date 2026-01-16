@@ -32,8 +32,8 @@ export function sanitizeFilename(filename: string): string {
       .replace(/[:"\/\\|?*]/g, ' ') // Colons, slashes, quotes, pipes, wildcards to space
       // Remove control characters and other invalid characters
       .replace(/[\x00-\x1F\x7F]/g, '')
-      // Normalize multiple spaces/dashes to single space
-      .replace(/[\s-]+/g, ' ')
+      // Normalize multiple consecutive spaces to single space
+      .replace(/\s+/g, ' ')
       // Trim whitespace and dots from start/end (Windows doesn't allow)
       .replace(/^[\s.]+|[\s.]+$/g, '')
       .trim() || 'document' // Fallback if result is empty
