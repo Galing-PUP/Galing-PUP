@@ -119,7 +119,16 @@ export function SearchResultCard({
                   const match = contentDisposition.match(/filename="?([^"]+)"?/)
                   if (match && match[1]) {
                     // Sanitize filename from header to prevent malicious filenames
-                    filename = sanitizeFilename(match[1])
+                    // Preserve file extension if present
+                    const headerFilename = match[1]
+                    const lastDotIndex = headerFilename.lastIndexOf('.')
+                    if (lastDotIndex > 0) {
+                      const name = headerFilename.substring(0, lastDotIndex)
+                      const ext = headerFilename.substring(lastDotIndex)
+                      filename = `${sanitizeFilename(name)}${ext}`
+                    } else {
+                      filename = sanitizeFilename(headerFilename)
+                    }
                   }
                 }
 
