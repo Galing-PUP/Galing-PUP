@@ -10,6 +10,8 @@ import { encryptId } from '@/lib/obfuscation'
 import { createClient } from '@/lib/supabase/server'
 import { formatResourceType } from '@/lib/utils/format'
 import { notFound } from 'next/navigation'
+import { ReferencePanel } from "@/components/paper/reference-panel";
+import { PdfController } from "@/components/paper/pdf-controller";
 
 type PaperPageProps = {
   params: Promise<{
@@ -129,15 +131,19 @@ export default async function PaperPage(props: PaperPageProps) {
               <Abstract text={document.abstract} />
             </div>
 
-            {/* TODO: use AI Insights Section only if user.role != premium */}
+            {/* AI Insights Section */}
+            {/* Handles lock state internally */}
             <div>
-              <AiInsights />
+              <AiInsights documentId={id} />
             </div>
 
             {/* Keywords Section tags*/}
             <div>
               <Keywords keywords={keywords} />
             </div>
+
+            {/* Hidden controller to link store to actions */}
+            <PdfController pdfUrl={`/api/pdf/${downloadToken}`} />
           </div>
 
           {/* Right Column */}
@@ -148,6 +154,9 @@ export default async function PaperPage(props: PaperPageProps) {
               department={department}
             />
             <DocumentStats downloads={downloads} citations={citations} />
+
+            {/* Citation Panel */}
+            <ReferencePanel />
           </div>
         </div>
       </main>
