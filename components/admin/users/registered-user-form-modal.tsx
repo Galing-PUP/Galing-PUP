@@ -1,120 +1,138 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import type { User } from "@/types/users";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Mail } from "lucide-react";
+} from '@/components/ui/select'
+import type { User } from '@/types/users'
+import { Mail } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 type RegisteredUserFormModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (user: User) => void;
-  user: User | null;
-};
+  isOpen: boolean
+  onClose: () => void
+  onSave: (user: User) => void
+  user: User | null
+}
 
 /**
- * Modal for editing Registered/Viewer user details
+ * Modal for editing Registered user details
  * Displays status badge, username as header, and subscription tier management
  */
-export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: RegisteredUserFormModalProps) {
+export function RegisteredUserFormModal({
+  isOpen,
+  onClose,
+  onSave,
+  user,
+}: RegisteredUserFormModalProps) {
   const getInitialFormData = () => {
     if (user) {
-      return { ...user };
+      return { ...user }
     }
-    return {} as Partial<User>;
-  };
+    return {} as Partial<User>
+  }
 
-  const [formData, setFormData] = useState<Partial<User>>(getInitialFormData());
-  const [initialData] = useState<Partial<User>>(getInitialFormData());
+  const [formData, setFormData] = useState<Partial<User>>(getInitialFormData())
+  const [initialData] = useState<Partial<User>>(getInitialFormData())
 
   useEffect(() => {
     if (isOpen && user) {
-      const newData = getInitialFormData();
-      setFormData(newData);
+      const newData = getInitialFormData()
+      setFormData(newData)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, user]);
+  }, [isOpen, user])
 
   const handleSave = () => {
-    if (!user) return;
+    if (!user) return
 
     const userToSave: User = {
       ...user,
       status: formData.status || user.status,
-      subscriptionTier: formData.subscriptionTier !== undefined ? formData.subscriptionTier : user.subscriptionTier,
-    };
+      subscriptionTier:
+        formData.subscriptionTier !== undefined
+          ? formData.subscriptionTier
+          : user.subscriptionTier,
+    }
 
-    onSave(userToSave);
-  };
+    onSave(userToSave)
+  }
 
   const handleInputChange = (field: keyof User, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
 
   const hasChanges = () => {
-    if (!user) return false;
+    if (!user) return false
     return (
       formData.status !== initialData.status ||
       formData.subscriptionTier !== initialData.subscriptionTier
-    );
-  };
+    )
+  }
 
+  const getRoleInfo = (role?: string) => {
+    const normalizedRole = role?.toLowerCase()
 
+    if (normalizedRole === 'registered') {
+      return {
+        badgeStyle: 'bg-gray-200 text-gray-700',
+        dotColor: 'bg-green-500',
+        label: 'Registered',
+      }
+    }
 
-  const getRoleBadgeStyle = (role?: string) => {
-    const r = role?.toUpperCase();
-    if (r === 'REGISTERED') return 'bg-gray-200 text-gray-700 hover:bg-gray-300';
-    return 'bg-gray-200 text-gray-700 hover:bg-gray-300';
-  };
+    return {
+      badgeStyle: 'bg-gray-200 text-gray-700',
+      dotColor: 'bg-gray-500',
+      label: role || 'User',
+    }
+  }
 
-  const getDotColor = (role?: string) => {
-    const r = role?.toUpperCase();
-    if (r === 'REGISTERED') return 'bg-green-500';
-    return 'bg-gray-500';
-  };
+  const title = 'Edit User Information'
+  const description = "Update the user's details and save the changes."
 
-  const title = "Edit User Information";
-  const description = "Update the user's details and save the changes.";
-
-  if (!user) return null;
+  if (!user) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
-        
+
         <div className="bg-linear-to-br from-white via-gray-50 to-white px-8 py-8 border-b-4 border-pup-maroon shadow-sm rounded-t-lg">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <Badge className={`gap-2 ${getRoleBadgeStyle(formData.role)}`}>
-                <div className={`w-2 h-2 rounded-full animate-pulse ${getDotColor(formData.role)}`} />
-                {formData.role || "User"}
+              <Badge
+                className={`gap-2 ${getRoleInfo(formData.role).badgeStyle}`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full animate-pulse ${getRoleInfo(formData.role).dotColor}`}
+                />
+                {getRoleInfo(formData.role).label}
               </Badge>
               <h2 className="text-4xl font-bold text-pup-maroon leading-tight tracking-tight">
-                {formData.name || "No username set"}
+                {formData.name || 'No username set'}
               </h2>
               <div className="space-y-1.5 pl-1">
                 <div className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <p className="text-sm text-gray-600">{formData.email || "email@example.com"}</p>
+                  <p className="text-sm text-gray-600">
+                    {formData.email || 'email@example.com'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -127,8 +145,8 @@ export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: Regis
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
-                value={formData.status || ""}
-                onValueChange={value => handleInputChange('status', value)}
+                value={formData.status || ''}
+                onValueChange={(value) => handleInputChange('status', value)}
               >
                 <SelectTrigger id="status" className="w-full">
                   <SelectValue placeholder="User Status" />
@@ -145,7 +163,9 @@ export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: Regis
               <Label htmlFor="subscription">Subscription Tier</Label>
               <Select
                 value={String(formData.subscriptionTier || 1)}
-                onValueChange={value => handleInputChange('subscriptionTier', Number(value))}
+                onValueChange={(value) =>
+                  handleInputChange('subscriptionTier', Number(value))
+                }
               >
                 <SelectTrigger id="subscription" className="w-full">
                   <SelectValue placeholder="Select tier" />
@@ -163,7 +183,11 @@ export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: Regis
             <Label htmlFor="registrationDate">Registration Date</Label>
             <Input
               id="registrationDate"
-              value={formData.registrationDate ? new Date(formData.registrationDate).toLocaleDateString() : ""}
+              value={
+                formData.registrationDate
+                  ? new Date(formData.registrationDate).toLocaleDateString()
+                  : ''
+              }
               disabled
               className="bg-gray-50"
             />
@@ -177,12 +201,12 @@ export function RegisteredUserFormModal({ isOpen, onClose, onSave, user }: Regis
           <Button
             onClick={handleSave}
             disabled={!hasChanges()}
-            className={!hasChanges() ? "opacity-50 cursor-not-allowed" : ""}
+            className={!hasChanges() ? 'opacity-50 cursor-not-allowed' : ''}
           >
             Save Changes
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

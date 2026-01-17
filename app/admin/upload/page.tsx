@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useState } from "react";
 import { PublicationForm } from "@/components/admin/publications/publication-form";
@@ -8,21 +8,21 @@ import { toast } from "sonner";
 
 // 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleSubmit = async (formData: PublicationFormData) => {
-    if (isSubmitting) return;
+    if (isSubmitting) return
 
     if (!formData.file) {
-      toast.error("Please select a file to upload.");
-      return;
+      toast.error('Please select a file to upload.')
+      return
     }
 
-    setIsSubmitting(true);
-    let promiseResolve: (value: any) => void;
-    let promiseReject: (reason?: any) => void;
+    setIsSubmitting(true)
+    let promiseResolve: (value: any) => void
+    let promiseReject: (reason?: any) => void
     const submissionPromise = new Promise((resolve, reject) => {
       promiseResolve = resolve;
       promiseReject = reject;
@@ -106,11 +106,11 @@ export default function Upload() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   const handleCancel = () => {
-    router.back();
-  };
+    router.back()
+  }
 
   return (
     <div className="w-full h-full relative">
@@ -122,8 +122,8 @@ export default function Upload() {
           </h1>
         </div>
         <p className="text-gray-600">
-          Please upload your publication materials and necessary information
-          for approval using the form below.
+          Please upload your publication materials and necessary information for
+          approval using the form below.
         </p>
       </div>
 
@@ -142,5 +142,5 @@ export default function Upload() {
         submitLabel="Submit for Approval"
       />
     </div>
-  );
+  )
 }

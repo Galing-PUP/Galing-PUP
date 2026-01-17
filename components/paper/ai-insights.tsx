@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -245,5 +245,5 @@ export function AiInsights({ documentId }: AiInsightsProps) {
         )}
       </div>
     </div>
-  );
+  )
 }

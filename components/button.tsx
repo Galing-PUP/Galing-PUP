@@ -1,84 +1,89 @@
-"use client";
+'use client'
 
-import React from "react";
-import Link from "next/link";
+import Link from 'next/link'
+import React from 'react'
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
-type ButtonSize = "sm" | "md" | "lg" | "xl";
-type ButtonShape = "rectangle" | "rounded";
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost'
+type ButtonSize = 'sm' | 'md' | 'lg' | 'xl'
+type ButtonShape = 'rectangle' | 'rounded'
 
 type ButtonProps = {
-  children: React.ReactNode;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  shape?: ButtonShape;
-  fullWidth?: boolean;
-  className?: string;
-  disabled?: boolean;
-  loading?: boolean;
-  icon?: React.ReactNode;
-  iconPosition?: "left" | "right";
-  onClick?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
-  type?: "button" | "submit" | "reset";
-  href?: string;
-  target?: string;
-  as?: "button" | "link";
+  children: React.ReactNode
+  variant?: ButtonVariant
+  size?: ButtonSize
+  shape?: ButtonShape
+  fullWidth?: boolean
+  className?: string
+  disabled?: boolean
+  loading?: boolean
+  icon?: React.ReactNode
+  iconPosition?: 'left' | 'right'
+  onClick?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>
+  type?: 'button' | 'submit' | 'reset'
+  href?: string
+  target?: string
+  as?: 'button' | 'link'
   // Custom colors (optional overrides)
-  backgroundColor?: string;
-  textColor?: string;
-  borderColor?: string;
-  hoverBackgroundColor?: string;
-  hoverTextColor?: string;
-};
+  backgroundColor?: string
+  textColor?: string
+  borderColor?: string
+  hoverBackgroundColor?: string
+  hoverTextColor?: string
+}
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-pup-maroon text-white border-transparent hover:bg-pup-maroon/80",
-  secondary: "bg-neutral-100 text-neutral-900 border-transparent hover:bg-neutral-200",
-  outline: "bg-white text-neutral-900 border-neutral-300 hover:bg-neutral-50",
-  ghost: "bg-transparent text-neutral-700 border-transparent hover:bg-neutral-100",
-};
+  primary: 'bg-pup-maroon text-white border-transparent hover:bg-pup-maroon/80',
+  secondary:
+    'bg-neutral-100 text-neutral-900 border-transparent hover:bg-neutral-200',
+  outline: 'bg-white text-neutral-900 border-neutral-300 hover:bg-neutral-50',
+  ghost:
+    'bg-transparent text-neutral-700 border-transparent hover:bg-neutral-100',
+}
 
-const sizeStyles: Record<ButtonSize, { padding: string; text: string; icon: string }> = {
+const sizeStyles: Record<
+  ButtonSize,
+  { padding: string; text: string; icon: string }
+> = {
   sm: {
-    padding: "px-4 py-2",
-    text: "text-sm",
-    icon: "w-4 h-4",
+    padding: 'px-4 py-2',
+    text: 'text-sm',
+    icon: 'w-4 h-4',
   },
   md: {
-    padding: "px-5 py-2.5",
-    text: "text-base",
-    icon: "w-5 h-5",
+    padding: 'px-5 py-2.5',
+    text: 'text-base',
+    icon: 'w-5 h-5',
   },
   lg: {
-    padding: "px-6 py-3",
-    text: "text-base",
-    icon: "w-5 h-5",
+    padding: 'px-6 py-3',
+    text: 'text-base',
+    icon: 'w-5 h-5',
   },
   xl: {
-    padding: "px-8 py-4",
-    text: "text-lg",
-    icon: "w-6 h-6",
+    padding: 'px-8 py-4',
+    text: 'text-lg',
+    icon: 'w-6 h-6',
   },
-};
+}
 
 const shapeStyles: Record<ButtonShape, string> = {
-  rectangle: "rounded-none",
-  rounded: "rounded-full",
-};
+  rectangle: 'rounded-none',
+  rounded: 'rounded-full',
+}
 
 export function Button({
   children,
-  variant = "primary",
-  size = "md",
-  shape = "rounded",
+  variant = 'primary',
+  size = 'md',
+  shape = 'rounded',
   fullWidth = false,
-  className = "",
+  className = '',
   disabled = false,
   loading = false,
   icon,
-  iconPosition = "left",
+  iconPosition = 'left',
   onClick,
-  type = "button",
+  type = 'button',
   href,
   target,
   as,
@@ -88,36 +93,43 @@ export function Button({
   hoverBackgroundColor,
   hoverTextColor,
 }: ButtonProps) {
-  const sizeConfig = sizeStyles[size];
-  const shapeClass = shapeStyles[shape];
-  const baseStyles = "inline-flex items-center justify-center gap-2 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+  const sizeConfig = sizeStyles[size]
+  const shapeClass = shapeStyles[shape]
+  const baseStyles =
+    'inline-flex items-center justify-center gap-2 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
 
   // Determine if this should be a link or button
-  const isLink = as === "link" || (href && !onClick && as !== "button");
+  const isLink = as === 'link' || (href && !onClick && as !== 'button')
 
   // Check if custom colors are provided
-  const hasCustomColors = !!(backgroundColor || textColor || borderColor || hoverBackgroundColor || hoverTextColor);
+  const hasCustomColors = !!(
+    backgroundColor ||
+    textColor ||
+    borderColor ||
+    hoverBackgroundColor ||
+    hoverTextColor
+  )
 
   // Build custom style object
-  const customStyle: React.CSSProperties = {};
-  if (backgroundColor) customStyle.backgroundColor = backgroundColor;
-  if (textColor) customStyle.color = textColor;
-  if (borderColor) customStyle.borderColor = borderColor;
+  const customStyle: React.CSSProperties = {}
+  if (backgroundColor) customStyle.backgroundColor = backgroundColor
+  if (textColor) customStyle.color = textColor
+  if (borderColor) customStyle.borderColor = borderColor
 
   // Apply variant styles unless custom colors are provided
-  const variantClass = hasCustomColors ? "" : variantStyles[variant];
+  const variantClass = hasCustomColors ? '' : variantStyles[variant]
 
-  const borderClass = (variant === "outline" || borderColor) ? "border" : "";
+  const borderClass = variant === 'outline' || borderColor ? 'border' : ''
 
-  const widthClass = fullWidth ? "w-full" : "";
+  const widthClass = fullWidth ? 'w-full' : ''
 
   // Build className with custom Tailwind classes if needed
-  const customTailwindClasses = [];
+  const customTailwindClasses = []
   if (hoverBackgroundColor && !hasCustomColors) {
-    customTailwindClasses.push(`hover:bg-[${hoverBackgroundColor}]`);
+    customTailwindClasses.push(`hover:bg-[${hoverBackgroundColor}]`)
   }
   if (hoverTextColor && !hasCustomColors) {
-    customTailwindClasses.push(`hover:text-[${hoverTextColor}]`);
+    customTailwindClasses.push(`hover:text-[${hoverTextColor}]`)
   }
 
   const combinedClassName = [
@@ -130,7 +142,10 @@ export function Button({
     widthClass,
     ...customTailwindClasses,
     className,
-  ].filter(Boolean).join(" ").replace(/\s+/g, " ");
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
 
   // Render icon
   const renderIcon = () => {
@@ -156,34 +171,34 @@ export function Button({
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           />
         </svg>
-      );
+      )
     }
     if (icon) {
-      return icon;
+      return icon
     }
-    return null;
-  };
+    return null
+  }
 
   // Render content with icon
   const renderContent = () => {
-    const iconElement = renderIcon();
-    if (!iconElement) return children;
+    const iconElement = renderIcon()
+    if (!iconElement) return children
 
-    if (iconPosition === "right") {
+    if (iconPosition === 'right') {
       return (
         <>
           {children}
           {iconElement}
         </>
-      );
+      )
     }
     return (
       <>
         {iconElement}
         {children}
       </>
-    );
-  };
+    )
+  }
 
   // Render as link
   if (isLink && href) {
@@ -196,7 +211,7 @@ export function Button({
       >
         {renderContent()}
       </Link>
-    );
+    )
   }
 
   // Render as button
@@ -209,32 +224,32 @@ export function Button({
       style={Object.keys(customStyle).length > 0 ? customStyle : undefined}
       onMouseEnter={(e) => {
         if (hoverBackgroundColor) {
-          e.currentTarget.style.backgroundColor = hoverBackgroundColor;
+          e.currentTarget.style.backgroundColor = hoverBackgroundColor
         }
         if (hoverTextColor) {
-          e.currentTarget.style.color = hoverTextColor;
+          e.currentTarget.style.color = hoverTextColor
         }
       }}
       onMouseLeave={(e) => {
         if (hoverBackgroundColor && backgroundColor) {
-          e.currentTarget.style.backgroundColor = backgroundColor;
+          e.currentTarget.style.backgroundColor = backgroundColor
         } else if (hoverBackgroundColor) {
-          e.currentTarget.style.backgroundColor = "";
+          e.currentTarget.style.backgroundColor = ''
         }
         if (hoverTextColor && textColor) {
-          e.currentTarget.style.color = textColor;
+          e.currentTarget.style.color = textColor
         } else if (hoverTextColor) {
-          e.currentTarget.style.color = "";
+          e.currentTarget.style.color = ''
         }
       }}
     >
       {renderContent()}
     </button>
-  );
+  )
 }
 
 // Google Icon Component (helper)
-export function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
+export function GoogleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -258,8 +273,7 @@ export function GoogleIcon({ className = "w-5 h-5" }: { className?: string }) {
         fill="#EA4335"
       />
     </svg>
-  );
+  )
 }
 
-export default Button;
-
+export default Button

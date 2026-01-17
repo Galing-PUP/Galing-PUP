@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { DocStatus } from "@/lib/generated/prisma/enums";
+import { prisma } from '@/lib/db'
+import { DocStatus } from '@/lib/generated/prisma/enums'
+import { NextRequest, NextResponse } from 'next/server'
 
 type RouteParams = {
   params: Promise<{
-    id: string;
-  }>;
-};
+    id: string
+  }>
+}
 
 /**
  * PATCH /api/admin/documents/[id]/status
@@ -15,24 +15,26 @@ type RouteParams = {
  */
 export async function PATCH(req: NextRequest, props: RouteParams) {
   try {
-    const { id } = await props.params;
-    const documentId = Number(id);
+    const { id } = await props.params
+    const documentId = Number(id)
 
     if (!Number.isInteger(documentId)) {
       return NextResponse.json(
-        { error: "Invalid document ID" },
-        { status: 400 }
-      );
+        { error: 'Invalid document ID' },
+        { status: 400 },
+      )
     }
 
-    const body = await req.json();
-    const { status } = body;
+    const body = await req.json()
+    const { status } = body
 
-    if (!status || !["Pending", "Accepted", "Rejected"].includes(status)) {
+    if (!status || !['Pending', 'Accepted', 'Rejected'].includes(status)) {
       return NextResponse.json(
-        { error: "Invalid status. Must be 'Pending', 'Accepted', or 'Rejected'" },
-        { status: 400 }
-      );
+        {
+          error: "Invalid status. Must be 'Pending', 'Accepted', or 'Rejected'",
+        },
+        { status: 400 },
+      )
     }
 
     /**
@@ -40,17 +42,17 @@ export async function PATCH(req: NextRequest, props: RouteParams) {
      */
     const mapStatusToDb = (status: string): DocStatus => {
       switch (status) {
-        case "Accepted":
-          return DocStatus.APPROVED;
-        case "Rejected":
-          return DocStatus.REJECTED;
-        case "Pending":
+        case 'Accepted':
+          return DocStatus.APPROVED
+        case 'Rejected':
+          return DocStatus.REJECTED
+        case 'Pending':
         default:
-          return DocStatus.PENDING;
+          return DocStatus.PENDING
       }
-    };
+    }
 
-    const dbStatus = mapStatusToDb(status);
+    const dbStatus = mapStatusToDb(status)
 
     const updatedDocument = await prisma.document.update({
       where: { id: documentId },
@@ -61,26 +63,23 @@ export async function PATCH(req: NextRequest, props: RouteParams) {
         id: true,
         status: true,
       },
-    });
+    })
 
     return NextResponse.json({
       success: true,
       id: updatedDocument.id.toString(),
       status: status,
-    });
+    })
   } catch (error: any) {
-    console.error("Error updating document status:", error);
+    console.error('Error updating document status:', error)
 
-    if (error.code === "P2025") {
-      return NextResponse.json(
-        { error: "Document not found" },
-        { status: 404 }
-      );
+    if (error.code === 'P2025') {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
     return NextResponse.json(
-      { error: "Failed to update document status" },
-      { status: 500 }
-    );
+      { error: 'Failed to update document status' },
+      { status: 500 },
+    )
   }
 }

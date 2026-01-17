@@ -1,16 +1,19 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { AlertCircle, Crown } from "lucide-react";
+import { AlertCircle, Crown } from 'lucide-react'
+import Link from 'next/link'
 
 type PremiumBannerProps = {
-  usedBookmarks: number;
-  maxBookmarks: number;
-};
+  usedBookmarks: number
+  maxBookmarks: number
+}
 
-export function PremiumBanner({ usedBookmarks, maxBookmarks }: PremiumBannerProps) {
+export function PremiumBanner({
+  usedBookmarks,
+  maxBookmarks,
+}: PremiumBannerProps) {
   if (usedBookmarks < maxBookmarks) {
-    return null;
+    return null
   }
 
   return (
@@ -18,7 +21,8 @@ export function PremiumBanner({ usedBookmarks, maxBookmarks }: PremiumBannerProp
       <div className="flex items-center gap-3">
         <AlertCircle className="h-5 w-5 text-gray-900" />
         <p className="flex-1 text-sm font-medium text-gray-900">
-          You&apos;re using {usedBookmarks} of {maxBookmarks} bookmarks on the Free tier.
+          You&apos;re using {usedBookmarks} of {maxBookmarks} bookmarks on the
+          Free tier.
         </p>
         <Link
           href="/pricing"
@@ -29,6 +33,5 @@ export function PremiumBanner({ usedBookmarks, maxBookmarks }: PremiumBannerProp
         </Link>
       </div>
     </div>
-  );
+  )
 }
-

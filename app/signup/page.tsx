@@ -1,127 +1,126 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import starLogo from "@/assets/Logo/star-logo-yellow.png";
-import { GoogleIcon } from "@/components/button"; // Keep custom icon
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import sideIllustration from '@/assets/Graphics/side-img-user-signin.png'
+import starLogo from '@/assets/Logo/star-logo-yellow.png'
+import { GoogleIcon } from '@/components/button' // Keep custom icon
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   checkUsernameAvailability,
   checkUserStatus,
   createUserInDb,
   getCurrentUser,
-} from "@/lib/actions";
-import { signInWithGooglePopup } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/client";
+} from '@/lib/actions'
+import { signInWithGooglePopup } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/client'
 import {
   signUpSchema,
   type SignUpFormValues,
-} from "@/lib/validations/auth-schema";
-import { useEffect } from "react";
+} from '@/lib/validations/auth-schema'
+import { useEffect } from 'react'
 
 export default function SignUpPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (session) {
-        const user = await getCurrentUser();
+        const user = await getCurrentUser()
         if (user) {
-          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
-          router.replace(isAdmin ? "/admin/publication" : "/");
+          const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          router.replace(isAdmin ? '/admin/publication' : '/')
         }
       }
-    };
-    checkSession();
-  }, [router]);
+    }
+    checkSession()
+  }, [router])
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
-    mode: "onChange",
-  });
+    mode: 'onChange',
+  })
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = form;
-
-
+  } = form
 
   const handleGoogleSignUp = async () => {
     try {
-      const { user, error } = await signInWithGooglePopup();
+      const { user, error } = await signInWithGooglePopup('signup')
 
       if (error) {
-        toast.error(error.message);
-        return;
+        toast.error(error.message)
+        return
       }
 
       if (user) {
-        const supabase = createClient();
+        const supabase = createClient()
         await supabase.auth.setSession({
-          access_token: user.session?.access_token || "",
-          refresh_token: user.session?.refresh_token || "",
-        });
+          access_token: user.session?.access_token || '',
+          refresh_token: user.session?.refresh_token || '',
+        })
 
-        const status = await checkUserStatus(user.email || "");
+        const status = await checkUserStatus(user.email || '')
 
         if (!status.exists) {
           await createUserInDb(
-            user.email || "",
-            user.user_metadata.full_name || "",
+            user.email || '',
+            user.user_metadata.full_name || '',
             user.id,
-            "" // No password for Google auth
-          );
+            '', // No password for Google auth
+          )
         }
 
-        toast.success("Successfully signed in with Google!");
-        router.push("/");
-        router.refresh();
+        toast.success('Successfully signed in with Google!')
+        router.push('/')
+        router.refresh()
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign up with Google");
+      toast.error(error.message || 'Failed to sign up with Google')
     }
-  };
+  }
 
   const onSubmit = async (data: SignUpFormValues) => {
-    setIsLoading(true);
-    const { username, email, password } = data;
+    setIsLoading(true)
+    const { username, email, password } = data
 
     try {
       // Step 1: Check username availability
-      const { exists: usernameExists } = await checkUsernameAvailability(
-        username
-      );
+      const { exists: usernameExists } =
+        await checkUsernameAvailability(username)
       if (usernameExists) {
-        toast.error("Username already exists, please login");
-        setIsLoading(false);
-        return;
+        toast.error('Username already exists, please login')
+        setIsLoading(false)
+        return
       }
 
       // Step 2: Check supabase auth first to see if email is taken there
-      const supabase = createClient();
+      const supabase = createClient()
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email,
@@ -131,42 +130,42 @@ export default function SignUpPage() {
               username,
             },
           },
-        });
+        })
 
       if (signUpError) {
         // Handle specific case where user exists but might be unverified/verified
-        if (signUpError.message.includes("already registered")) {
-          const status = await checkUserStatus(email);
+        if (signUpError.message.includes('already registered')) {
+          const status = await checkUserStatus(email)
           if (status.exists && !status.isVerified) {
             toast.error(
-              "User already registered but not verified. Redirecting to verification..."
-            );
-            router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+              'User already registered but not verified. Redirecting to verification...',
+            )
+            router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
           } else {
-            toast.error("User already registered, please login");
-            router.push("/signin");
+            toast.error('User already registered, please login')
+            router.push('/signin')
           }
         } else {
-          toast.error(signUpError.message);
+          toast.error(signUpError.message)
         }
-        setIsLoading(false);
-        return;
+        setIsLoading(false)
+        return
       }
 
       // Step 4: Signup successful, create user in DB and redirect
       if (signUpData.user) {
-        await createUserInDb(email, username, signUpData.user.id, password);
+        await createUserInDb(email, username, signUpData.user.id, password)
       }
 
-      toast.success("Account created! Please verify your email.");
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+      toast.success('Account created! Please verify your email.')
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`)
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Something went wrong during signup");
+      console.error('Signup error:', error)
+      toast.error(error.message || 'Something went wrong during signup')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
@@ -214,7 +213,7 @@ export default function SignUpPage() {
                 id="username"
                 placeholder="Enter your username"
                 className="rounded-lg border-neutral-300 px-4 py-2.5 text-base"
-                {...register("username")}
+                {...register('username')}
               />
               {errors.username && (
                 <p className="text-sm text-red-500">
@@ -236,7 +235,7 @@ export default function SignUpPage() {
                 type="email"
                 placeholder="yourname@gmail.com"
                 className="rounded-lg border-neutral-300 px-4 py-2.5 text-base"
-                {...register("email")}
+                {...register('email')}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -254,10 +253,10 @@ export default function SignUpPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Create a password"
                   className="rounded-lg border-neutral-300 px-4 py-2.5 pr-12 text-base"
-                  {...register("password")}
+                  {...register('password')}
                 />
                 <Button
                   type="button"
@@ -272,13 +271,12 @@ export default function SignUpPage() {
                     <Eye className="h-5 w-5 text-neutral-400" />
                   )}
                   <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
+                    {showPassword ? 'Hide password' : 'Show password'}
                   </span>
                 </Button>
               </div>
 
               {/* Password Requirements Checklist */}
-
 
               {errors.password && (
                 <p className="text-sm text-red-500">
@@ -298,10 +296,10 @@ export default function SignUpPage() {
               <div className="relative">
                 <Input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
                   className="rounded-lg border-neutral-300 px-4 py-2.5 pr-12 text-base"
-                  {...register("confirmPassword")}
+                  {...register('confirmPassword')}
                 />
                 <Button
                   type="button"
@@ -316,7 +314,7 @@ export default function SignUpPage() {
                     <Eye className="h-5 w-5 text-neutral-400" />
                   )}
                   <span className="sr-only">
-                    {showConfirmPassword ? "Hide password" : "Show password"}
+                    {showConfirmPassword ? 'Hide password' : 'Show password'}
                   </span>
                 </Button>
               </div>
@@ -338,7 +336,7 @@ export default function SignUpPage() {
                   Creating account...
                 </>
               ) : (
-                "Create Account"
+                'Create Account'
               )}
             </Button>
 
@@ -360,7 +358,7 @@ export default function SignUpPage() {
 
         <div className="mt-auto flex justify-center pt-8">
           <p className="text-sm text-neutral-500">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link
               href="/signin"
               className="font-semibold text-pup-maroon transition hover:underline"
@@ -382,5 +380,5 @@ export default function SignUpPage() {
         />
       </div>
     </div>
-  );
+  )
 }

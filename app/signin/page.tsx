@@ -1,152 +1,154 @@
-"use client";
+'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import sideIllustration from "@/assets/Graphics/side-img-user-signin.png";
-import starLogo from "@/assets/Logo/star-logo-yellow.png";
-import { GoogleIcon } from "@/components/button"; // Keep custom icon if specific
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { checkUserStatus, verifyCredentials, getCurrentUser } from "@/lib/actions";
-import { signInWithGooglePopup } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/client";
+import sideIllustration from '@/assets/Graphics/side-img-user-signin.png'
+import starLogo from '@/assets/Logo/star-logo-yellow.png'
+import { GoogleIcon } from '@/components/button' // Keep custom icon if specific
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  checkUserStatus,
+  getCurrentUser,
+  verifyCredentials,
+} from '@/lib/actions'
+import { signInWithGooglePopup } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/client'
 import {
   signInSchema,
   type SignInFormValues,
-} from "@/lib/validations/auth-schema";
-import { useEffect } from "react";
+} from '@/lib/validations/auth-schema'
+import { useEffect } from 'react'
 
 export default function SignInPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (session) {
-        const user = await getCurrentUser();
+        const user = await getCurrentUser()
         if (user) {
-          const isAdmin = user.role === "ADMIN" || user.role === "SUPERADMIN";
-          router.replace(isAdmin ? "/admin/publication" : "/");
+          const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+          router.replace(isAdmin ? '/admin/publication' : '/')
         }
       }
-    };
-    checkSession();
-  }, [router]);
+    }
+    checkSession()
+  }, [router])
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  });
+  })
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = form;
+  } = form
 
   const handleGoogleSignIn = async () => {
     try {
-      const { user, error } = await signInWithGooglePopup();
+      const { user, error } = await signInWithGooglePopup('signin')
       if (error) {
-        toast.error(error.message);
-        return;
+        toast.error(error.message)
+        return
       }
       if (user) {
-        const supabase = createClient();
+        const supabase = createClient()
         await supabase.auth.setSession({
-          access_token: user.session?.access_token || "",
-          refresh_token: user.session?.refresh_token || "",
-        });
-        toast.success("Successfully signed in with Google!");
-        router.push("/");
-        router.refresh();
+          access_token: user.session?.access_token || '',
+          refresh_token: user.session?.refresh_token || '',
+        })
+        toast.success('Successfully signed in with Google!')
+        router.push('/')
+        router.refresh()
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with Google");
+      toast.error(error.message || 'Failed to sign in with Google')
     }
-  };
+  }
 
   const onSubmit = async (data: SignInFormValues) => {
-    setIsLoading(true);
-    const { email: emailOrUsername, password } = data;
+    setIsLoading(true)
+    const { email: emailOrUsername, password } = data
 
     try {
       // 1. Check if user exists and get their status
-      const status = await checkUserStatus(emailOrUsername);
+      const status = await checkUserStatus(emailOrUsername)
 
       if (!status.exists) {
-        toast.error("User does not exist, please sign up");
-        setIsLoading(false);
-        return;
+        toast.error('User does not exist, please sign up')
+        setIsLoading(false)
+        return
       }
 
       // Check if user is verified
       if (!status.isVerified) {
-
-
         toast.error(
-          "User is not verified, please check your email for the code"
-        );
+          'User is not verified, please check your email for the code',
+        )
         router.push(
           `/verify-otp?email=${encodeURIComponent(
-            status.email || emailOrUsername
-          )}`
-        );
-        setIsLoading(false);
-        return;
+            status.email || emailOrUsername,
+          )}`,
+        )
+        setIsLoading(false)
+        return
       }
 
       // 2. Verify password with the resolved email from status (to handle username login)
       const validCredentials = await verifyCredentials(
         status.email || emailOrUsername,
-        password
-      );
+        password,
+      )
 
       if (!validCredentials) {
-        toast.error("Invalid credentials");
-        setIsLoading(false);
-        return;
+        toast.error('Invalid credentials')
+        setIsLoading(false)
+        return
       }
 
       // 3. Sign in with Supabase
-      const supabase = createClient();
+      const supabase = createClient()
       const { error } = await supabase.auth.signInWithPassword({
         email: status.email || emailOrUsername,
         password,
-      });
+      })
 
       if (error) {
-        toast.error(error.message);
-        setIsLoading(false);
-        return;
+        toast.error(error.message)
+        setIsLoading(false)
+        return
       }
 
-      toast.success("Signed in successfully");
-      router.push("/");
-      router.refresh();
+      toast.success('Signed in successfully')
+      router.push('/')
+      router.refresh()
     } catch (error) {
-      console.error("Sign in error:", error);
-      toast.error("Something went wrong. Please try again.");
+      console.error('Sign in error:', error)
+      toast.error('Something went wrong. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-
-
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
@@ -193,7 +195,7 @@ export default function SignInPage() {
                 id="email"
                 placeholder="Enter your email or username"
                 className="rounded-lg border-neutral-300 px-4 py-6 text-base"
-                {...register("email")}
+                {...register('email')}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -210,10 +212,10 @@ export default function SignInPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   className="rounded-lg border-neutral-300 px-4 py-6 pr-12 text-base"
-                  {...register("password")}
+                  {...register('password')}
                 />
                 <Button
                   type="button"
@@ -228,7 +230,7 @@ export default function SignInPage() {
                     <Eye className="h-5 w-5 text-neutral-400" />
                   )}
                   <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
+                    {showPassword ? 'Hide password' : 'Show password'}
                   </span>
                 </Button>
               </div>
@@ -261,7 +263,7 @@ export default function SignInPage() {
                   Signing in...
                 </>
               ) : (
-                "Sign In"
+                'Sign In'
               )}
             </Button>
 
@@ -283,7 +285,7 @@ export default function SignInPage() {
 
         <div className="mt-auto flex justify-center pt-8">
           <p className="text-sm text-neutral-500">
-            Don&apos;t have an account?{" "}
+            Don&apos;t have an account?{' '}
             <Link
               href="/signup"
               className="font-semibold text-pup-maroon transition hover:underline"
@@ -305,5 +307,5 @@ export default function SignInPage() {
         />
       </div>
     </div>
-  );
+  )
 }

@@ -1,21 +1,21 @@
-"use client";
+'use client'
 
-import type React from "react";
+import type React from 'react'
 
 interface BenefitCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  iconBgColor?: string;
-  iconColor?: string;
+  icon: React.ReactNode
+  title: string
+  description: string
+  iconBgColor?: string
+  iconColor?: string
 }
 
 export function BenefitCard({
   icon,
   title,
   description,
-  iconBgColor = "bg-pup-maroon",
-  iconColor = "text-white",
+  iconBgColor = 'bg-pup-maroon',
+  iconColor = 'text-white',
 }: BenefitCardProps) {
   return (
     <div className="flex flex-col items-center text-center p-8 bg-white rounded-2xl border border-gray-200 transition-all duration-300 hover:shadow-lg">
@@ -32,5 +32,5 @@ export function BenefitCard({
       {/* Description */}
       <p className="text-gray-600 text-base leading-relaxed">{description}</p>
     </div>
-  );
+  )
 }

@@ -1,58 +1,60 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState, useEffect, useRef } from "react";
-import Image from "next/image";
-import LogoDefault from "@/assets/Logo/logo-default.png";
-import { SignInModal } from "@/components/SignInModal";
-import { getCurrentUser, signOut } from "@/lib/actions";
-import { User, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { formatTier } from "@/lib/utils/format";
-import { TierName } from "@/lib/generated/prisma/enums";
+import LogoDefault from '@/assets/Logo/logo-default.png'
+import { SignInModal } from '@/components/SignInModal'
+import { getCurrentUser, signOut } from '@/lib/actions'
+import { RoleName, TierName } from '@/lib/generated/prisma/enums'
+import { formatTier } from '@/lib/utils/format'
+import { Loader2, User } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import UserPreferencesModal from './user-preferences-modal'
 
 type NavItem = {
-  label: string;
-  href: string;
-  exact?: boolean;
-};
+  label: string
+  href: string
+  exact?: boolean
+}
 
 type ActionLink = {
-  href: string;
-  label: string;
-};
+  href: string
+  label: string
+}
 
 type UserProfile = {
-  username: string;
-  tierName: TierName;
-  email: string;
-};
+  username: string
+  tierName: TierName
+  email: string
+  role: RoleName
+}
 
 type HeaderProps = {
-  navItems?: NavItem[];
-  signIn?: ActionLink;
-  primaryAction?: ActionLink;
-  className?: string;
-  initialUser?: UserProfile | null;
-};
+  navItems?: NavItem[]
+  signIn?: ActionLink
+  primaryAction?: ActionLink
+  className?: string
+  initialUser?: UserProfile | null
+}
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
-  { label: "Home", href: "/", exact: true },
-  { label: "Browse", href: "/browse" },
-  { label: "My Library", href: "/library" },
-  { label: "Pricing", href: "/pricing" },
-];
+  { label: 'Home', href: '/', exact: true },
+  { label: 'Browse', href: '/browse' },
+  { label: 'My Library', href: '/library' },
+  { label: 'Pricing', href: '/pricing' },
+]
 
 const DEFAULT_SIGN_IN: ActionLink = {
-  href: "/signin",
-  label: "Sign In",
-};
+  href: '/signin',
+  label: 'Sign In',
+}
 
 const DEFAULT_PRIMARY_ACTION: ActionLink = {
-  href: "/signup",
-  label: "Create Account",
-};
+  href: '/signup',
+  label: 'Create Account',
+}
 
 /**
  * Header component that displays navigation, authentication buttons, or user profile.
@@ -65,36 +67,37 @@ export function Header({
   navItems = DEFAULT_NAV_ITEMS,
   signIn = DEFAULT_SIGN_IN,
   primaryAction = DEFAULT_PRIMARY_ACTION,
-  className = "",
+  className = '',
   initialUser = null,
 }: HeaderProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(initialUser);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname()
+  const router = useRouter()
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false)
+  const [user, setUser] = useState<UserProfile | null>(initialUser)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setUser(initialUser);
-  }, [initialUser]);
+    setUser(initialUser)
+  }, [initialUser])
 
   // Fetch user on mount
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const userData = await getCurrentUser();
+        const userData = await getCurrentUser()
         // Ensure userData matches UserProfile type (username should not be null)
         if (userData && userData.username) {
-          setUser(userData as UserProfile);
+          setUser(userData as UserProfile)
         }
       } catch (error) {
-        console.error("Failed to fetch user:", error);
+        console.error('Failed to fetch user:', error)
       }
-    };
-    fetchUser();
-  }, []);
+    }
+    fetchUser()
+  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -103,12 +106,12 @@ export function Header({
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsDropdownOpen(false);
+        setIsDropdownOpen(false)
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   /**
    * Handles user sign out with a smooth transition.
@@ -116,60 +119,60 @@ export function Header({
    */
   const handleSignOut = async () => {
     try {
-      setIsSigningOut(true);
-      setIsDropdownOpen(false);
+      setIsSigningOut(true)
+      setIsDropdownOpen(false)
       // Show toast notification
-      toast.loading("Signing out...", { id: "signout" });
-      await signOut();
-      toast.success("Signed out successfully", { id: "signout" });
+      toast.loading('Signing out...', { id: 'signout' })
+      await signOut()
+      toast.success('Signed out successfully', { id: 'signout' })
       // Clear user state for immediate UI update
-      setUser(null);
+      setUser(null)
       // Add a small delay for smooth transition before refreshing
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      router.refresh();
-      router.push("/");
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      router.refresh()
+      router.push('/')
     } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Failed to sign out. Please try again.", { id: "signout" });
+      console.error('Error signing out:', error)
+      toast.error('Failed to sign out. Please try again.', { id: 'signout' })
     } finally {
-      setIsSigningOut(false);
+      setIsSigningOut(false)
     }
-  };
+  }
 
   const activeLookup = useMemo(() => {
-    const map = new Map<string, boolean>();
+    const map = new Map<string, boolean>()
 
     navItems.forEach((item) => {
       if (item.exact) {
-        map.set(item.href, pathname === item.href);
-        return;
+        map.set(item.href, pathname === item.href)
+        return
       }
-      map.set(item.href, pathname.startsWith(item.href));
-    });
+      map.set(item.href, pathname.startsWith(item.href))
+    })
 
-    return map;
-  }, [navItems, pathname]);
+    return map
+  }, [navItems, pathname])
 
   // Get initials for avatar placeholder
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
-      .slice(0, 2);
-  };
+      .slice(0, 2)
+  }
 
   // hides the header for admin pages, sign in, and sign up pages
   if (
-    pathname.startsWith("/admin") ||
-    pathname === "/signin" ||
-    pathname === "/signup" ||
-    pathname === "/verify-otp" ||
-    pathname === "/forgot-password" ||
-    pathname === "/update-password"
+    pathname.startsWith('/admin') ||
+    pathname === '/signin' ||
+    pathname === '/signup' ||
+    pathname === '/verify-otp' ||
+    pathname === '/forgot-password' ||
+    pathname === '/update-password'
   ) {
-    return null;
+    return null
   }
 
   return (
@@ -178,6 +181,19 @@ export function Header({
         isOpen={isSignInModalOpen}
         onClose={() => setIsSignInModalOpen(false)}
       />
+      {user && (
+        <UserPreferencesModal
+          isOpen={isPreferencesOpen}
+          onClose={() => setIsPreferencesOpen(false)}
+          initialUsername={user.username}
+          userRole={user.role}
+          onUsernameUpdated={(nextUsername) => {
+            setUser((prev) =>
+              prev ? { ...prev, username: nextUsername } : prev,
+            )
+          }}
+        />
+      )}
       <header
         className={`w-full border-b border-neutral-200 bg-white ${className}`}
       >
@@ -198,7 +214,7 @@ export function Header({
           {/* Navigation Links (Home, Browse, My Library, Pricing) */}
           <nav className="hidden items-center justify-center gap-10 text-sm font-medium md:flex md:justify-self-center col-start-2 col-end-3">
             {navItems.map((item) => {
-              const isActive = activeLookup.get(item.href);
+              const isActive = activeLookup.get(item.href)
 
               return (
                 <Link
@@ -207,14 +223,14 @@ export function Header({
                   className={`pb-1 transition-colors duration-200
                   ${
                     isActive
-                      ? "font-medium border-b-2 border-pup-gold-light text-pup-maroon"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? 'font-medium border-b-2 border-pup-gold-light text-pup-maroon'
+                      : 'text-gray-500 hover:text-gray-900'
                   }
                 `}
                 >
                   {item.label}
                 </Link>
-              );
+              )
             })}
           </nav>
 
@@ -250,8 +266,8 @@ export function Header({
                     <button
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => {
-                        // TODO: Navigate to user preferences
-                        setIsDropdownOpen(false);
+                        setIsPreferencesOpen(true)
+                        setIsDropdownOpen(false)
                       }}
                     >
                       User preferences
@@ -317,7 +333,7 @@ export function Header({
         </div>
       </header>
     </>
-  );
+  )
 }
 
-export default Header;
+export default Header

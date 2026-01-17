@@ -4,10 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint . --cache",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,prisma}\" --ignore-unknown",
     "db:owner": "bun run prisma/owner.ts"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "arrowParens": "always",
+    "plugins": [
+      "prettier-plugin-tailwindcss",
+      "prettier-plugin-organize-imports",
+      "prettier-plugin-prisma"
+    ]
   },
   "dependencies": {
     "@citation-js/core": "^0.7.21",
@@ -65,9 +78,13 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "baseline-browser-mapping": "^2.8.32",
+    "baseline-browser-mapping": "^2.9.14",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.1",
+    "prettier": "^3.7.4",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-prisma": "^5.0.0",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "prisma": "^7.2.0",
     "shadcn": "^3.5.1",
     "tailwindcss": "^4.1.17",

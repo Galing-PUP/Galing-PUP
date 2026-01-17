@@ -1,25 +1,25 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 type SearchResult = {
-  id: number;
-  title: string;
-  authors: string[];
-  authorEmails: string[];
-  additionalAuthors: number;
-  field: string;
-  date: string;
-  abstract: string;
-  pdfUrl?: string;
-};
+  id: number
+  title: string
+  authors: string[]
+  authorEmails: string[]
+  additionalAuthors: number
+  field: string
+  date: string
+  abstract: string
+  pdfUrl?: string
+}
 
 type SearchResultCardProps = {
-  result: SearchResult;
-  className?: string;
-};
+  result: SearchResult
+  className?: string
+}
 
 export function SearchResultCard({
   result,
-  className = "",
+  className = '',
 }: SearchResultCardProps) {
   return (
     <div
@@ -47,12 +47,12 @@ export function SearchResultCard({
                 >
                   {author}
                 </a>
-                {index < result.authors.length - 1 && ", "}
+                {index < result.authors.length - 1 && ', '}
               </span>
             ))}
             {result.additionalAuthors > 0 && (
               <span>
-                ,{" "}
+                ,{' '}
                 <a
                   href={`/paper/${result.id}`}
                   className="underline hover:text-[#6b0504] transition-colors"
@@ -62,7 +62,7 @@ export function SearchResultCard({
               </span>
             )}
             <span>
-              {" "}
+              {' '}
               • {result.field} • {result.date}
             </span>
           </div>
@@ -76,7 +76,7 @@ export function SearchResultCard({
         {/* PDF Link */}
         <div className="mt-3 md:mt-0 md:ml-4">
           <a
-            href={result.pdfUrl || "#"}
+            href={result.pdfUrl || '#'}
             className="text-sm font-medium text-[#6b0504] hover:text-[#4a0403] transition-colors"
           >
             [PDF]
@@ -84,7 +84,7 @@ export function SearchResultCard({
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default SearchResultCard;
+export default SearchResultCard

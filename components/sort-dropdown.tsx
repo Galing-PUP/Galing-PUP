@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Select,
@@ -6,30 +6,30 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 
 type SortOption =
-  | "Newest to Oldest"
-  | "Oldest to Newest"
-  | "Title A-Z"
-  | "Title Z-A";
+  | 'Newest to Oldest'
+  | 'Oldest to Newest'
+  | 'Title A-Z'
+  | 'Title Z-A'
 
 type SortDropdownProps = {
-  value?: SortOption;
-  onChange?: (value: SortOption) => void;
-  className?: string;
-};
+  value?: SortOption
+  onChange?: (value: SortOption) => void
+  className?: string
+}
 
 export function SortDropdown({
-  value = "Newest to Oldest",
+  value = 'Newest to Oldest',
   onChange,
-  className = "",
+  className = '',
 }: SortDropdownProps) {
   const handleValueChange = (newValue: string) => {
     if (onChange) {
-      onChange(newValue as SortOption);
+      onChange(newValue as SortOption)
     }
-  };
+  }
 
   return (
     <div className={`relative inline-block ${className}`}>
@@ -45,7 +45,7 @@ export function SortDropdown({
         </SelectContent>
       </Select>
     </div>
-  );
+  )
 }
 
-export default SortDropdown;
+export default SortDropdown
