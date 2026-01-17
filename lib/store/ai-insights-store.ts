@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AiCitation, AiInsightResult } from '@/types/ai-insights';
+import { AiInsightResult } from '@/types/ai-insights';
 
 interface AiInsightsStore {
     // Data
