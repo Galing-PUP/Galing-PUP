@@ -60,33 +60,39 @@ export default function Upload() {
 
       promiseResolve!(data);
 
-      // Trigger Ingestion
-      try {
-        const toastId = toast.loading("Processing AI Embeddings and Summary...");
-        console.log("Triggering ingestion for document:", data.id);
+      // Trigger Ingestion with Streaming Feedback
+      if (data.id) {
+        const toastId = toast.loading("Initializing AI processing...");
 
-        const ingestRes = await fetch("/api/admin/ingest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ documentId: data.id }),
-        });
+        try {
+          // Dynamic import to avoid SSR issues if any, though regular import is fine here
+          const { streamIngest } = await import("@/lib/utils/ingest-client");
 
-        if (!ingestRes.ok) {
-          const ingestErr = await ingestRes.json();
-          console.error("Ingestion failed:", ingestErr);
-          toast.error("AI Processing failed (Document saved)", { id: toastId });
-        } else {
-          const ingestData = await ingestRes.json();
-          console.log("Ingestion success:", ingestData);
-          toast.success("AI Processing Complete!", { id: toastId });
+          await streamIngest(data.id, (step) => {
+            if (step.step === "complete") {
+              toast.success("AI Processing Complete!", { id: toastId });
+            } else if (step.step === "error") {
+              toast.error(`AI Processing Failed: ${step.message}`, { id: toastId });
+            } else {
+              // Update toast with progress
+              toast.loading(
+                <div className="space-y-2 min-w-[200px]">
+                  <p className="text-sm font-medium">{step.message}</p>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-pup-maroon h-full transition-all duration-300 ease-out"
+                      style={{ width: `${step.progress}%` }}
+                    />
+                  </div>
+                </div>,
+                { id: toastId }
+              );
+            }
+          });
+        } catch (err) {
+          console.error("Ingestion error:", err);
+          toast.error("AI Processing notification error", { id: toastId });
         }
-      } catch (err) {
-        console.error("Ingestion error:", err);
-        // We can't easily access toastId here unless we lift it out of the try block,
-        // but since toast.loading is inside, we should handle it inside or check scope.
-        // Actually, let's move declaration outside try or just handle it cleanly.
-        // Re-writing to be safer:
-        toast.error("AI Processing notification error");
       }
 
       // Slight delay before redirect to let user see success message

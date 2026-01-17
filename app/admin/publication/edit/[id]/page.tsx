@@ -100,6 +100,41 @@ export default function Edit() {
         throw new Error(errorData.error || "Failed to update document");
       }
 
+      // Check if a new file was uploaded, if so, trigger re-ingestion
+      if (formData.file) {
+        const toastId = toast.loading("Initializing AI processing...");
+
+        try {
+          // Dynamic import to avoid SSR issues if any
+          const { streamIngest } = await import("@/lib/utils/ingest-client");
+
+          await streamIngest(Number(documentId), (step) => {
+            if (step.step === "complete") {
+              toast.success("AI Processing Complete!", { id: toastId });
+            } else if (step.step === "error") {
+              toast.error(`AI Processing Failed: ${step.message}`, { id: toastId });
+            } else {
+              // Update toast with progress
+              toast.loading(
+                <div className="space-y-2 min-w-[200px]">
+                  <p className="text-sm font-medium">{step.message}</p>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-pup-maroon h-full transition-all duration-300 ease-out"
+                      style={{ width: `${step.progress}%` }}
+                    />
+                  </div>
+                </div>,
+                { id: toastId }
+              );
+            }
+          });
+        } catch (err) {
+          console.error("Ingestion error:", err);
+          toast.error("AI Processing notification error", { id: toastId });
+        }
+      }
+
       promiseResolve!(null);
 
       // Slight delay for UX

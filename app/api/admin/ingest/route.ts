@@ -29,151 +29,167 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { documentId } = await req.json();
+        // Encoder for streaming text
+        const encoder = new TextEncoder();
 
-        if (!documentId) {
-            return NextResponse.json({ error: "Missing documentId" }, { status: 400 });
-        }
+        const stream = new ReadableStream({
+            async start(controller) {
+                const sendUpdate = (step: string, progress: number, message: string) => {
+                    const data = JSON.stringify({ step, progress, message }) + "\n";
+                    try {
+                        controller.enqueue(encoder.encode(data));
+                    } catch (e) {
+                        // Start controller error safety
+                    }
+                };
 
-        // 2. Fetch Document Metadata
-        const document = await prisma.document.findUnique({
-            where: { id: documentId },
-        });
+                try {
+                    // 1. Process Input
+                    const { documentId } = await req.json();
 
-        if (!document) {
-            return NextResponse.json({ error: "Document not found" }, { status: 404 });
-        }
+                    if (!documentId) {
+                        throw new Error("Missing documentId");
+                    }
 
-        // 3. Load File from Supabase Storage
-        console.log(`[Ingest] Downloading file from Supabase Storage: ${document.filePath}...`);
+                    // 2. Fetch Document Metadata
+                    const document = await prisma.document.findUnique({
+                        where: { id: documentId },
+                    });
 
-        const { data: fileBlob, error: downloadError } = await supabaseAdmin.storage
-            .from("PDF_UPLOADS")
-            .download(document.filePath);
+                    if (!document) {
+                        throw new Error("Document not found");
+                    }
 
-        if (downloadError || !fileBlob) {
-            console.error("[Ingest] Download failed:", downloadError);
-            return NextResponse.json({ error: "Failed to download file from storage" }, { status: 500 });
-        }
+                    // 3. Load File from Supabase Storage
+                    sendUpdate("downloading", 10, `Downloading file: ${document.filePath}...`);
 
-        const fileArrayBuffer = await fileBlob.arrayBuffer();
-        const fileBuffer = Buffer.from(fileArrayBuffer);
-        console.log(`[Ingest] File downloaded. Size: ${fileBuffer.length} bytes.`);
+                    const { data: fileBlob, error: downloadError } = await supabaseAdmin.storage
+                        .from("PDF_UPLOADS")
+                        .download(document.filePath);
 
-        // 4. Compute Checksum (SHA-256)
-        const crypto = await import("crypto");
-        const hashSum = crypto.createHash("sha256");
-        hashSum.update(fileBuffer);
-        const hexHash = hashSum.digest("hex");
+                    if (downloadError || !fileBlob) {
+                        throw new Error("Failed to download file from storage");
+                    }
 
-        // Check if re-generation is needed
-        // If hash matches matches and aiSummary exists, skip
-        if (document.fileHash === hexHash && document.aiSummary) {
-            return NextResponse.json({
-                success: true,
-                message: "Document unchanged, skipping AI processing.",
-                chunksProcessed: 0
-            });
-        }
+                    const fileArrayBuffer = await fileBlob.arrayBuffer();
+                    const fileBuffer = Buffer.from(fileArrayBuffer);
+                    sendUpdate("downloading", 20, `File downloaded. Size: ${fileBuffer.length} bytes.`);
 
-        // 5. Extract Text
-        console.log(`[Ingest] Extracting text from buffer...`);
-        const pages = await extractTextFromPdf(fileBuffer);
-        console.log(`[Ingest] Extracted ${pages.length} pages.`);
-        if (pages.length === 0) {
-            return NextResponse.json({ error: "No text extracted from PDF" }, { status: 400 });
-        }
+                    // 4. Compute Checksum (SHA-256)
+                    const crypto = await import("crypto");
+                    const hashSum = crypto.createHash("sha256");
+                    hashSum.update(fileBuffer);
+                    const hexHash = hashSum.digest("hex");
 
-        // 6. Chunk Text
-        const chunks = chunkDocument(pages);
-        console.log(`[Ingest] Created ${chunks.length} chunks.`);
+                    // Check if re-generation is needed
+                    // If hash matches matches and aiSummary exists, skip
+                    if (document.fileHash === hexHash && document.aiSummary) {
+                        sendUpdate("complete", 100, "Document unchanged, skipping AI processing.");
+                        controller.close();
+                        return;
+                    }
 
-        // 7. Generate Embeddings & Save Chunks (Atomic-like)
-        // We only need to re-embed if hash changed or never embedded
-        // For simplicity, if we are here, we re-process everything to stay consistent
+                    // 5. Extract Text
+                    sendUpdate("extracting", 30, "Extracting text from PDF...");
+                    const pages = await extractTextFromPdf(fileBuffer);
 
-        const EMBEDDING_BATCH_SIZE = 10;
-        const chunksWithEmbeddings: any[] = [];
-        console.log("[Ingest] Starting embedding generation...");
+                    if (pages.length === 0) {
+                        throw new Error("No text extracted from PDF");
+                    }
+                    sendUpdate("extracting", 40, `Extracted ${pages.length} pages.`);
 
-        for (let i = 0; i < chunks.length; i += EMBEDDING_BATCH_SIZE) {
-            const batchParams = chunks.slice(i, i + EMBEDDING_BATCH_SIZE);
-            const batchTexts = batchParams.map(c => c.content);
+                    // 6. Chunk Text
+                    const chunks = chunkDocument(pages);
+                    sendUpdate("extracting", 45, `Created ${chunks.length} chunks.`);
 
-            // Generate
-            console.log(`[Ingest] Processing batch ${i / EMBEDDING_BATCH_SIZE + 1} (${batchTexts.length} items)...`);
-            const embeddings = await generateEmbeddings(batchTexts);
+                    // 7. Generate Embeddings & Save Chunks
+                    const EMBEDDING_BATCH_SIZE = 10;
+                    const chunksWithEmbeddings: any[] = [];
+                    sendUpdate("embedding", 50, "Generating embeddings...");
 
-            // Merge
-            batchParams.forEach((param, idx) => {
-                chunksWithEmbeddings.push({
-                    ...param,
-                    embedding: embeddings[idx]
-                });
-            });
-        }
+                    for (let i = 0; i < chunks.length; i += EMBEDDING_BATCH_SIZE) {
+                        const batchParams = chunks.slice(i, i + EMBEDDING_BATCH_SIZE);
+                        const batchTexts = batchParams.map(c => c.content);
 
-        // Transaction for DB Updates
-        await prisma.$transaction(async (tx) => {
-            // Clear existing chunks
-            await tx.documentChunk.deleteMany({
-                where: { documentId: documentId }
-            });
-        });
+                        // Update progress based on batch
+                        const progress = 50 + Math.round((i / chunks.length) * 25); // 50-75%
+                        sendUpdate("embedding", progress, `Processing batch ${Math.ceil((i + 1) / EMBEDDING_BATCH_SIZE)}...`);
 
-        // Re-insert chunks (outside transaction wrapper due to raw query limitation in helper)
-        console.log("[Ingest] Saving chunks to DB...");
-        await saveDocumentChunks(documentId, chunksWithEmbeddings);
+                        const embeddings = await generateEmbeddings(batchTexts);
 
-        // 8. Generate AI Summary (Verified Citations Flow)
-        console.log("[Ingest] Fetching saved chunks for context assembly...");
+                        batchParams.forEach((param, idx) => {
+                            chunksWithEmbeddings.push({
+                                ...param,
+                                embedding: embeddings[idx]
+                            });
+                        });
+                    }
 
-        // Fetch chunks back to get their BigInt IDs
-        // Order by pageStart to ensure CitationID 0, 1, 2... aligns roughly with reading order
-        const savedChunks = await prisma.documentChunk.findMany({
-            where: { documentId: documentId },
-            orderBy: [
-                { pageStart: 'asc' },
-                { charStart: 'asc' }
-            ]
-        });
+                    // Transaction for DB Updates
+                    await prisma.$transaction(async (tx) => {
+                        await tx.documentChunk.deleteMany({
+                            where: { documentId: documentId }
+                        });
+                    });
 
-        // Create context chunks with real DB IDs
-        // Note: Prisma returns BigInt for ID. 
-        const contextChunks = savedChunks.map(c => ({
-            id: c.id,
-            documentId: c.documentId,
-            content: c.content,
-            phrase: c.phrase,
-            pageStart: c.pageStart,
-            pageEnd: c.pageEnd,
-            charStart: c.charStart,
-            charEnd: c.charEnd
-            // We don't need embedding for summary context
-        }));
+                    sendUpdate("embedding", 75, "Saving chunks to database...");
+                    await saveDocumentChunks(documentId, chunksWithEmbeddings);
 
-        // Lazy import to avoid circular dep issues in some envs
-        const { generateDocumentSummary } = await import("@/lib/ai/summary");
+                    // 8. Generate AI Summary
+                    sendUpdate("summarizing", 80, "Generating AI summary...");
 
-        console.log("[Ingest] Generating AI Summary...");
-        const summary = await generateDocumentSummary({ chunks: contextChunks });
-        console.log("[Ingest] Summary generated.");
+                    const savedChunks = await prisma.documentChunk.findMany({
+                        where: { documentId: documentId },
+                        orderBy: [
+                            { pageStart: 'asc' },
+                            { charStart: 'asc' }
+                        ]
+                    });
 
-        // 9. Update Document
-        // The summary is now a JSON string.
-        await prisma.document.update({
-            where: { id: documentId },
-            data: {
-                fileHash: hexHash,
-                aiSummary: summary,
+                    const contextChunks = savedChunks.map(c => ({
+                        id: c.id,
+                        documentId: c.documentId,
+                        content: c.content,
+                        phrase: c.phrase,
+                        pageStart: c.pageStart,
+                        pageEnd: c.pageEnd,
+                        charStart: c.charStart,
+                        charEnd: c.charEnd
+                    }));
+
+                    const { generateDocumentSummary } = await import("@/lib/ai/summary");
+                    const summary = await generateDocumentSummary({ chunks: contextChunks });
+
+                    // 9. Update Document
+                    await prisma.document.update({
+                        where: { id: documentId },
+                        data: {
+                            fileHash: hexHash,
+                            aiSummary: summary,
+                        }
+                    });
+
+                    sendUpdate("complete", 100, "Ingestion complete!");
+                    controller.close();
+
+                } catch (error: any) {
+                    console.error("Ingestion error:", error);
+                    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+                    sendUpdate("error", 0, errorMsg);
+                    controller.close();
+                }
             }
         });
 
-        return NextResponse.json({ success: true, chunksProcessed: chunks.length, summaryGenerated: true });
-
-
+        return new Response(stream, {
+            headers: {
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
+        });
     } catch (error: any) {
-        console.error("Ingestion error:", error);
+        console.error("Ingestion setup error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
