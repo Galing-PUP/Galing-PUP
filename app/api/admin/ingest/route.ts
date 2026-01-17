@@ -116,11 +116,6 @@ export async function POST(req: NextRequest) {
         // Transaction for DB Updates
         await prisma.$transaction(async (tx) => {
             // Clear existing chunks
-            // Note: tx.$executeRaw is needed for chunks? No, we used global `saveDocumentChunks`.
-            // We should ideally pass `tx` to `saveDocumentChunks` but it imports `prisma` globally.
-            // For now, let's delete using tx and assume saveDocumentChunks works (it does separate raw calls).
-            // Caveat: raw calls in `saveDocumentChunks` won't be part of this `tx` transaction if it uses global `prisma`.
-            // Given constraints, we will proceed with sequential operations. 
             await tx.documentChunk.deleteMany({
                 where: { documentId: documentId }
             });
@@ -130,24 +125,42 @@ export async function POST(req: NextRequest) {
         console.log("[Ingest] Saving chunks to DB...");
         await saveDocumentChunks(documentId, chunksWithEmbeddings);
 
-        // 8. Generate AI Summary
-        // We pass all chunks? Or top chunks? 
-        // Gemini 1.5/Pro has huge context. Flash 3 preview likely also.
-        // Let's pass all chunks for best summary, up to a reasonable limit (~30k tokens?)
-        // 500 tokens * 60 chunks = 30k. 
-        // If > 60 chunks, we might trim. For now, pass all.
+        // 8. Generate AI Summary (Verified Citations Flow)
+        console.log("[Ingest] Fetching saved chunks for context assembly...");
+
+        // Fetch chunks back to get their BigInt IDs
+        // Order by pageStart to ensure CitationID 0, 1, 2... aligns roughly with reading order
+        const savedChunks = await prisma.documentChunk.findMany({
+            where: { documentId: documentId },
+            orderBy: [
+                { pageStart: 'asc' },
+                { charStart: 'asc' }
+            ]
+        });
+
+        // Create context chunks with real DB IDs
+        // Note: Prisma returns BigInt for ID. 
+        const contextChunks = savedChunks.map(c => ({
+            id: c.id,
+            documentId: c.documentId,
+            content: c.content,
+            phrase: c.phrase,
+            pageStart: c.pageStart,
+            pageEnd: c.pageEnd,
+            charStart: c.charStart,
+            charEnd: c.charEnd
+            // We don't need embedding for summary context
+        }));
 
         // Lazy import to avoid circular dep issues in some envs
         const { generateDocumentSummary } = await import("@/lib/ai/summary");
-
-        // Prepare chunks context (without vectors to save memory/data transfer)
-        const contextChunks = chunksWithEmbeddings.map(({ embedding, ...rest }) => rest);
 
         console.log("[Ingest] Generating AI Summary...");
         const summary = await generateDocumentSummary({ chunks: contextChunks });
         console.log("[Ingest] Summary generated.");
 
         // 9. Update Document
+        // The summary is now a JSON string.
         await prisma.document.update({
             where: { id: documentId },
             data: {

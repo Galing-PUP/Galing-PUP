@@ -35,10 +35,9 @@ ${context}
 
 Question:
 ${question}
-c
 `
     const response = await genAI.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3-flash-preview', // Updated to latest model
         contents: prompt,
     })
 

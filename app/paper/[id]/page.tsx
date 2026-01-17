@@ -10,6 +10,8 @@ import { encryptId } from "@/lib/obfuscation";
 import { formatResourceType } from "@/lib/utils/format";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ReferencePanel } from "@/components/paper/reference-panel";
+import { PdfController } from "@/components/paper/pdf-controller";
 
 type PaperPageProps = {
   params: Promise<{
@@ -70,7 +72,10 @@ export default async function PaperPage(props: PaperPageProps) {
 
   // Extract data from document
   const authors = document.authors.map((a) => a.author.fullName);
-  const authorEmails = document.authors.map((a) => a.author.email);
+  // Filter out null emails to satisfy strict string[] requirement if HeaderInfo requires it
+  const authorEmails = document.authors
+    .map((a) => a.author.email)
+    .filter((e): e is string => e !== null);
 
   const datePublished = document.datePublished;
   const yearPublished = document.datePublished?.getFullYear().toString() ?? "n.d.";
@@ -123,7 +128,8 @@ export default async function PaperPage(props: PaperPageProps) {
               <Abstract text={document.abstract} />
             </div>
 
-            {/* TODO: use AI Insights Section only if user.role != premium */}
+            {/* AI Insights Section */}
+            {/* Handles lock state internally */}
             <div>
               <AiInsights documentId={id} />
             </div>
@@ -132,6 +138,9 @@ export default async function PaperPage(props: PaperPageProps) {
             <div>
               <Keywords keywords={keywords} />
             </div>
+
+            {/* Hidden controller to link store to actions */}
+            <PdfController pdfUrl={`/api/pdf/${downloadToken}`} />
           </div>
 
           {/* Right Column */}
@@ -142,6 +151,9 @@ export default async function PaperPage(props: PaperPageProps) {
               department={department}
             />
             <DocumentStats downloads={downloads} citations={citations} />
+
+            {/* Citation Panel */}
+            <ReferencePanel />
           </div>
         </div>
       </main>
