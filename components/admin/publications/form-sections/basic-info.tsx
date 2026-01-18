@@ -215,23 +215,6 @@ export function BasicInfoSection({
           setFormData={setFormData}
           errors={errors}
         />
-
-        {/* AI Summary Placeholder */}
-        <div className="bg-primary/5 dark:bg-primary/10 rounded-lg p-4 border border-primary/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-sm font-bold text-primary">
-              AI-Generated Summary
-            </span>
-            <span className="text-xs text-muted-foreground italic">
-              (Feature coming soon)
-            </span>
-          </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
-            AI-powered summaries will automatically generate concise overviews
-            of your research once this feature is implemented.
-          </p>
-        </div>
       </CardContent>
     </Card>
   )
