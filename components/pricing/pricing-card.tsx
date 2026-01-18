@@ -23,6 +23,9 @@ interface PricingCardProps {
   borderColor?: string
   buttonColor?: string
   accentColor?: string
+  disabled?: boolean
+  disableButton?: boolean
+  customBadgeText?: string
 }
 
 export function PricingCard({
@@ -39,6 +42,9 @@ export function PricingCard({
   borderColor = 'border-gray-200',
   buttonColor = 'bg-gray-900',
   accentColor = 'text-green-600',
+  disabled = false,
+  disableButton = false,
+  customBadgeText,
 }: PricingCardProps) {
   return (
     <div
@@ -46,12 +52,12 @@ export function PricingCard({
         isRecommended
           ? `border-4 ${borderColor} shadow-lg`
           : 'border border-gray-200 bg-white'
-      } ${!isRecommended ? 'bg-white' : 'bg-white'}`}
+      } ${!isRecommended ? 'bg-white' : 'bg-white'} ${disabled ? 'opacity-60' : ''}`}
     >
-      {/* Recommended Badge */}
+      {/* Recommended/Custom Badge */}
       {isRecommended && (
         <div className="absolute -top-4 right-8 bg-pup-gold-light text-gray-900 font-bold px-4 py-2 rounded-lg text-sm">
-          RECOMMENDED
+          {customBadgeText || 'RECOMMENDED'}
         </div>
       )}
 
@@ -78,7 +84,7 @@ export function PricingCard({
       </div>
 
       {/* Features List */}
-      <div className="grow mb-8">
+      <div className="mb-8">
         <ul className="space-y-3">
           {features.map((feature, index) => (
             <li key={index} className="flex items-center gap-3">
@@ -104,7 +110,12 @@ export function PricingCard({
       {/* CTA Button */}
       <button
         onClick={onButtonClick}
-        className={`w-full py-3 px-6 rounded-full font-semibold transition-all duration-300 text-white ${buttonColor} hover:opacity-90 active:scale-95`}
+        disabled={disabled || disableButton}
+        className={`w-full py-3 px-6 rounded-full font-semibold transition-all duration-300 text-white ${
+          disabled || disableButton
+            ? 'bg-gray-400 cursor-not-allowed'
+            : `${buttonColor} hover:opacity-90 active:scale-95`
+        }`}
       >
         {buttonText}
       </button>
