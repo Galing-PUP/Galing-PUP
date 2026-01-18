@@ -97,23 +97,25 @@ export default function Edit() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to update document");
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to update document')
       }
 
       // Check if a new file was uploaded, if so, trigger re-ingestion
       if (formData.file) {
-        const toastId = toast.loading("Initializing AI processing...");
+        const toastId = toast.loading('Initializing AI processing...')
 
         try {
           // Dynamic import to avoid SSR issues if any
-          const { streamIngest } = await import("@/lib/utils/ingest-client");
+          const { streamIngest } = await import('@/lib/utils/ingest-client')
 
           await streamIngest(Number(documentId), (step) => {
-            if (step.step === "complete") {
-              toast.success("AI Processing Complete!", { id: toastId });
-            } else if (step.step === "error") {
-              toast.error(`AI Processing Failed: ${step.message}`, { id: toastId });
+            if (step.step === 'complete') {
+              toast.success('AI Processing Complete!', { id: toastId })
+            } else if (step.step === 'error') {
+              toast.error(`AI Processing Failed: ${step.message}`, {
+                id: toastId,
+              })
             } else {
               // Update toast with progress
               toast.loading(
@@ -126,17 +128,17 @@ export default function Edit() {
                     />
                   </div>
                 </div>,
-                { id: toastId }
-              );
+                { id: toastId },
+              )
             }
-          });
+          })
         } catch (err) {
-          console.error("Ingestion error:", err);
-          toast.error("AI Processing notification error", { id: toastId });
+          console.error('Ingestion error:', err)
+          toast.error('AI Processing notification error', { id: toastId })
         }
       }
 
-      promiseResolve!(null);
+      promiseResolve!(null)
 
       // Slight delay for UX
       setTimeout(() => {

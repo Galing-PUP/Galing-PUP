@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai'
 export const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
 
 export async function runGemini(context: string, question: string) {
-    const prompt = `
+  const prompt = `
 Task: Produce a Critical Technical Summary.
 
 Rules:
@@ -36,10 +36,10 @@ ${context}
 Question:
 ${question}
 `
-    const response = await genAI.models.generateContent({
-        model: 'gemini-3-flash-preview', // Updated to latest model
-        contents: prompt,
-    })
+  const response = await genAI.models.generateContent({
+    model: 'gemini-3-flash-preview', // Updated to latest model
+    contents: prompt,
+  })
 
-    return response.text
+  return response.text
 }

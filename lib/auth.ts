@@ -1,5 +1,5 @@
-import { getSiteUrl } from '@/lib/utils/get-site-url'
 import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/utils/get-site-url'
 
 const supabase = createClient()
 

@@ -108,7 +108,9 @@ export function SearchResultCard({
                 a.href = url
 
                 // Try to get filename from header
-                const contentDisposition = res.headers.get('Content-Disposition')
+                const contentDisposition = res.headers.get(
+                  'Content-Disposition',
+                )
                 let filename = result.title
                   ? `${result.title}.pdf`
                   : `document-${result.id}.pdf`

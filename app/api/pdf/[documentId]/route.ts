@@ -4,6 +4,46 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+const PDF_ACTIVITY_TYPE = 'PDF_DOWNLOADED'
+
+/**
+ * Logs a PDF download for the given user and document.
+ * Increments document.downloadsCount only on a user's first download of that document.
+ */
+async function logDownloadActivity(
+  userId: number,
+  documentId: number,
+): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const existingDownload = await tx.activityLog.findFirst({
+      where: {
+        userId,
+        documentId,
+        activityType: PDF_ACTIVITY_TYPE,
+      },
+    })
+
+    if (!existingDownload) {
+      await tx.document.update({
+        where: { id: documentId },
+        data: {
+          downloadsCount: {
+            increment: 1,
+          },
+        },
+      })
+    }
+
+    await tx.activityLog.create({
+      data: {
+        userId,
+        documentId,
+        activityType: PDF_ACTIVITY_TYPE,
+      },
+    })
+  })
+}
+
 export async function GET(
   request: NextRequest,
   props: { params: Promise<{ documentId: string }> },
@@ -86,25 +126,15 @@ export async function GET(
     return new NextResponse('File retrieval failed', { status: 500 })
   }
 
-  // 4. Activity Logging
+  // 4. Activity Logging + Download Counter (first download per user)
   try {
-    // We log the download.
-    // Note: If streaming fails mid-way, this still counts.
-    await prisma.activityLog.create({
-      data: {
-        userId: user.id,
-        documentId: document.id,
-        activityType: 'download',
-      },
-    })
+    await logDownloadActivity(user.id, document.id)
   } catch (e) {
     console.error(
       `[PDF Stream] Logging failed for user ${user.id} doc ${id}:`,
       e,
     )
-    // Continue even if logging fails?
-    // Usually yes, don't block user for logging error, but could be critical for audit.
-    // Proceeding.
+    // Proceed even if logging fails; user should still receive the file.
   }
 
   // 5. Streaming Response

@@ -23,7 +23,9 @@ export function Abstract({ text }: AbstractProps) {
       <h2 id="abstract-heading" className="text-xl font-semibold text-gray-900">
         Abstract
       </h2>
-      <div className={`leading-relaxed text-gray-700 ${isExpanded ? '' : 'line-clamp-10'}`}>
+      <div
+        className={`leading-relaxed text-gray-700 ${isExpanded ? '' : 'line-clamp-10'}`}
+      >
         <p>{text}</p>
       </div>
       {shouldTruncate && (

@@ -5,13 +5,13 @@ import { DocumentInfo } from '@/components/paper/document-info'
 import { DocumentStats } from '@/components/paper/document-stats'
 import { HeaderInfo } from '@/components/paper/header-info'
 import { Keywords } from '@/components/paper/keywords'
+import { PdfController } from '@/components/paper/pdf-controller'
+import { ReferencePanel } from '@/components/paper/reference-panel'
 import { prisma } from '@/lib/db'
 import { encryptId } from '@/lib/obfuscation'
 import { createClient } from '@/lib/supabase/server'
 import { formatResourceType } from '@/lib/utils/format'
 import { notFound } from 'next/navigation'
-import { ReferencePanel } from "@/components/paper/reference-panel";
-import { PdfController } from "@/components/paper/pdf-controller";
 
 type PaperPageProps = {
   params: Promise<{
