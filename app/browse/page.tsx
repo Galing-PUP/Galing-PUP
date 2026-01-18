@@ -182,7 +182,7 @@ function BrowsePageContent() {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-10 lg:gap-20 lg:flex-row">
             {/* Left Sidebar - Filters */}
-            <aside className="w-full lg:w-64 md:w-72 lg:flex-shrink-0 lg:pl-0 md:pl-0">
+            <aside className="w-full lg:w-64 md:w-72 lg:shrink-0 lg:pl-0 md:pl-0">
               <div className="sticky top-8">
                 <FilterBox
                   variant="sidebar"

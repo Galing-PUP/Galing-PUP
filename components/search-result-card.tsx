@@ -68,7 +68,7 @@ export function SearchResultCard({
           </div>
 
           {/* Abstract */}
-          <p className="text-sm leading-relaxed text-gray-700">
+          <p className="text-sm leading-relaxed text-gray-700 line-clamp-3">
             {result.abstract}
           </p>
         </div>
