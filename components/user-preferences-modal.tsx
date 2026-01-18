@@ -31,6 +31,7 @@ type UserPreferencesModalProps = {
   onClose: () => void
   initialUsername: string
   userRole?: RoleName
+  isOAuthUser?: boolean
   onUsernameUpdated?: (nextUsername: string) => void
 }
 
@@ -46,6 +47,7 @@ export function UserPreferencesModal({
   onClose,
   initialUsername,
   userRole,
+  isOAuthUser = false,
   onUsernameUpdated,
 }: UserPreferencesModalProps) {
   const router = useRouter()
@@ -260,7 +262,9 @@ export function UserPreferencesModal({
                 User Preferences
               </DialogTitle>
               <DialogDescription className="text-sm text-neutral-500">
-                Update your display name or set a new password for your account.
+                {isOAuthUser
+                  ? 'Update your display name. Password changes are managed through your Google account.'
+                  : 'Update your display name or set a new password for your account.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -287,90 +291,95 @@ export function UserPreferencesModal({
                 )}
               </div>
 
-              {/* New Password Field */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="preferences-new-password"
-                  className="text-xs font-semibold uppercase tracking-wide text-neutral-600"
-                >
-                  New Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="preferences-new-password"
-                    type={showNewPassword ? 'text' : 'password'}
-                    placeholder="Enter new password (optional)"
-                    {...register('newPassword')}
-                    className="rounded-lg border-neutral-300 pr-9 focus:border-pup-maroon focus:ring-pup-maroon"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
-                  >
-                    {showNewPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
+              {/* Password Fields - Only show for non-OAuth users */}
+              {!isOAuthUser && (
+                <>
+                  {/* New Password Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="preferences-new-password"
+                      className="text-xs font-semibold uppercase tracking-wide text-neutral-600"
+                    >
+                      New Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="preferences-new-password"
+                        type={showNewPassword ? 'text' : 'password'}
+                        placeholder="Enter new password (optional)"
+                        {...register('newPassword')}
+                        className="rounded-lg border-neutral-300 pr-9 focus:border-pup-maroon focus:ring-pup-maroon"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                        <span className="sr-only">
+                          {showNewPassword ? 'Hide password' : 'Show password'}
+                        </span>
+                      </Button>
+                    </div>
+                    {errors.newPassword && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {errors.newPassword.message}
+                      </p>
                     )}
-                    <span className="sr-only">
-                      {showNewPassword ? 'Hide password' : 'Show password'}
-                    </span>
-                  </Button>
-                </div>
-                {errors.newPassword && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.newPassword.message}
-                  </p>
-                )}
-              </div>
+                  </div>
 
-              {/* Confirm Password Field */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="preferences-confirm-password"
-                  className="text-xs font-semibold uppercase tracking-wide text-neutral-600"
-                >
-                  Confirm Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="preferences-confirm-password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Confirm new password"
-                    {...register('confirmPassword')}
-                    className="rounded-lg border-neutral-300 pr-9 focus:border-pup-maroon focus:ring-pup-maroon"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
+                  {/* Confirm Password Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="preferences-confirm-password"
+                      className="text-xs font-semibold uppercase tracking-wide text-neutral-600"
+                    >
+                      Confirm Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="preferences-confirm-password"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Confirm new password"
+                        {...register('confirmPassword')}
+                        className="rounded-lg border-neutral-300 pr-9 focus:border-pup-maroon focus:ring-pup-maroon"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                        <span className="sr-only">
+                          {showConfirmPassword ? 'Hide password' : 'Show password'}
+                        </span>
+                      </Button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {errors.confirmPassword.message}
+                      </p>
                     )}
-                    <span className="sr-only">
-                      {showConfirmPassword ? 'Hide password' : 'Show password'}
-                    </span>
-                  </Button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
+                  </div>
 
-              <p className="text-[11px] text-neutral-500">
-                Password updates are optional. If you only change your username,
-                your password will stay the same.
-              </p>
+                  <p className="text-[11px] text-neutral-500">
+                    Password updates are optional. If you only change your username,
+                    your password will stay the same.
+                  </p>
+                </>
+              )}
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between pt-2">

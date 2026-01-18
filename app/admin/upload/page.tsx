@@ -6,7 +6,6 @@ import type { PublicationFormData } from "@/lib/validations/publication-schema";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// 11/24/25 - Not navigable yet. To access, use http://localhost:3000/admin/upload for now
 export default function Upload() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
