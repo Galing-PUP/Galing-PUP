@@ -240,7 +240,7 @@ export function AiInsights({ documentId }: AiInsightsProps) {
         ) : (
           <div className="flex flex-col items-center justify-center w-full py-12 text-center text-gray-500">
             <AlertCircle className="h-8 w-8 mb-2 opacity-50" />
-            <p>No AI analysis available for this document.</p>
+            <p>Please login to see the AI insights</p>
           </div>
         )}
       </div>
