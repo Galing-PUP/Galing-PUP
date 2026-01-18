@@ -2,17 +2,19 @@ import { BenefitCard } from '@/components/pricing/benefit-card'
 import { FAQCard } from '@/components/pricing/faq-card'
 import { PricingCard } from '@/components/pricing/pricing-card'
 import { PricingClientWrapper } from '@/components/pricing/pricing-client-wrapper'
-import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
 import { Crown, Download, Sparkles, Zap } from 'lucide-react'
 
 export default async function PricingPage() {
   // Fetch user authentication and tier status
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   let isPremiumUser = false
-  
+
   if (user) {
     const dbUser = await prisma.user.findUnique({
       where: { supabaseAuthId: user.id },

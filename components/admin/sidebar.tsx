@@ -140,7 +140,8 @@ export function Sidebar({ role }: { role?: RoleName }) {
     }
     return NAV_ITEMS.filter(
       (item) =>
-        item.label === 'Submit Publication' || item.label === 'Publication List',
+        item.label === 'Submit Publication' ||
+        item.label === 'Publication List',
     )
   }, [role])
 

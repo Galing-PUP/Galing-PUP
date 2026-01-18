@@ -12,14 +12,10 @@ Deno.serve(async (req) => {
     normalize: true,
   })
 
-  return new Response(
-    JSON.stringify({ embedding }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'Connection': 'keep-alive',
-      }
-    }
-  )
+  return new Response(JSON.stringify({ embedding }), {
+    headers: {
+      'Content-Type': 'application/json',
+      Connection: 'keep-alive',
+    },
+  })
 })
-

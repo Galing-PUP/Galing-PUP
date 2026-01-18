@@ -34,7 +34,7 @@ export function DeleteConfirmationDialog({
   itemType = 'document',
 }: DeleteConfirmationDialogProps) {
   const isBulkDelete = itemCount !== undefined && itemCount > 0
-  
+
   if (!isBulkDelete && !item) {
     return null
   }
@@ -75,7 +75,9 @@ export function DeleteConfirmationDialog({
               {itemType === 'user' ? 'User:' : 'Publication Title:'}
             </span>
             <p className="font-semibold text-gray-800">
-              {itemType === 'user' ? (item as any).name || (item as any).email : item.title}
+              {itemType === 'user'
+                ? (item as any).name || (item as any).email
+                : item.title}
             </p>
           </div>
         ) : null}
@@ -86,7 +88,10 @@ export function DeleteConfirmationDialog({
             onClick={handleConfirm}
             className="bg-pup-maroon text-white hover:bg-pup-maroon/90 focus:ring-pup-maroon"
           >
-            Delete {isBulkDelete && itemCount && itemCount > 1 ? itemLabelPlural : itemLabel}
+            Delete{' '}
+            {isBulkDelete && itemCount && itemCount > 1
+              ? itemLabelPlural
+              : itemLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
