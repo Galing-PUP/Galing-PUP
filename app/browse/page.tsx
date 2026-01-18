@@ -29,6 +29,7 @@ type SearchResult = {
   date: string
   abstract: string
   pdfUrl?: string
+  downloadToken?: string
 }
 
 function BrowsePageContent() {

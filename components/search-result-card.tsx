@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 type SearchResult = {
   id: number
@@ -10,6 +11,7 @@ type SearchResult = {
   date: string
   abstract: string
   pdfUrl?: string
+  downloadToken?: string
 }
 
 type SearchResultCardProps = {
@@ -73,14 +75,72 @@ export function SearchResultCard({
           </p>
         </div>
 
-        {/* PDF Link */}
+        {/* PDF Download Button */}
         <div className="mt-3 md:mt-0 md:ml-4">
-          <a
-            href={result.pdfUrl || '#'}
-            className="text-sm font-medium text-[#6b0504] hover:text-[#4a0403] transition-colors"
+          <button
+            onClick={async () => {
+              if (!result.downloadToken) {
+                toast.error('Please sign in to download documents')
+                return
+              }
+
+              const toastId = toast.loading('Preparing download...')
+
+              try {
+                const res = await fetch(
+                  `/api/pdf/${encodeURIComponent(result.downloadToken)}`,
+                )
+
+                if (!res.ok) {
+                  if (res.status === 403) {
+                    const text = await res.text()
+                    throw new Error(
+                      text || 'Access denied. Please check your subscription.',
+                    )
+                  }
+                  if (res.status === 404) throw new Error('Document not found.')
+                  throw new Error('Download failed.')
+                }
+
+                const blob = await res.blob()
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+
+                // Try to get filename from header
+                const contentDisposition = res.headers.get('Content-Disposition')
+                let filename = result.title
+                  ? `${result.title}.pdf`
+                  : `document-${result.id}.pdf`
+
+                if (contentDisposition) {
+                  const match = contentDisposition.match(/filename="?([^"]+)"?/)
+                  if (match && match[1]) {
+                    filename = match[1]
+                  }
+                }
+
+                a.download = filename
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(url)
+
+                toast.dismiss(toastId)
+                toast.success('Download started')
+              } catch (error) {
+                toast.dismiss(toastId)
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : 'An error occurred while downloading',
+                )
+              }
+            }}
+            className="text-sm font-medium text-[#6b0504] hover:text-[#4a0403] transition-colors cursor-pointer"
           >
             [PDF]
-          </a>
+          </button>
         </div>
       </div>
     </div>
