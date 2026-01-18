@@ -29,8 +29,7 @@ interface PublicationFormProps {
 
 /**
  * A modern, sectioned form component for managing research publications.
- * Features multi-author management, tag chips, drag-and-drop file upload,
- * and AI summary placeholder.
+ * Features multi-author management, tag chips, drag-and-drop file upload
  */
 export function PublicationForm({
   initialData,

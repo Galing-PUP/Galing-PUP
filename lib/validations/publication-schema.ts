@@ -10,7 +10,7 @@ export const authorSchema = z.object({
   middleName: z.string().optional().nullable(),
   lastName: z.string().min(1, 'Last name is required'),
   fullName: z.string().optional(), // Added for display
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  email: z.email('Invalid email address').optional().or(z.literal('')),
 })
 
 /**

@@ -24,11 +24,21 @@ export async function getCurrentUser() {
 
   if (!userWithTier) return null
 
+  // Check auth provider from Supabase to determine if user is OAuth user
+  const supabase = await createClient()
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
+  const isOAuthUser =
+    authUser?.app_metadata?.provider === 'google' ||
+    authUser?.identities?.some((identity) => identity.provider === 'google')
+
   return {
     username: userWithTier.username,
     tierName: userWithTier.subscriptionTier.tierName,
     email: userWithTier.email,
     role: userWithTier.role,
+    isOAuthUser: isOAuthUser || false,
   }
 }
 
