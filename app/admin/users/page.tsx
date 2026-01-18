@@ -3,6 +3,7 @@
 import { colleges } from '@/data/collegeCourses'
 import { getCurrentUser } from '@/lib/actions'
 
+import { DeleteConfirmationDialog } from '@/components/admin/approval/delete-confirmation-dialog'
 import { AddUserModal } from '@/components/admin/users/add-user-modal'
 import { AdminUserFormModal } from '@/components/admin/users/admin-user-form-modal'
 import { RegisteredUserFormModal } from '@/components/admin/users/registered-user-form-modal'
@@ -47,6 +48,8 @@ export default function UserManagementPage() {
     isOpen: boolean
     message: string
   }>({ isOpen: false, message: '' })
+
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false)
 
   // Debug: Log modal state changes
   useEffect(() => {
@@ -146,16 +149,13 @@ export default function UserManagementPage() {
     )
   }
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     if (selectedUserIds.length === 0) return
+    setShowBulkDeleteDialog(true)
+  }
 
-    if (
-      !confirm(
-        `Are you sure you want to delete ${selectedUserIds.length} users?`,
-      )
-    ) {
-      return
-    }
+  const confirmDeleteSelected = async () => {
+    if (selectedUserIds.length === 0) return
 
     try {
       const response = await fetch('/api/admin/users', {
@@ -322,6 +322,14 @@ export default function UserManagementPage() {
         isOpen={addUserModalOpen}
         onClose={() => setAddUserModalOpen(false)}
         onUserAdded={handleUserAdded}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showBulkDeleteDialog}
+        onClose={() => setShowBulkDeleteDialog(false)}
+        onConfirm={confirmDeleteSelected}
+        itemCount={selectedUserIds.length}
+        itemType="user"
       />
 
       <AlertDialog

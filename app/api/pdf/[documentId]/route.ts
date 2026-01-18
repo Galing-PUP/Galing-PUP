@@ -52,14 +52,18 @@ export async function GET(
     where: { id },
   })
 
-  if (!document || document.status !== 'APPROVED') {
-    // Return 404 to avoid leaking existence of unapproved/deleted files
+  if (!document) {
     return new NextResponse('Document not found', { status: 404 })
   }
 
   // Role & Tier Checks
-  // Admin/Owner/SuperAdmin always allowed
+  // Admin/Owner/SuperAdmin always allowed (can view any status for review purposes)
   const isPrivileged = ['ADMIN', 'SUPERADMIN', 'OWNER'].includes(user.role)
+
+  // For non-privileged users, only allow access to APPROVED documents
+  if (!isPrivileged && document.status !== 'APPROVED') {
+    return new NextResponse('Document not found', { status: 404 })
+  }
 
   // Registered users check tier
   // If undefined tier (shouldn't happen), deny
