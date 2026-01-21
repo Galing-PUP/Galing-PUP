@@ -354,7 +354,9 @@ export function UserPreferencesModal({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute inset-y-0 right-0 rounded-l-none text-neutral-400 hover:bg-transparent focus-visible:ring-ring/50"
                       >
                         {showConfirmPassword ? (
@@ -363,7 +365,9 @@ export function UserPreferencesModal({
                           <Eye className="h-5 w-5" />
                         )}
                         <span className="sr-only">
-                          {showConfirmPassword ? 'Hide password' : 'Show password'}
+                          {showConfirmPassword
+                            ? 'Hide password'
+                            : 'Show password'}
                         </span>
                       </Button>
                     </div>
@@ -375,8 +379,8 @@ export function UserPreferencesModal({
                   </div>
 
                   <p className="text-[11px] text-neutral-500">
-                    Password updates are optional. If you only change your username,
-                    your password will stay the same.
+                    Password updates are optional. If you only change your
+                    username, your password will stay the same.
                   </p>
                 </>
               )}
