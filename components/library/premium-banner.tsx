@@ -5,14 +5,15 @@ import Link from 'next/link'
 
 type PremiumBannerProps = {
   usedBookmarks: number
-  maxBookmarks: number
+  maxBookmarks: number | null
 }
 
 export function PremiumBanner({
   usedBookmarks,
   maxBookmarks,
 }: PremiumBannerProps) {
-  if (usedBookmarks < maxBookmarks) {
+  // Don't show banner if user is premium (maxBookmarks is null) or if they haven't reached the limit
+  if (maxBookmarks === null || usedBookmarks < maxBookmarks) {
     return null
   }
 
