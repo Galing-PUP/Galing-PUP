@@ -87,7 +87,7 @@ export default function RequestAccessPage() {
     const toastId = toast.loading('Submitting your request...')
 
     try {
-l      const submissionData = new FormData()
+      const submissionData = new FormData()
       submissionData.append('username', data.username)
       submissionData.append('college', data.college)
       submissionData.append('email', data.email)
