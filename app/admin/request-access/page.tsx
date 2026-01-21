@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useState } from 'react'
+import type { Resolver } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -53,7 +54,9 @@ export default function RequestAccessPage() {
   }, [router])
 
   const form = useForm<RequestAccessFormValues>({
-    resolver: zodResolver(requestAccessSchema),
+    resolver: zodResolver(
+      requestAccessSchema,
+    ) as Resolver<RequestAccessFormValues>,
     defaultValues: {
       username: '',
       college: 0,
@@ -87,7 +90,7 @@ export default function RequestAccessPage() {
     const toastId = toast.loading('Submitting your request...')
 
     try {
-l      const submissionData = new FormData()
+      const submissionData = new FormData()
       submissionData.append('username', data.username)
       submissionData.append('college', data.college.toString())
       submissionData.append('email', data.email)
