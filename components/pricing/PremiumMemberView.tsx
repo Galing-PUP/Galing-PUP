@@ -87,26 +87,6 @@ export default function PremiumMemberView({
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-neutral-50 px-6 py-16 sm:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-pup-maroon">Unlimited</div>
-              <p className="mt-2 text-neutral-600">Downloads per day</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-pup-maroon">Unlimited</div>
-              <p className="mt-2 text-neutral-600">Citations generated</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-pup-maroon">Unlimited</div>
-              <p className="mt-2 text-neutral-600">Bookmarks saved</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="px-6 py-16 sm:px-8">
         <div className="mx-auto max-w-3xl">
@@ -126,32 +106,6 @@ export default function PremiumMemberView({
         </div>
       </section>
 
-      {/* FAQ / Help Section */}
-      <section className="bg-neutral-50 px-6 py-16 sm:px-8">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-center text-2xl font-bold text-neutral-900">Quick Tips</h2>
-          <div className="mt-8 space-y-4">
-            <div className="rounded-xl border border-neutral-200 bg-white p-4">
-              <p className="font-semibold text-neutral-900">💡 Maximize your library</p>
-              <p className="mt-1 text-sm text-neutral-600">
-                Use bookmarks to organize papers by topic. Your saved papers sync across all devices.
-              </p>
-            </div>
-            <div className="rounded-xl border border-neutral-200 bg-white p-4">
-              <p className="font-semibold text-neutral-900">✨ AI Summaries</p>
-              <p className="mt-1 text-sm text-neutral-600">
-                Get instant summaries of complex papers. Perfect for quick reviews and understanding key findings.
-              </p>
-            </div>
-            <div className="rounded-xl border border-neutral-200 bg-white p-4">
-              <p className="font-semibold text-neutral-900">📚 Smart Citations</p>
-              <p className="mt-1 text-sm text-neutral-600">
-                Generate citations in APA, MLA, Chicago, and more. Copy and paste directly into your work.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }
