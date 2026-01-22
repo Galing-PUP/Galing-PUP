@@ -16,12 +16,6 @@ export const ACCEPTED_IMAGE_TYPES = [
   'image/webp',
 ]
 
-export const ACCEPTED_DOCUMENT_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]
-
 // Password validation rules (single source of truth)
 export const PASSWORD_SCHEMA = z
   .string()
