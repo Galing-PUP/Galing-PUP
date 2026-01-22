@@ -131,6 +131,17 @@ export function Header({
     }
   }, [isMobileMenuOpen])
 
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isMobileMenuOpen])
+
   /**
    * Handles user sign out with a smooth transition.
    * Shows loading state and toast notification before redirecting.
@@ -376,7 +387,12 @@ export function Header({
             />
             
             {/* Mobile Menu Drawer */}
-            <div className="fixed top-20 left-0 right-0 bottom-0 bg-white z-50 md:hidden overflow-y-auto">
+            <div 
+              className="fixed top-20 left-0 right-0 bottom-0 bg-white z-50 md:hidden overflow-y-auto"
+              role="dialog"
+              aria-label="Mobile navigation menu"
+              aria-modal="true"
+            >
               <nav className="flex flex-col p-6 space-y-1">
                 {/* Navigation Links */}
                 {navItems.map((item) => {
