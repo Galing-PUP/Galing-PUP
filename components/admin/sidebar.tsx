@@ -165,9 +165,7 @@ export function Sidebar({ role }: { role?: RoleName }) {
       toast.loading('Signing out...', { id: 'signout' })
       await signOut()
       toast.success('Signed out successfully', { id: 'signout' })
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      router.refresh()
-      router.push('/')
+      window.location.href = '/'
     } catch (error) {
       console.error('Error signing out:', error)
       toast.error('Failed to sign out. Please try again.', { id: 'signout' })

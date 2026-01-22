@@ -78,8 +78,7 @@ export default function SignInPage() {
           refresh_token: user.session?.refresh_token || '',
         })
         toast.success('Successfully signed in with Google!')
-        router.push('/')
-        router.refresh()
+        window.location.href = '/'
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in with Google')
@@ -140,8 +139,7 @@ export default function SignInPage() {
       }
 
       toast.success('Signed in successfully')
-      router.push('/')
-      router.refresh()
+      window.location.href = '/'
     } catch (error) {
       console.error('Sign in error:', error)
       toast.error('Something went wrong. Please try again.')

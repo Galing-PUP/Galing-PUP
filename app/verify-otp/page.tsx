@@ -74,8 +74,7 @@ function VerifyOtpContent() {
 
       // Step 3: Redirect to home page on success
       toast.success('Account verified successfully!')
-      router.push('/')
-      router.refresh()
+      window.location.href = '/'
     } catch (error) {
       toast.error('Verification failed')
     } finally {
