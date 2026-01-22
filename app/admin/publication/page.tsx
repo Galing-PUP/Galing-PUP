@@ -394,11 +394,10 @@ export default function AdminPublicationsPage() {
               <button
                 type="button"
                 onClick={() => setViewMode('card')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
-                  viewMode === 'card'
-                    ? 'bg-pup-maroon text-white shadow-sm'
-                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
-                }`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${viewMode === 'card'
+                  ? 'bg-pup-maroon text-white shadow-sm'
+                  : 'text-pup-maroon hover:bg-pup-gold-light/60'
+                  }`}
                 aria-label="Card view"
               >
                 <LayoutGrid size={14} />
@@ -406,11 +405,10 @@ export default function AdminPublicationsPage() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
-                  viewMode === 'list'
-                    ? 'bg-pup-maroon text-white shadow-sm'
-                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
-                }`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${viewMode === 'list'
+                  ? 'bg-pup-maroon text-white shadow-sm'
+                  : 'text-pup-maroon hover:bg-pup-gold-light/60'
+                  }`}
                 aria-label="List view"
               >
                 <ListIcon size={14} />
@@ -421,7 +419,7 @@ export default function AdminPublicationsPage() {
       </div>
 
       {/* --- Data Grid --- */}
-      <div className="rounded-3xl border border-pup-maroon/10 bg-white shadow-xl min-h-[400px]">
+      <div className="rounded-3xl border border-pup-maroon/10 bg-white shadow-xl min-h-100">
         <div className="p-4 md:p-6">
           {loading ? (
             <div className="flex h-64 items-center justify-center text-gray-500">
@@ -565,11 +563,10 @@ export default function AdminPublicationsPage() {
                     <button
                       key={pageNum}
                       onClick={() => goToPage(pageNum)}
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-                        currentPage === pageNum
-                          ? 'bg-pup-maroon text-white shadow-md'
-                          : 'text-pup-maroon hover:bg-pup-gold-light/50'
-                      }`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${currentPage === pageNum
+                        ? 'bg-pup-maroon text-white shadow-md'
+                        : 'text-pup-maroon hover:bg-pup-gold-light/50'
+                        }`}
                     >
                       {pageNum}
                     </button>
