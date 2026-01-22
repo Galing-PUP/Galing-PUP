@@ -28,7 +28,8 @@ export default function LibraryPage() {
     useState<LibrarySortOption>('bookmarked-newest')
   const [bookmarkedPapers, setBookmarkedPapers] = useState<BookmarkData[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [maxBookmarks, setMaxBookmarks] = useState<number | null>(10)
+  // Default to unlimited to avoid false positives while fetching tier data
+  const [maxBookmarks, setMaxBookmarks] = useState<number | null>(null)
   const [tierName, setTierName] = useState('Free')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
@@ -154,15 +155,17 @@ export default function LibraryPage() {
 
         {/* Main Content */}
         <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-          {/* Premium Banner - only show if limit is not null and reached */}
-          {maxBookmarks !== null && bookmarkedPapers.length >= maxBookmarks && (
-            <div className="mb-6">
-              <PremiumBanner
-                usedBookmarks={bookmarkedPapers.length}
-                maxBookmarks={maxBookmarks}
-              />
-            </div>
-          )}
+          {/* Premium Banner - only show for non-premium users who reached limit */}
+          {tierName !== 'PAID' &&
+            maxBookmarks !== null &&
+            bookmarkedPapers.length >= maxBookmarks && (
+              <div className="mb-6">
+                <PremiumBanner
+                  usedBookmarks={bookmarkedPapers.length}
+                  maxBookmarks={maxBookmarks}
+                />
+              </div>
+            )}
 
           {/* Search and Sort Bar */}
           <div className="mb-6 flex flex-col gap-4 sm:flex-row">
@@ -228,12 +231,14 @@ export default function LibraryPage() {
             <LoggedOutState />
           )}
 
-          {/* Premium Section */}
-          {bookmarkedPapers.length > 0 && (
-            <div className="mt-12">
-              <PremiumSection />
-            </div>
-          )}
+          {/* Premium Section - hide for premium users or unlimited tiers */}
+          {tierName !== 'PAID' &&
+            maxBookmarks !== null &&
+            bookmarkedPapers.length > 0 && (
+              <div className="mt-12">
+                <PremiumSection />
+              </div>
+            )}
         </div>
       </div>
     </>
