@@ -323,15 +323,16 @@ export function Header({
           {/* Mobile Menu Button */}
           <div className="flex items-center justify-end md:hidden col-start-3">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="h-10 w-10 rounded-full"
-                aria-label="Toggle navigation menu"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full"
+                  aria-label="Toggle navigation menu"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle className="text-left">Menu</SheetTitle>
