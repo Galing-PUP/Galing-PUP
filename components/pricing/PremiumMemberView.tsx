@@ -43,6 +43,12 @@ export default function PremiumMemberView({
       description: 'Save unlimited papers to your personal collection',
       included: true,
     },
+    {
+      icon: <Gift className="w-8 h-8" />,
+      title: 'Research All You Want!',
+      description: 'Enjoy unrestricted access to all research materials available',
+      included: true,
+    },
   ]
 
   return (
