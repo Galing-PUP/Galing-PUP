@@ -12,6 +12,9 @@ interface PricingFeature {
 
 interface PricingClientWrapperProps {
   isPremiumUser: boolean
+  isAuthenticated?: boolean
+  onUnauthenticated?: () => void
+  showButton?: boolean
   freeTierFeatures?: PricingFeature[]
   premiumTierFeatures: PricingFeature[]
 }
@@ -24,6 +27,9 @@ interface PricingClientWrapperProps {
 export function PricingClientWrapper({
   isPremiumUser,
   premiumTierFeatures,
+  isAuthenticated = false,
+  onUnauthenticated,
+  showButton = true,
 }: PricingClientWrapperProps) {
   const [isLoading, setIsLoading] = useState(false)
 
@@ -33,6 +39,17 @@ export function PricingClientWrapper({
    */
   const handlePremiumUpgrade = async () => {
     try {
+      // If user is not authenticated, ask parent to show sign-in modal
+      if (!isAuthenticated) {
+        if (onUnauthenticated) {
+          onUnauthenticated()
+          return
+        }
+        // fallback: navigate to signup
+        window.location.href = '/signup'
+        return
+      }
+
       setIsLoading(true)
       const response = await fetch('/api/checkout', { method: 'POST' })
       const data = await response.json()
@@ -63,6 +80,7 @@ export function PricingClientWrapper({
       description="Best for active researchers and students"
       features={premiumTierFeatures}
       buttonText={isLoading ? 'Processing...' : 'Upgrade to Premium'}
+      showButton={showButton}
       isRecommended={true}
       borderColor="border-yellow-400"
       buttonColor="bg-pup-maroon hover:bg-pup-maroon/80"

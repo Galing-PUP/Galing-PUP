@@ -18,6 +18,8 @@ interface PricingCardProps {
   features: PricingFeature[]
   buttonText: string
   onButtonClick?: () => void
+  href?: string
+  showButton?: boolean
   isRecommended?: boolean
   icon?: React.ReactNode
   borderColor?: string
@@ -36,6 +38,8 @@ export function PricingCard({
   description,
   features,
   buttonText,
+  href,
+  showButton = true,
   onButtonClick,
   isRecommended = false,
   icon,
@@ -107,18 +111,23 @@ export function PricingCard({
         </ul>
       </div>
 
-      {/* CTA Button */}
-      <button
-        onClick={onButtonClick}
-        disabled={disabled || disableButton}
-        className={`w-full py-3 px-6 rounded-full font-semibold transition-all duration-300 text-white ${
-          disabled || disableButton
-            ? 'bg-gray-400 cursor-not-allowed'
-            : `${buttonColor} hover:opacity-90 active:scale-95`
-        }`}
-      >
-        {buttonText}
-      </button>
+      {/* CTA Button (optional) */}
+      {showButton ?? true ? (
+        <button
+          onClick={() => {
+            if (onButtonClick) return onButtonClick()
+            if (href) return (window.location.href = href)
+          }}
+          disabled={disabled || disableButton}
+          className={`w-full py-3 px-6 rounded-full font-semibold transition-all duration-300 text-white ${
+            disabled || disableButton
+              ? 'bg-gray-400 cursor-not-allowed'
+              : `${buttonColor} hover:opacity-90 active:scale-95`
+          }`}
+        >
+          {buttonText}
+        </button>
+      ) : null}
     </div>
   )
 }
