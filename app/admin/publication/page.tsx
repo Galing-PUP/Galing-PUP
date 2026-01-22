@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { courses } from '@/data/collegeCourses'
 import { ResourceTypes } from '@/lib/generated/prisma/enums'
 import { formatResourceType } from '@/lib/utils/format'
 
@@ -34,16 +35,18 @@ type AdminPublication = {
   date: string
   author: string
   resourceType: ResourceTypes | null
+  status: string
 }
 
 // --- Configuration ---
 const UNKNOWN_AUTHOR_LABEL = 'Unknown Author'
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 12
 
 type AdminFilterValues = {
   course: string
   year: string
   documentType: ResourceTypes | 'All Types'
+  status: string
 }
 
 type AdminSortOption =
@@ -67,7 +70,9 @@ export default function AdminPublicationsPage() {
     course: 'All Courses',
     year: 'All Years',
     documentType: 'All Types',
+    status: 'All Statuses',
   })
+  const [totalResults, setTotalResults] = useState(0)
   const [sortBy, setSortBy] = useState<AdminSortOption>('Newest to Oldest')
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
@@ -77,45 +82,46 @@ export default function AdminPublicationsPage() {
     useState<AdminPublication | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // --- Data Loading ---
+  // --- Data Loading with Server-Side Pagination ---
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/browse')
+        const params = new URLSearchParams()
+
+        if (searchQuery.trim()) {
+          params.set('q', searchQuery.trim())
+        }
+        if (filters.course !== 'All Courses') {
+          params.set('course', filters.course)
+        }
+        if (filters.year !== 'All Years') {
+          params.set('year', filters.year)
+        }
+        if (filters.documentType !== 'All Types') {
+          params.set('documentType', filters.documentType)
+        }
+        if (filters.status !== 'All Statuses') {
+          params.set('status', filters.status)
+        }
+        params.set('sort', sortBy)
+        params.set('limit', ITEMS_PER_PAGE.toString())
+        params.set('page', currentPage.toString())
+
+        const url = `/api/admin/publications?${params.toString()}`
+        const res = await fetch(url)
         if (!res.ok) {
           throw new Error(`Failed to load publications: ${res.status}`)
         }
 
-        const data: {
-          id: number
-          title: string
-          abstract: string
-          field: string
-          authors: string[]
-          date: string
-          resourceType: string | null
-        }[] = await res.json()
+        const payload: {
+          results: AdminPublication[]
+          total: number
+        } = await res.json()
 
-        const mapped: AdminPublication[] = data.map((item) => {
-          const primaryAuthor =
-            item.authors && item.authors.length > 0
-              ? item.authors[0]
-              : UNKNOWN_AUTHOR_LABEL
-
-          return {
-            id: item.id,
-            title: item.title,
-            abstract: item.abstract,
-            author: primaryAuthor,
-            field: item.field,
-            date: item.date,
-            resourceType: (item.resourceType as ResourceTypes | null) ?? null,
-          }
-        })
-
-        setPublications(mapped)
+        setPublications(payload.results ?? [])
+        setTotalResults(payload.total ?? 0)
       } catch (e) {
         console.error(e)
         setError('Failed to load publications from the database.')
@@ -125,73 +131,28 @@ export default function AdminPublicationsPage() {
     }
 
     load()
+  }, [searchQuery, filters, sortBy, currentPage])
+
+  // --- Reset pagination when filters change ---
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, filters, sortBy])
+
+  // Get all course options sorted alphabetically
+  const courseOptions = useMemo(() => {
+    return [...courses].sort((a, b) => a.courseName.localeCompare(b.courseName))
   }, [])
 
-  // --- Logic: Filtering & Sorting ---
-  const filteredData = useMemo(() => {
-    let data = publications
-
-    // Search
-    if (searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase()
-      data = data.filter(
-        (pub) =>
-          pub.title.toLowerCase().includes(lowerQuery) ||
-          pub.field.toLowerCase().includes(lowerQuery) ||
-          pub.author.toLowerCase().includes(lowerQuery),
-      )
-    }
-
-    // Course Filter
-    if (filters.course !== 'All Courses') {
-      data = data.filter((pub) => pub.field === filters.course)
-    }
-
-    // Year Filter
-    if (filters.year !== 'All Years') {
-      data = data.filter((pub) => pub.date.includes(filters.year))
-    }
-
-    // Document Type Filter
-    if (filters.documentType !== 'All Types') {
-      data = data.filter((pub) => pub.resourceType === filters.documentType)
-    }
-
-    // Sort
-    return [...data].sort((a, b) => {
-      const dateA = new Date(a.date).getTime()
-      const dateB = new Date(b.date).getTime()
-
-      switch (sortBy) {
-        case 'Oldest to Newest':
-          return dateA - dateB
-        case 'Title A-Z':
-          return a.title.localeCompare(b.title)
-        case 'Title Z-A':
-          return b.title.localeCompare(a.title)
-        case 'Newest to Oldest':
-        default:
-          return dateB - dateA
-      }
-    })
-  }, [publications, searchQuery, filters, sortBy])
-
-  // Extract unique courses for filter dropdown
-  const courseOptions = useMemo(() => {
-    const set = new Set<string>()
-    for (const pub of publications) {
-      if (pub.field) set.add(pub.field)
-    }
-    return Array.from(set).sort()
-  }, [publications])
+  // Get course abbreviation for display
+  const getCourseName = (fullName: string): string => {
+    if (fullName === 'All Courses') return 'Course'
+    const course = courses.find((c) => c.courseName === fullName)
+    return course?.courseAbbr ?? fullName
+  }
 
   // --- Logic: Pagination ---
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE)
-
-  const currentData = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return filteredData.slice(start, start + ITEMS_PER_PAGE)
-  }, [filteredData, currentPage])
+  const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE) || 1
+  const currentData = publications
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page)
@@ -267,161 +228,179 @@ export default function AdminPublicationsPage() {
         </p>
       </div>
 
-      {/* --- Controls Section --- */}
-      <div className="space-y-4 rounded-3xl bg-white shadow-lg ring-1 ring-pup-maroon/10 p-4 md:p-6">
-        {/* Search Bar */}
-        <div className="relative w-full rounded-2xl bg-pup-gold-light/20 ring-1 ring-pup-maroon/20 px-3 py-2">
-          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-pup-maroon">
-            <Search size={18} strokeWidth={1.75} />
-          </div>
+      {/* --- Data Toolbar --- */}
+      <div className="flex flex-col items-stretch gap-4 w-full md:flex-row md:items-center md:justify-between">
+        {/* Search Input - Flexible on desktop */}
+        <div className="relative w-full md:flex-1 md:max-w-md">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            size={16}
+          />
           <input
             type="text"
             placeholder="Search by title, author, or field..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="block w-full pl-14 pr-6 py-3 text-sm text-gray-900 bg-transparent rounded-full focus:border-pup-maroon focus:ring-2 focus:ring-pup-maroon/30 focus:outline-none transition-all"
+            className="w-full h-10 pl-9 pr-4 text-sm bg-white border border-gray-300 rounded-lg focus:border-pup-maroon focus:ring-2 focus:ring-pup-maroon/20 focus:outline-none transition-all"
           />
         </div>
 
-        {/* Filters, Sort & View Toggle */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <SortDropdown
-              value={sortBy}
-              onChange={(value) => {
-                setSortBy(value as AdminSortOption)
-                setCurrentPage(1)
-              }}
-              className="w-full md:w-56"
-            />
+        {/* Filters & Actions Container */}
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          {/* Sort Dropdown */}
+          <SortDropdown
+            value={sortBy}
+            onChange={(value) => {
+              setSortBy(value as AdminSortOption)
+              setCurrentPage(1)
+            }}
+            className="w-auto min-w-0 [&_button]:rounded-lg [&_button]:h-10 [&_button]:border-gray-300 [&_button]:text-gray-700 [&_button]:font-normal [&_button]:bg-white"
+          />
 
-            {/* Course Filter */}
-            <Select
-              value={filters.course}
-              onValueChange={(value) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  course: value,
-                }))
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-full md:w-56 rounded-full border-pup-maroon/30 text-sm">
-                <SelectValue placeholder="All Courses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Courses">All Courses</SelectItem>
-                {courseOptions.map((course) => (
-                  <SelectItem key={course} value={course}>
-                    {course}
+          {/* Status Filter */}
+          <Select
+            value={filters.status}
+            onValueChange={(value) => {
+              setFilters((prev) => ({
+                ...prev,
+                status: value,
+              }))
+              setCurrentPage(1)
+            }}
+          >
+            <SelectTrigger className="w-auto h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="max-h-75 overflow-y-auto">
+              <SelectItem value="All Statuses">All Statuses</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="APPROVED">Approved</SelectItem>
+              <SelectItem value="REJECTED">Rejected</SelectItem>
+              <SelectItem value="DELETED">Deleted</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Course Filter */}
+          <Select
+            value={filters.course}
+            onValueChange={(value) => {
+              setFilters((prev) => ({
+                ...prev,
+                course: value,
+              }))
+              setCurrentPage(1)
+            }}
+          >
+            <SelectTrigger className="w-auto max-w-48 h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
+              <SelectValue placeholder="Course">
+                {getCourseName(filters.course)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="max-h-75 overflow-y-auto">
+              <SelectItem value="All Courses">All Courses</SelectItem>
+              {courseOptions.map((course) => (
+                <SelectItem key={course.id} value={course.courseName}>
+                  {course.courseName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Year Filter */}
+          <Select
+            value={filters.year}
+            onValueChange={(value) => {
+              setFilters((prev) => ({
+                ...prev,
+                year: value,
+              }))
+              setCurrentPage(1)
+            }}
+          >
+            <SelectTrigger className="w-auto h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent className="max-h-75 overflow-y-auto">
+              <SelectItem value="All Years">All Years</SelectItem>
+              {Array.from(
+                new Set(
+                  publications
+                    .map((pub) => pub.date.split(' ').pop() || '')
+                    .filter(Boolean),
+                ),
+              )
+                .sort()
+                .map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
+            </SelectContent>
+          </Select>
 
-            {/* Year Filter */}
-            <Select
-              value={filters.year}
-              onValueChange={(value) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  year: value,
-                }))
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-full md:w-40 rounded-full border-pup-maroon/30 text-sm">
-                <SelectValue placeholder="All Years" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Years">All Years</SelectItem>
-                {Array.from(
-                  new Set(
-                    publications
-                      .map((pub) => pub.date.split(' ').pop() || '')
-                      .filter(Boolean),
-                  ),
-                )
-                  .sort()
-                  .map((year) => (
-                    <SelectItem key={year} value={year}>
-                      {year}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+          {/* Document Type Filter */}
+          <Select
+            value={filters.documentType}
+            onValueChange={(value) => {
+              setFilters((prev) => ({
+                ...prev,
+                documentType: value as ResourceTypes | 'All Types',
+              }))
+              setCurrentPage(1)
+            }}
+          >
+            <SelectTrigger className="w-auto h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent className="max-h-75 overflow-y-auto">
+              <SelectItem value="All Types">All Types</SelectItem>
+              {Object.values(ResourceTypes).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {formatResourceType(type)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            {/* Document Type Filter */}
-            <Select
-              value={filters.documentType}
-              onValueChange={(value) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  documentType: value as ResourceTypes | 'All Types',
-                }))
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-full md:w-44 rounded-full border-pup-maroon/30 text-sm">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All Types">All Types</SelectItem>
-                {Object.values(ResourceTypes).map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {formatResourceType(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Divider */}
+          <div className="hidden md:block h-6 w-px bg-gray-300" />
+
+          {/* Results Count - Desktop Only */}
+          <div className="hidden md:flex items-center gap-2 text-xs text-gray-600">
+            <span className="font-semibold text-pup-maroon">{totalResults}</span>
+            <span className="text-gray-500">results</span>
           </div>
 
-          <div className="flex items-center justify-between gap-3 md:justify-end text-xs md:ml-auto text-gray-600">
-            <div className="hidden md:flex items-center gap-2">
-              <span className="inline-flex items-center justify-center rounded-full bg-pup-gold-light/70 px-3 py-1 text-[11px] font-semibold text-pup-maroon">
-                {filteredData.length}
-              </span>
-              <span className="text-[11px] uppercase tracking-[0.18em] text-pup-maroon">
-                results
-              </span>
-              <span className="text-[11px] text-gray-500">
-                • Page {currentPage} of {Math.max(totalPages, 1)}
-              </span>
-            </div>
-
-            {/* View Mode Toggle */}
-            <div className="inline-flex items-center gap-1 rounded-full border border-pup-maroon/20 bg-white px-1 py-1">
-              <button
-                type="button"
-                onClick={() => setViewMode('card')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
-                  viewMode === 'card'
-                    ? 'bg-pup-maroon text-white shadow-sm'
-                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
+          {/* View Mode Toggle */}
+          <div className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode('card')}
+              className={`flex h-8 w-8 items-center justify-center rounded transition ${viewMode === 'card'
+                ? 'bg-pup-maroon text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
                 }`}
-                aria-label="Card view"
-              >
-                <LayoutGrid size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] transition ${
-                  viewMode === 'list'
-                    ? 'bg-pup-maroon text-white shadow-sm'
-                    : 'text-pup-maroon hover:bg-pup-gold-light/60'
+              aria-label="Card view"
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex h-8 w-8 items-center justify-center rounded transition ${viewMode === 'list'
+                ? 'bg-pup-maroon text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
                 }`}
-                aria-label="List view"
-              >
-                <ListIcon size={14} />
-              </button>
-            </div>
+              aria-label="List view"
+            >
+              <ListIcon size={16} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* --- Data Grid --- */}
-      <div className="rounded-3xl border border-pup-maroon/10 bg-white shadow-xl min-h-[400px]">
+      <div className="rounded-3xl border border-pup-maroon/10 bg-white shadow-xl min-h-100">
         <div className="p-4 md:p-6">
           {loading ? (
             <div className="flex h-64 items-center justify-center text-gray-500">
@@ -445,9 +424,11 @@ export default function AdminPublicationsPage() {
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="space-y-1">
-                              <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
-                                {pub.title}
-                              </h3>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
+                                  {pub.title}
+                                </h3>
+                              </div>
                               <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
                                 By {pub.author}
                               </p>
@@ -455,9 +436,23 @@ export default function AdminPublicationsPage() {
                                 {pub.abstract || 'No abstract provided.'}
                               </p>
                             </div>
-                            <span className="shrink-0 rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
-                              {yearStr}
-                            </span>
+                            <div className="flex shrink-0 flex-col gap-2 items-end">
+                              <span className="rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
+                                {yearStr}
+                              </span>
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${pub.status === 'APPROVED'
+                                  ? 'bg-green-100 text-green-700'
+                                  : pub.status === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : pub.status === 'REJECTED'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}
+                              >
+                                {pub.status}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -502,6 +497,18 @@ export default function AdminPublicationsPage() {
                             </h3>
                             <span className="inline-flex items-center rounded-full bg-pup-maroon/10 px-2 py-0.5 text-[10px] font-semibold text-pup-maroon">
                               {yearStr}
+                            </span>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${pub.status === 'APPROVED'
+                                ? 'bg-green-100 text-green-700'
+                                : pub.status === 'PENDING'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : pub.status === 'REJECTED'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}
+                            >
+                              {pub.status}
                             </span>
                           </div>
                           <p className="truncate text-xs text-gray-600">
@@ -565,11 +572,10 @@ export default function AdminPublicationsPage() {
                     <button
                       key={pageNum}
                       onClick={() => goToPage(pageNum)}
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-                        currentPage === pageNum
-                          ? 'bg-pup-maroon text-white shadow-md'
-                          : 'text-pup-maroon hover:bg-pup-gold-light/50'
-                      }`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${currentPage === pageNum
+                        ? 'bg-pup-maroon text-white shadow-md'
+                        : 'text-pup-maroon hover:bg-pup-gold-light/50'
+                        }`}
                     >
                       {pageNum}
                     </button>
