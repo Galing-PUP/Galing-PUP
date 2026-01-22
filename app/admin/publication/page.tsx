@@ -250,7 +250,7 @@ export default function AdminPublicationsPage() {
               setSortBy(value as AdminSortOption)
               setCurrentPage(1)
             }}
-            className="w-auto min-w-0"
+            className="w-auto min-w-0 [&_button]:rounded-lg [&_button]:h-10"
           />
 
           {/* Status Filter */}
@@ -418,9 +418,11 @@ export default function AdminPublicationsPage() {
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="space-y-1">
-                              <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
-                                {pub.title}
-                              </h3>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
+                                  {pub.title}
+                                </h3>
+                              </div>
                               <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
                                 By {pub.author}
                               </p>
@@ -428,9 +430,23 @@ export default function AdminPublicationsPage() {
                                 {pub.abstract || 'No abstract provided.'}
                               </p>
                             </div>
-                            <span className="shrink-0 rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
-                              {yearStr}
-                            </span>
+                            <div className="flex shrink-0 flex-col gap-2 items-end">
+                              <span className="rounded-full bg-pup-maroon/10 px-3 py-1 text-xs font-semibold text-pup-maroon">
+                                {yearStr}
+                              </span>
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${pub.status === 'APPROVED'
+                                    ? 'bg-green-100 text-green-700'
+                                    : pub.status === 'PENDING'
+                                      ? 'bg-amber-100 text-amber-700'
+                                      : pub.status === 'REJECTED'
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-gray-100 text-gray-700'
+                                  }`}
+                              >
+                                {pub.status}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -475,6 +491,18 @@ export default function AdminPublicationsPage() {
                             </h3>
                             <span className="inline-flex items-center rounded-full bg-pup-maroon/10 px-2 py-0.5 text-[10px] font-semibold text-pup-maroon">
                               {yearStr}
+                            </span>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${pub.status === 'APPROVED'
+                                  ? 'bg-green-100 text-green-700'
+                                  : pub.status === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : pub.status === 'REJECTED'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-700'
+                                }`}
+                            >
+                              {pub.status}
                             </span>
                           </div>
                           <p className="truncate text-xs text-gray-600">
