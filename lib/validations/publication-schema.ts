@@ -57,13 +57,8 @@ export const publicationSchema = z.object({
       'File size must be less than 50MB',
     )
     .refine(
-      (file) =>
-        [
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ].includes(file.type),
-      'Only PDF, DOC, and DOCX files are allowed',
+      (file) => ['application/pdf'].includes(file.type),
+      'Only PDF is allowed',
     )
     .nullable(),
 })
