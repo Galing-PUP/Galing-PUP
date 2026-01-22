@@ -165,17 +165,20 @@ export function AuthorSelector({
 
     // Check if author already exists
     const alreadySelected = selectedAuthors.some((a) => {
-      // If both have emails, compare them
+      // Always check if names match (regardless of email)
+      const namesMatch =
+        a.firstName === newAuthor.firstName &&
+        a.lastName === newAuthor.lastName
+
+      if (namesMatch) {
+        return true
+      }
+
+      // Also check if both have emails and they match
       if (a.email && newAuthor.email) {
         return a.email === newAuthor.email
       }
-      // If both lack emails, compare by full name
-      if (!a.email && !newAuthor.email) {
-        return (
-          a.firstName === newAuthor.firstName &&
-          a.lastName === newAuthor.lastName
-        )
-      }
+
       return false
     })
 
