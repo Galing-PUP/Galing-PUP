@@ -66,7 +66,7 @@ export default function SignUpPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, touchedFields },
   } = form
 
   const handleGoogleSignUp = async () => {
@@ -169,7 +169,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white lg:flex-row">
-      <div className="flex w-full flex-col px-6 py-6 lg:w-1/2 lg:px-16 lg:py-8">
+      <div className="flex w-full flex-col px-6 py-3 lg:w-1/2 lg:px-16 lg:py-4">
         <Link
           href="/"
           className="flex w-fit items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-700"
@@ -178,17 +178,17 @@ export default function SignUpPage() {
           Back
         </Link>
 
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6">
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-3">
           <Image
             src={starLogo}
             alt="Galing PUP star logo"
-            width={56}
-            height={56}
+            width={48}
+            height={48}
             priority
-            className="h-12 w-12"
+            className="h-10 w-10"
           />
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold text-neutral-900">
               Create your account
             </h1>
@@ -199,10 +199,10 @@ export default function SignUpPage() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-2.5"
           >
             {/* Username Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <Label
                 htmlFor="username"
                 className="text-sm font-medium text-neutral-700"
@@ -212,10 +212,10 @@ export default function SignUpPage() {
               <Input
                 id="username"
                 placeholder="Enter your username"
-                className="rounded-lg border-neutral-300 px-4 py-2.5 text-base"
+                className="rounded-lg border-neutral-300 px-4 py-2 text-base"
                 {...register('username')}
               />
-              {errors.username && (
+              {touchedFields.username && errors.username && (
                 <p className="text-sm text-red-500">
                   {errors.username.message}
                 </p>
@@ -223,7 +223,7 @@ export default function SignUpPage() {
             </div>
 
             {/* Email Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <Label
                 htmlFor="email"
                 className="text-sm font-medium text-neutral-700"
@@ -234,16 +234,16 @@ export default function SignUpPage() {
                 id="email"
                 type="email"
                 placeholder="yourname@gmail.com"
-                className="rounded-lg border-neutral-300 px-4 py-2.5 text-base"
+                className="rounded-lg border-neutral-300 px-4 py-2 text-base"
                 {...register('email')}
               />
-              {errors.email && (
+              {touchedFields.email && errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
 
             {/* Password Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <Label
                 htmlFor="password"
                 className="text-sm font-medium text-neutral-700"
@@ -255,7 +255,7 @@ export default function SignUpPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Create a password"
-                  className="rounded-lg border-neutral-300 px-4 py-2.5 pr-12 text-base"
+                  className="rounded-lg border-neutral-300 px-4 py-2 pr-12 text-base"
                   {...register('password')}
                 />
                 <Button
@@ -278,7 +278,7 @@ export default function SignUpPage() {
 
               {/* Password Requirements Checklist */}
 
-              {errors.password && (
+              {touchedFields.password && errors.password && (
                 <p className="text-sm text-red-500">
                   {errors.password.message}
                 </p>
@@ -286,7 +286,7 @@ export default function SignUpPage() {
             </div>
 
             {/* Confirm Password Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <Label
                 htmlFor="confirmPassword"
                 className="text-sm font-medium text-neutral-700"
@@ -298,7 +298,7 @@ export default function SignUpPage() {
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
-                  className="rounded-lg border-neutral-300 px-4 py-2.5 pr-12 text-base"
+                  className="rounded-lg border-neutral-300 px-4 py-2 pr-12 text-base"
                   {...register('confirmPassword')}
                 />
                 <Button
@@ -318,7 +318,7 @@ export default function SignUpPage() {
                   </span>
                 </Button>
               </div>
-              {errors.confirmPassword && (
+              {touchedFields.confirmPassword && errors.confirmPassword && (
                 <p className="text-sm text-red-500">
                   {errors.confirmPassword.message}
                 </p>
@@ -327,7 +327,7 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="mt-4 w-full rounded-lg bg-[#7C1D1D] py-6 text-base hover:bg-[#5a1515]"
+              className="mt-1 w-full rounded-lg bg-[#7C1D1D] py-5 text-base hover:bg-[#5a1515]"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -348,15 +348,15 @@ export default function SignUpPage() {
 
             <button
               type="button"
-              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
+              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 transition hover:bg-neutral-50"
               onClick={handleGoogleSignUp}
             >
-              <GoogleIcon className="h-5 w-5" />
+              <GoogleIcon className="h-4 w-4" />
             </button>
           </form>
         </div>
 
-        <div className="mt-auto flex justify-center pt-8">
+        <div className="flex justify-center py-3">
           <p className="text-sm text-neutral-500">
             Already have an account?{' '}
             <Link
@@ -369,14 +369,14 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      <div className="relative hidden flex-1 items-center justify-end pt-2 lg:flex">
+      <div className="relative hidden flex-1 items-center justify-end overflow-hidden lg:flex">
         <Image
           src={sideIllustration}
           alt="Student illustration for sign up"
           width={680}
           height={1024}
           priority
-          className="-mr-8 h-full w-full object-contain"
+          className="-mr-8 h-full w-full object-contain object-right"
         />
       </div>
     </div>
