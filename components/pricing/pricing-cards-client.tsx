@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PricingCard } from './pricing-card'
 import { PricingClientWrapper } from './pricing-client-wrapper'
 import SignupPromptModal from './SignupPromptModal'
+import PremiumMemberView from './PremiumMemberView'
 
 interface PricingFeature {
   name: string
@@ -45,12 +46,7 @@ export default function PricingCardsClient({
   return (
     <>
       {isPremiumUser ? (
-        <div className="flex w-full flex-col items-center gap-4">
-          <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-6 text-center max-w-3xl">
-            <h3 className="text-xl font-semibold text-neutral-900">You're a Premium member</h3>
-            <p className="mt-2 text-neutral-700">Enjoy unlimited downloads, AI summaries, and your full library — no action needed.</p>
-          </div>
-        </div>
+        <PremiumMemberView premiumTierFeatures={premiumTierFeatures} />
       ) : (
         <>
           <PricingCard
