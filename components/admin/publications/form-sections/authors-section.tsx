@@ -30,7 +30,9 @@ export function AuthorsSection({
             <Users className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-lg">Section 2: Authorship</CardTitle>
+            <CardTitle className="text-lg">
+              Section 2: Authorship <span className="text-red-500">*</span>
+            </CardTitle>
             <CardDescription className="text-xs">
               Select existing authors or add new contributors
             </CardDescription>

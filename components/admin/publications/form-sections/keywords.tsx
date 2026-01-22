@@ -109,7 +109,9 @@ export function KeywordsSection({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-semibold">Keywords / Tags</Label>
+      <Label className="text-sm font-semibold">
+        Keywords / Tags <span className="text-red-500">*</span>
+      </Label>
       <Tags className="w-full">
         <TagsTrigger className="w-full justify-start min-h-[42px]">
           {formData.keywords.map((keyword) => (
