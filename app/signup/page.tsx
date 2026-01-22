@@ -207,7 +207,7 @@ export default function SignUpPage() {
                 htmlFor="username"
                 className="text-sm font-medium text-neutral-700"
               >
-                Username
+                Username <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="username"
@@ -228,7 +228,7 @@ export default function SignUpPage() {
                 htmlFor="email"
                 className="text-sm font-medium text-neutral-700"
               >
-                Email
+                Email <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="email"
@@ -248,7 +248,7 @@ export default function SignUpPage() {
                 htmlFor="password"
                 className="text-sm font-medium text-neutral-700"
               >
-                Password
+                Password <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -291,7 +291,7 @@ export default function SignUpPage() {
                 htmlFor="confirmPassword"
                 className="text-sm font-medium text-neutral-700"
               >
-                Confirm Password
+                Confirm Password <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Input

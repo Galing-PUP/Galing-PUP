@@ -174,7 +174,9 @@ export default function RequestAccessPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Full Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="username">Full Name</Label>
+                <Label htmlFor="username">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="username"
                   placeholder="Enter your full name"
@@ -189,7 +191,9 @@ export default function RequestAccessPage() {
 
               {/* College Dropdown */}
               <div className="space-y-2 w-full">
-                <Label htmlFor="college">College</Label>
+                <Label htmlFor="college">
+                  College <span className="text-red-500">*</span>
+                </Label>
                 <Select
                   onValueChange={(value) =>
                     setValue('college', parseInt(value, 10), {
@@ -221,7 +225,9 @@ export default function RequestAccessPage() {
               {/* Email Address and ID Number Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -235,7 +241,9 @@ export default function RequestAccessPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="idNumber">ID Number</Label>
+                  <Label htmlFor="idNumber">
+                    ID Number <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="idNumber"
                     placeholder="Enter your ID number"
@@ -253,7 +261,9 @@ export default function RequestAccessPage() {
               <div className="grid grid-cols-2 gap-4">
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">
+                    Password <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -288,7 +298,9 @@ export default function RequestAccessPage() {
 
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword">
+                    Confirm Password <span className="text-red-500">*</span>
+                  </Label>
                   <div className="relative">
                     <Input
                       id="confirmPassword"
@@ -328,7 +340,9 @@ export default function RequestAccessPage() {
 
               {/* ID Image Upload */}
               <div className="space-y-2">
-                <Label htmlFor="idImage">ID Image (Max 5MB)</Label>
+                <Label htmlFor="idImage">
+                  ID Image (Max 5MB) <span className="text-red-500">*</span>
+                </Label>
                 <div className="flex items-center gap-4">
                   <Input
                     id="idImage"

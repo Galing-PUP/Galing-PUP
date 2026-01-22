@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint . --cache",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,prisma}\" --ignore-unknown",
-    "db:owner": "bun run prisma/owner.ts"
+    "db:owner": "bun run prisma/owner.ts",
+    "db:minimal": "bun run prisma/seed.minimal.ts"
   },
   "prettier": {
     "semi": false,
