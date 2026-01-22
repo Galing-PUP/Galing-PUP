@@ -144,8 +144,7 @@ export function UserPreferencesModal({
 
       // Close modal and redirect to home
       onClose()
-      router.push('/')
-      router.refresh()
+      window.location.href = '/'
     } catch (error) {
       console.error('Error deleting account:', error)
       toast.error('Failed to delete account. Please try again.', {
@@ -235,8 +234,7 @@ export function UserPreferencesModal({
         toast.success(
           'Password changed. Please sign in with your new password.',
         )
-        router.push('/')
-        router.refresh()
+        window.location.href = '/'
       }
     } catch (error: unknown) {
       console.error('Failed to update preferences:', error)

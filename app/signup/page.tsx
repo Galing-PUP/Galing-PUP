@@ -97,8 +97,7 @@ export default function SignUpPage() {
         }
 
         toast.success('Successfully signed in with Google!')
-        router.push('/')
-        router.refresh()
+        window.location.href = '/'
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign up with Google')
