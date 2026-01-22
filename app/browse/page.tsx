@@ -40,6 +40,9 @@ function BrowsePageContent() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState(activeSearchTerm)
+  const [totalResults, setTotalResults] = useState(0)
+  const [suggestions, setSuggestions] = useState<SearchResult[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
     course: 'All Courses',
     yearRange: 'Anytime',
@@ -58,6 +61,53 @@ function BrowsePageContent() {
   useEffect(() => {
     setSearchTerm(activeSearchTerm)
   }, [activeSearchTerm])
+
+  // Fetch suggestions as user types (for autocomplete)
+  useEffect(() => {
+    let abort = false
+
+    const fetchSuggestions = async () => {
+      const trimmed = searchTerm.trim()
+      if (!trimmed) {
+        setSuggestions([])
+        setLoadingSuggestions(false)
+        return
+      }
+
+      setLoadingSuggestions(true)
+      try {
+        const params = new URLSearchParams()
+        params.set('q', trimmed)
+        params.set('limit', '5')
+        const url = `/api/browse?${params.toString()}`
+
+        const res = await fetch(url)
+        if (!res.ok) {
+          throw new Error(`Failed to fetch suggestions: ${res.status}`)
+        }
+        const data: { results: SearchResult[]; total: number } = await res.json()
+        if (!abort) {
+          setSuggestions(data.results ?? [])
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error)
+        if (!abort) {
+          setSuggestions([])
+        }
+      } finally {
+        if (!abort) {
+          setLoadingSuggestions(false)
+        }
+      }
+    }
+
+    const handle = setTimeout(fetchSuggestions, 300)
+
+    return () => {
+      abort = true
+      clearTimeout(handle)
+    }
+  }, [searchTerm])
 
   useEffect(() => {
     async function load() {
@@ -80,6 +130,8 @@ function BrowsePageContent() {
         }
 
         params.set('sort', sortBy)
+        params.set('limit', resultsPerPage.toString())
+        params.set('page', currentPage.toString())
 
         const query = params.toString()
         const url = query ? `/api/browse?${query}` : '/api/browse'
@@ -88,9 +140,9 @@ function BrowsePageContent() {
         if (!res.ok) {
           throw new Error(`Failed to load results: ${res.status}`)
         }
-        const data: SearchResult[] = await res.json()
-        setResults(data)
-        setCurrentPage(1)
+        const data: { results: SearchResult[]; total: number } = await res.json()
+        setResults(data.results ?? [])
+        setTotalResults(data.total ?? 0)
       } catch (error) {
         console.error(error)
       } finally {
@@ -99,19 +151,17 @@ function BrowsePageContent() {
     }
 
     load()
+  }, [activeSearchTerm, filters, sortBy, currentPage, resultsPerPage])
+
+  // Reset pagination when term or filters change
+  useEffect(() => {
+    setCurrentPage(1)
   }, [activeSearchTerm, filters, sortBy])
 
-  const totalResults = results.length
   const totalPages = Math.ceil(totalResults / resultsPerPage) || 1
   const startResult =
     totalResults === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1
   const endResult = Math.min(currentPage * resultsPerPage, totalResults)
-
-  // Get paginated results
-  const paginatedResults = results.slice(
-    (currentPage - 1) * resultsPerPage,
-    currentPage * resultsPerPage,
-  )
 
   // Calculate which page numbers to display
   const getPageNumbers = () => {
@@ -176,6 +226,11 @@ function BrowsePageContent() {
               const query = params.toString()
               router.push(`/browse${query ? `?${query}` : ''}`)
             }}
+            suggestions={suggestions}
+            loadingSuggestions={loadingSuggestions}
+            onSelectSuggestion={(item) => {
+              router.push(`/paper/${item.id}`)
+            }}
           />
         </div>
 
@@ -212,7 +267,7 @@ function BrowsePageContent() {
                 {loading ? (
                   <SearchResultSkeletonList count={resultsPerPage} />
                 ) : (
-                  paginatedResults.map((result) => (
+                  results.map((result) => (
                     <SearchResultCard key={result.id} result={result} />
                   ))
                 )}

@@ -5,7 +5,6 @@ import LogoDefault from '@/assets/Logo/logo-default.png'
 import { SearchBar } from '@/components/search-bar'
 import { ChevronRight } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -46,15 +45,16 @@ export default function Home() {
       try {
         const params = new URLSearchParams()
         params.set('q', trimmed)
+        params.set('limit', '5')
         const url = `/api/browse?${params.toString()}`
 
         const res = await fetch(url)
         if (!res.ok) {
           throw new Error(`Search failed: ${res.status}`)
         }
-        const data: HomeSearchResult[] = await res.json()
+        const data: { results: HomeSearchResult[] } = await res.json()
         if (!abort) {
-          setResults(data)
+          setResults(data.results ?? [])
         }
       } catch (e) {
         console.error(e)
@@ -95,29 +95,18 @@ export default function Home() {
               value={query}
               onChange={setQuery}
               onSubmit={goToSearchResults}
+              suggestions={results}
+              loadingSuggestions={loading}
+              onSelectSuggestion={(item) => {
+                router.push(`/paper/${item.id}`)
+              }}
             />
 
             {/* Inline results list */}
             <div className="mt-4">
-              {loading && (
-                <p className="text-sm text-gray-500">Loading studies...</p>
-              )}
               {error && <p className="text-sm text-red-600">{error}</p>}
-              {!loading && !error && results.length > 0 && (
-                <div className="rounded-lg border border-gray-200 bg-white shadow-sm max-h-80 overflow-y-auto">
-                  <ul className="divide-y divide-gray-100">
-                    {results.map((r) => (
-                      <li key={r.id}>
-                        <Link
-                          href={`/paper/${r.id}`}
-                          className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                        >
-                          {r.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {!loading && !error && results.length === 0 && query.trim() && (
+                <p className="text-sm text-gray-500">No matching studies yet.</p>
               )}
             </div>
           </div>
