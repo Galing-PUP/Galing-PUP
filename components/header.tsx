@@ -2,10 +2,17 @@
 
 import LogoDefault from '@/assets/Logo/logo-default.png'
 import { SignInModal } from '@/components/SignInModal'
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { getCurrentUser, signOut } from '@/lib/actions'
 import { RoleName, TierName } from '@/lib/generated/prisma/enums'
 import { formatTier } from '@/lib/utils/format'
-import { Loader2, User } from 'lucide-react'
+import { Loader2, Menu, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -118,29 +125,6 @@ export function Header({
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [pathname])
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [isMobileMenuOpen])
-
-  // Close mobile menu on Escape key
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isMobileMenuOpen) {
-        setIsMobileMenuOpen(false)
-      }
-    }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isMobileMenuOpen])
 
   /**
    * Handles user sign out with a smooth transition.
@@ -336,157 +320,120 @@ export function Header({
             )}
           </div>
 
-          {/* Mobile Menu (Toggle Navigation) */}
-          <div className="flex items-center justify-self-end md:hidden">
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-gray-700"
-              aria-label="Toggle navigation menu"
-              aria-expanded={isMobileMenuOpen}
-            >
-              {isMobileMenuOpen ? (
-                <svg
-                  width={20}
-                  height={20}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg
-                  width={20}
-                  height={20}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 7h16M4 12h16M4 17h16" />
-                </svg>
-              )}
-            </button>
+          {/* Mobile Menu Button */}
+          <div className="flex items-center justify-end md:hidden col-start-3">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="h-10 w-10 rounded-full"
+                aria-label="Toggle navigation menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle className="text-left">Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col mt-6 space-y-1">
+                  {/* Navigation Links */}
+                  {navItems.map((item) => {
+                    const isActive = activeLookup.get(item.href)
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
+                          ${isActive
+                            ? 'bg-pup-maroon/10 text-pup-maroon border-l-4 border-pup-gold-light'
+                            : 'text-gray-700 hover:bg-gray-100'
+                          }
+                        `}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    )
+                  })}
+
+                  {/* Divider */}
+                  <div className="py-3">
+                    <div className="h-px bg-neutral-200" />
+                  </div>
+
+                  {/* User Section */}
+                  {user ? (
+                    <div className="space-y-2">
+                      {/* User Info */}
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <div className="h-12 w-12 rounded-full bg-pup-maroon text-white flex items-center justify-center text-base font-bold">
+                          {getInitials(user.username)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-base font-semibold text-neutral-900">
+                            {user.username}
+                          </span>
+                          <span className="text-sm text-neutral-500 font-medium">
+                            {formatTier(user.tierName)} user
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* User Actions */}
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-gray-700"
+                        onClick={() => {
+                          setIsPreferencesOpen(true)
+                          setIsMobileMenuOpen(false)
+                        }}
+                      >
+                        User preferences
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-pup-maroon disabled:opacity-50"
+                        onClick={handleSignOut}
+                        disabled={isSigningOut}
+                      >
+                        {isSigningOut ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                            <span>Signing out...</span>
+                          </>
+                        ) : (
+                          <span>Logout</span>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-center gap-2 px-4 py-3 h-auto text-base font-bold text-pup-maroon"
+                        onClick={() => {
+                          setIsSignInModalOpen(true)
+                          setIsMobileMenuOpen(false)
+                        }}
+                      >
+                        <User className="h-5 w-5" />
+                        <span>{signIn.label}</span>
+                      </Button>
+                      <Link
+                        href={primaryAction.href}
+                        className="block w-full text-center rounded-lg bg-pup-maroon px-4 py-3 text-base font-semibold text-white hover:bg-pup-maroon/80 transition-colors duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {primaryAction.label}
+                      </Link>
+                    </div>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
-
-        {/* Mobile Menu Overlay & Drawer */}
-        {isMobileMenuOpen && (
-          <>
-            {/* Overlay */}
-            <div
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
-              aria-hidden="true"
-            />
-            
-            {/* Mobile Menu Drawer */}
-            <div 
-              className="fixed top-20 left-0 right-0 bottom-0 bg-white z-50 md:hidden overflow-y-auto"
-              role="dialog"
-              aria-label="Mobile navigation menu"
-              aria-modal="true"
-            >
-              <nav className="flex flex-col p-6 space-y-1">
-                {/* Navigation Links */}
-                {navItems.map((item) => {
-                  const isActive = activeLookup.get(item.href)
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
-                        ${isActive
-                          ? 'bg-pup-maroon/10 text-pup-maroon border-l-4 border-pup-gold-light'
-                          : 'text-gray-700 hover:bg-gray-100'
-                        }
-                      `}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                })}
-
-                {/* Divider */}
-                <div className="py-3">
-                  <div className="h-px bg-neutral-200" />
-                </div>
-
-                {/* User Section */}
-                {user ? (
-                  <div className="space-y-2">
-                    {/* User Info */}
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <div className="h-12 w-12 rounded-full bg-pup-maroon text-white flex items-center justify-center text-base font-bold">
-                        {getInitials(user.username)}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-base font-semibold text-neutral-900">
-                          {user.username}
-                        </span>
-                        <span className="text-sm text-neutral-500 font-medium">
-                          {formatTier(user.tierName)} user
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* User Actions */}
-                    <button
-                      className="w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 transition-colors duration-200"
-                      onClick={() => {
-                        setIsPreferencesOpen(true)
-                        setIsMobileMenuOpen(false)
-                      }}
-                    >
-                      User preferences
-                    </button>
-                    <button
-                      className="w-full flex items-center gap-2 text-left px-4 py-3 rounded-lg text-base font-medium text-pup-maroon hover:bg-gray-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleSignOut}
-                      disabled={isSigningOut}
-                    >
-                      {isSigningOut ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Signing out...</span>
-                        </>
-                      ) : (
-                        <span>Logout</span>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => {
-                        setIsSignInModalOpen(true)
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-base font-bold text-pup-maroon hover:bg-pup-maroon/10 transition-colors duration-200"
-                    >
-                      <User />
-                      <span>{signIn.label}</span>
-                    </button>
-                    <Link
-                      href={primaryAction.href}
-                      className="block w-full text-center rounded-lg bg-pup-maroon px-4 py-3 text-base font-semibold text-white hover:bg-pup-maroon/80 transition-colors duration-200"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {primaryAction.label}
-                    </Link>
-                  </div>
-                )}
-              </nav>
-            </div>
-          </>
-        )}
       </header>
     </>
   )
