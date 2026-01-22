@@ -84,7 +84,9 @@ export function BasicInfoSection({
             <FileText className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-lg">Section 1: Metadata</CardTitle>
+            <CardTitle className="text-lg">
+              Section 1: Metadata <span className="text-red-500">*</span>
+            </CardTitle>
             <CardDescription className="text-xs">
               Core identification and descriptive details
             </CardDescription>

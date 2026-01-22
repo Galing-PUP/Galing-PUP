@@ -46,7 +46,7 @@ export function FileSection({
           </div>
           <div>
             <CardTitle className="text-lg">
-              Section 3: File Management
+              Section 3: File Management <span className="text-red-500">*</span>
             </CardTitle>
             <CardDescription className="text-xs">
               Upload and verify the primary academic document
