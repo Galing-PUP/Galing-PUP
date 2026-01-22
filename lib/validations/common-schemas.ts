@@ -82,9 +82,7 @@ export const USERNAME_SCHEMA = z
   .min(2, 'Username must be at least 2 characters')
 
 // Email validation
-export const EMAIL_SCHEMA = z
-  .string()
-  .email('Please enter a valid email address')
+export const EMAIL_SCHEMA = z.email('Please enter a valid email address')
 
 // Password matching refine helper
 export const passwordMatchRefine = {
