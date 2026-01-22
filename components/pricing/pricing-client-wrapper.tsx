@@ -14,6 +14,7 @@ interface PricingClientWrapperProps {
   isPremiumUser: boolean
   isAuthenticated?: boolean
   onUnauthenticated?: () => void
+  showButton?: boolean
   freeTierFeatures?: PricingFeature[]
   premiumTierFeatures: PricingFeature[]
 }
@@ -28,6 +29,7 @@ export function PricingClientWrapper({
   premiumTierFeatures,
   isAuthenticated = false,
   onUnauthenticated,
+  showButton = true,
 }: PricingClientWrapperProps) {
   const [isLoading, setIsLoading] = useState(false)
 
@@ -78,6 +80,7 @@ export function PricingClientWrapper({
       description="Best for active researchers and students"
       features={premiumTierFeatures}
       buttonText={isLoading ? 'Processing...' : 'Upgrade to Premium'}
+      showButton={showButton}
       isRecommended={true}
       borderColor="border-yellow-400"
       buttonColor="bg-pup-maroon hover:bg-pup-maroon/80"

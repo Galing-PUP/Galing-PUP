@@ -37,7 +37,6 @@ export default function PricingCardsClient({
     }
     openSignIn()
   }
-
   const handlePremiumUnauth = () => {
     // show the sign-in modal instead of redirecting
     openSignIn()
@@ -45,28 +44,40 @@ export default function PricingCardsClient({
 
   return (
     <>
-      <PricingCard
-        title="Free Tier"
-        price={0}
-        currency="₱"
-        duration="/forever"
-        description="Perfect for casual research and browsing"
-        features={freeTierFeatures}
-        buttonText="Get Started Free"
-        buttonColor="bg-gray-900 hover:bg-gray-800"
-        accentColor="text-green-600"
-        disabled={isPremiumUser}
-        onButtonClick={handleFreeCTA}
-      />
+      {isPremiumUser ? (
+        <div className="flex w-full flex-col items-center gap-4">
+          <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-6 text-center max-w-3xl">
+            <h3 className="text-xl font-semibold text-neutral-900">You're a Premium member</h3>
+            <p className="mt-2 text-neutral-700">Enjoy unlimited downloads, AI summaries, and your full library — no action needed.</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <PricingCard
+            title="Free Tier"
+            price={0}
+            currency="₱"
+            duration="/forever"
+            description="Perfect for casual research and browsing"
+            features={freeTierFeatures}
+            buttonText={isAuthenticated ? 'Current plan' : 'Get Started Free'}
+            buttonColor="bg-gray-900 hover:bg-gray-800"
+            accentColor="text-green-600"
+            disabled={isAuthenticated && !isPremiumUser}
+            onButtonClick={handleFreeCTA}
+          />
 
-      <PricingClientWrapper
-        isPremiumUser={isPremiumUser}
-        isAuthenticated={isAuthenticated}
-        premiumTierFeatures={premiumTierFeatures}
-        onUnauthenticated={handlePremiumUnauth}
-      />
+          <PricingClientWrapper
+            isPremiumUser={isPremiumUser}
+            isAuthenticated={isAuthenticated}
+            premiumTierFeatures={premiumTierFeatures}
+            onUnauthenticated={handlePremiumUnauth}
+            showButton={true}
+          />
 
-      <SignupPromptModal isOpen={showSignIn} onClose={closeSignIn} />
+          <SignupPromptModal isOpen={showSignIn} onClose={closeSignIn} />
+        </>
+      )}
     </>
   )
 }
