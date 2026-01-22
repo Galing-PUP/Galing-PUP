@@ -8,7 +8,7 @@ import { formatTier } from '@/lib/utils/format'
 import { Loader2, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import UserPreferencesModal from './user-preferences-modal'
@@ -72,7 +72,6 @@ export function Header({
   initialUser = null,
 }: HeaderProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false)
   const [user, setUser] = useState<UserProfile | null>(initialUser)
@@ -126,12 +125,7 @@ export function Header({
       toast.loading('Signing out...', { id: 'signout' })
       await signOut()
       toast.success('Signed out successfully', { id: 'signout' })
-      // Clear user state for immediate UI update
-      setUser(null)
-      // Add a small delay for smooth transition before refreshing
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      router.refresh()
-      router.push('/')
+      window.location.href = '/'
     } catch (error) {
       console.error('Error signing out:', error)
       toast.error('Failed to sign out. Please try again.', { id: 'signout' })
@@ -171,7 +165,8 @@ export function Header({
     pathname === '/signup' ||
     pathname === '/verify-otp' ||
     pathname === '/forgot-password' ||
-    pathname === '/update-password'
+    pathname === '/update-password' ||
+    pathname === '/success'
   ) {
     return null
   }
@@ -223,11 +218,10 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={`pb-1 transition-colors duration-200
-                  ${
-                    isActive
+                  ${isActive
                       ? 'font-medium border-b-2 border-pup-gold-light text-pup-maroon'
                       : 'text-gray-500 hover:text-gray-900'
-                  }
+                    }
                 `}
                 >
                   {item.label}
