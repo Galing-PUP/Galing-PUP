@@ -367,7 +367,9 @@ export default function AdminPublicationsPage() {
 
           {/* Results Count - Desktop Only */}
           <div className="hidden md:flex items-center gap-2 text-xs text-gray-600">
-            <span className="font-semibold text-pup-maroon">{totalResults}</span>
+            <span className="font-semibold text-pup-maroon">
+              {totalResults}
+            </span>
             <span className="text-gray-500">results</span>
           </div>
 
@@ -376,10 +378,11 @@ export default function AdminPublicationsPage() {
             <button
               type="button"
               onClick={() => setViewMode('card')}
-              className={`flex h-8 w-8 items-center justify-center rounded transition ${viewMode === 'card'
-                ? 'bg-pup-maroon text-white shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
+              className={`flex h-8 w-8 items-center justify-center rounded transition ${
+                viewMode === 'card'
+                  ? 'bg-pup-maroon text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
               aria-label="Card view"
             >
               <LayoutGrid size={16} />
@@ -387,10 +390,11 @@ export default function AdminPublicationsPage() {
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`flex h-8 w-8 items-center justify-center rounded transition ${viewMode === 'list'
-                ? 'bg-pup-maroon text-white shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
+              className={`flex h-8 w-8 items-center justify-center rounded transition ${
+                viewMode === 'list'
+                  ? 'bg-pup-maroon text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
               aria-label="List view"
             >
               <ListIcon size={16} />
@@ -441,14 +445,15 @@ export default function AdminPublicationsPage() {
                                 {yearStr}
                               </span>
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${pub.status === 'APPROVED'
-                                  ? 'bg-green-100 text-green-700'
-                                  : pub.status === 'PENDING'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : pub.status === 'REJECTED'
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-gray-100 text-gray-700'
-                                  }`}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                  pub.status === 'APPROVED'
+                                    ? 'bg-green-100 text-green-700'
+                                    : pub.status === 'PENDING'
+                                      ? 'bg-amber-100 text-amber-700'
+                                      : pub.status === 'REJECTED'
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-gray-100 text-gray-700'
+                                }`}
                               >
                                 {pub.status}
                               </span>
@@ -499,14 +504,15 @@ export default function AdminPublicationsPage() {
                               {yearStr}
                             </span>
                             <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${pub.status === 'APPROVED'
-                                ? 'bg-green-100 text-green-700'
-                                : pub.status === 'PENDING'
-                                  ? 'bg-amber-100 text-amber-700'
-                                  : pub.status === 'REJECTED'
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-gray-100 text-gray-700'
-                                }`}
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                pub.status === 'APPROVED'
+                                  ? 'bg-green-100 text-green-700'
+                                  : pub.status === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : pub.status === 'REJECTED'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-700'
+                              }`}
                             >
                               {pub.status}
                             </span>
@@ -572,10 +578,11 @@ export default function AdminPublicationsPage() {
                     <button
                       key={pageNum}
                       onClick={() => goToPage(pageNum)}
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${currentPage === pageNum
-                        ? 'bg-pup-maroon text-white shadow-md'
-                        : 'text-pup-maroon hover:bg-pup-gold-light/50'
-                        }`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                        currentPage === pageNum
+                          ? 'bg-pup-maroon text-white shadow-md'
+                          : 'text-pup-maroon hover:bg-pup-gold-light/50'
+                      }`}
                     >
                       {pageNum}
                     </button>

@@ -64,13 +64,15 @@ function NavLink({
   `
 
   // Icon container and color logic
-  const iconClasses = `flex h-10 w-10 items-center justify-center rounded-full transition-colors ${isActive ? 'bg-pup-maroon' : 'bg-black/60'
-    }`
+  const iconClasses = `flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+    isActive ? 'bg-pup-maroon' : 'bg-black/60'
+  }`
   const iconColorClasses = `h-5 w-5 ${isActive ? 'text-pup-gold-light' : 'text-pup-gold-dark'}`
 
   // Label text styles (shown when expanded)
-  const labelClasses = `mr-4 flex-1 whitespace-nowrap text-right ${isActive ? 'text-pup-maroon' : 'text-pup-gold-dark'
-    }`
+  const labelClasses = `mr-4 flex-1 whitespace-nowrap text-right ${
+    isActive ? 'text-pup-maroon' : 'text-pup-gold-dark'
+  }`
 
   // Hover tooltip styles (shown when collapsed)
   const tooltipClasses = `
@@ -177,8 +179,9 @@ export function Sidebar({ role }: { role?: RoleName }) {
 
   return (
     <aside
-      className={`flex h-screen flex-col bg-pup-maroon text-pup-gold-light transition-all duration-300 ${isExpanded ? 'w-70 p-6' : 'w-24 p-4'
-        }`}
+      className={`flex h-screen flex-col bg-pup-maroon text-pup-gold-light transition-all duration-300 ${
+        isExpanded ? 'w-70 p-6' : 'w-24 p-4'
+      }`}
     >
       {/* Logo/Toggle Section */}
       <button
@@ -190,8 +193,9 @@ export function Sidebar({ role }: { role?: RoleName }) {
           alt="Galing PUP Logo"
           draggable={false}
           onContextMenu={(e) => e.preventDefault()}
-          className={`h-auto mt-5 transition-all duration-300 ${isExpanded ? 'w-55' : 'w-10'
-            }`}
+          className={`h-auto mt-5 transition-all duration-300 ${
+            isExpanded ? 'w-55' : 'w-10'
+          }`}
           priority
         />
         {isExpanded && role === RoleName.SUPERADMIN && (
