@@ -34,16 +34,33 @@ type AdminPublication = {
   date: string
   author: string
   resourceType: ResourceTypes | null
+  status: string
 }
 
 // --- Configuration ---
 const UNKNOWN_AUTHOR_LABEL = 'Unknown Author'
-const ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 12
+
+const getStatusBadgeColor = (status: string) => {
+  switch (status) {
+    case 'APPROVED':
+      return 'bg-green-100 text-green-700'
+    case 'PENDING':
+      return 'bg-yellow-100 text-yellow-700'
+    case 'REJECTED':
+      return 'bg-red-100 text-red-700'
+    case 'DELETED':
+      return 'bg-gray-100 text-gray-700'
+    default:
+      return 'bg-gray-100 text-gray-700'
+  }
+}
 
 type AdminFilterValues = {
   course: string
   year: string
   documentType: ResourceTypes | 'All Types'
+  status: string
 }
 
 type AdminSortOption =
@@ -67,7 +84,9 @@ export default function AdminPublicationsPage() {
     course: 'All Courses',
     year: 'All Years',
     documentType: 'All Types',
+    status: 'All Statuses',
   })
+  const [totalResults, setTotalResults] = useState(0)
   const [sortBy, setSortBy] = useState<AdminSortOption>('Newest to Oldest')
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
@@ -77,45 +96,46 @@ export default function AdminPublicationsPage() {
     useState<AdminPublication | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // --- Data Loading ---
+  // --- Data Loading with Server-Side Pagination ---
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch('/api/browse')
+        const params = new URLSearchParams()
+
+        if (searchQuery.trim()) {
+          params.set('q', searchQuery.trim())
+        }
+        if (filters.course !== 'All Courses') {
+          params.set('course', filters.course)
+        }
+        if (filters.year !== 'All Years') {
+          params.set('year', filters.year)
+        }
+        if (filters.documentType !== 'All Types') {
+          params.set('documentType', filters.documentType)
+        }
+        if (filters.status !== 'All Statuses') {
+          params.set('status', filters.status)
+        }
+        params.set('sort', sortBy)
+        params.set('limit', ITEMS_PER_PAGE.toString())
+        params.set('page', currentPage.toString())
+
+        const url = `/api/admin/publications?${params.toString()}`
+        const res = await fetch(url)
         if (!res.ok) {
           throw new Error(`Failed to load publications: ${res.status}`)
         }
 
-        const data: {
-          id: number
-          title: string
-          abstract: string
-          field: string
-          authors: string[]
-          date: string
-          resourceType: string | null
-        }[] = await res.json()
+        const payload: {
+          results: AdminPublication[]
+          total: number
+        } = await res.json()
 
-        const mapped: AdminPublication[] = data.map((item) => {
-          const primaryAuthor =
-            item.authors && item.authors.length > 0
-              ? item.authors[0]
-              : UNKNOWN_AUTHOR_LABEL
-
-          return {
-            id: item.id,
-            title: item.title,
-            abstract: item.abstract,
-            author: primaryAuthor,
-            field: item.field,
-            date: item.date,
-            resourceType: (item.resourceType as ResourceTypes | null) ?? null,
-          }
-        })
-
-        setPublications(mapped)
+        setPublications(payload.results ?? [])
+        setTotalResults(payload.total ?? 0)
       } catch (e) {
         console.error(e)
         setError('Failed to load publications from the database.')
@@ -125,56 +145,12 @@ export default function AdminPublicationsPage() {
     }
 
     load()
-  }, [])
+  }, [searchQuery, filters, sortBy, currentPage])
 
-  // --- Logic: Filtering & Sorting ---
-  const filteredData = useMemo(() => {
-    let data = publications
-
-    // Search
-    if (searchQuery.trim()) {
-      const lowerQuery = searchQuery.toLowerCase()
-      data = data.filter(
-        (pub) =>
-          pub.title.toLowerCase().includes(lowerQuery) ||
-          pub.field.toLowerCase().includes(lowerQuery) ||
-          pub.author.toLowerCase().includes(lowerQuery),
-      )
-    }
-
-    // Course Filter
-    if (filters.course !== 'All Courses') {
-      data = data.filter((pub) => pub.field === filters.course)
-    }
-
-    // Year Filter
-    if (filters.year !== 'All Years') {
-      data = data.filter((pub) => pub.date.includes(filters.year))
-    }
-
-    // Document Type Filter
-    if (filters.documentType !== 'All Types') {
-      data = data.filter((pub) => pub.resourceType === filters.documentType)
-    }
-
-    // Sort
-    return [...data].sort((a, b) => {
-      const dateA = new Date(a.date).getTime()
-      const dateB = new Date(b.date).getTime()
-
-      switch (sortBy) {
-        case 'Oldest to Newest':
-          return dateA - dateB
-        case 'Title A-Z':
-          return a.title.localeCompare(b.title)
-        case 'Title Z-A':
-          return b.title.localeCompare(a.title)
-        case 'Newest to Oldest':
-        default:
-          return dateB - dateA
-      }
-    })
-  }, [publications, searchQuery, filters, sortBy])
+  // --- Reset pagination when filters change ---
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, filters, sortBy])
 
   // Extract unique courses for filter dropdown
   const courseOptions = useMemo(() => {
@@ -186,12 +162,8 @@ export default function AdminPublicationsPage() {
   }, [publications])
 
   // --- Logic: Pagination ---
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE)
-
-  const currentData = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return filteredData.slice(start, start + ITEMS_PER_PAGE)
-  }, [filteredData, currentPage])
+  const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE) || 1
+  const currentData = publications
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page)
@@ -374,12 +346,35 @@ export default function AdminPublicationsPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Status Filter */}
+            <Select
+              value={filters.status}
+              onValueChange={(value) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  status: value,
+                }))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="w-full md:w-40 rounded-full border-pup-maroon/30 text-sm">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Statuses">All Statuses</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+                <SelectItem value="DELETED">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between gap-3 md:justify-end text-xs md:ml-auto text-gray-600">
             <div className="hidden md:flex items-center gap-2">
               <span className="inline-flex items-center justify-center rounded-full bg-pup-gold-light/70 px-3 py-1 text-[11px] font-semibold text-pup-maroon">
-                {filteredData.length}
+                {totalResults}
               </span>
               <span className="text-[11px] uppercase tracking-[0.18em] text-pup-maroon">
                 results
@@ -446,9 +441,14 @@ export default function AdminPublicationsPage() {
                               <h3 className="text-lg font-semibold text-gray-900 transition group-hover:text-pup-maroon">
                                 {pub.title}
                               </h3>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
-                                By {pub.author}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-pup-maroon/70">
+                                  By {pub.author}
+                                </p>
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getStatusBadgeColor(pub.status)}`}>
+                                  {pub.status}
+                                </span>
+                              </div>
                               <p className="line-clamp-3 text-sm text-gray-700">
                                 {pub.abstract || 'No abstract provided.'}
                               </p>
@@ -500,6 +500,9 @@ export default function AdminPublicationsPage() {
                             </h3>
                             <span className="inline-flex items-center rounded-full bg-pup-maroon/10 px-2 py-0.5 text-[10px] font-semibold text-pup-maroon">
                               {yearStr}
+                            </span>
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getStatusBadgeColor(pub.status)}`}>
+                              {pub.status}
                             </span>
                           </div>
                           <p className="truncate text-xs text-gray-600">
