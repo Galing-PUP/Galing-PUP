@@ -106,7 +106,9 @@ export default function Home() {
             <div className="mt-4">
               {error && <p className="text-sm text-red-600">{error}</p>}
               {!loading && !error && results.length === 0 && query.trim() && (
-                <p className="text-sm text-gray-500">No matching studies yet.</p>
+                <p className="text-sm text-gray-500">
+                  No matching studies yet.
+                </p>
               )}
             </div>
           </div>

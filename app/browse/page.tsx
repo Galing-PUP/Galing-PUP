@@ -85,7 +85,8 @@ function BrowsePageContent() {
         if (!res.ok) {
           throw new Error(`Failed to fetch suggestions: ${res.status}`)
         }
-        const data: { results: SearchResult[]; total: number } = await res.json()
+        const data: { results: SearchResult[]; total: number } =
+          await res.json()
         if (!abort) {
           setSuggestions(data.results ?? [])
         }
@@ -140,7 +141,8 @@ function BrowsePageContent() {
         if (!res.ok) {
           throw new Error(`Failed to load results: ${res.status}`)
         }
-        const data: { results: SearchResult[]; total: number } = await res.json()
+        const data: { results: SearchResult[]; total: number } =
+          await res.json()
         setResults(data.results ?? [])
         setTotalResults(data.total ?? 0)
       } catch (error) {
