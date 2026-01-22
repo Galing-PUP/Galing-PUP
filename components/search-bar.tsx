@@ -101,6 +101,7 @@ export function SearchBar({
     }
   }, [value])
 
+  // Debounce outbound onChange to limit API calls from parents
   useEffect(() => {
     const handle = setTimeout(() => {
       onChange?.(inputValue)
