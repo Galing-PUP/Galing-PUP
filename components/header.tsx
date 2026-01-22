@@ -204,6 +204,8 @@ export function Header({
               src={LogoDefault}
               alt="Galing PUP logo"
               className="h-7 w-auto sm:h-8 md:h-9"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
               priority
             />
           </Link>

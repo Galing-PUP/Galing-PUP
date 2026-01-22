@@ -86,6 +86,8 @@ export default function Home() {
             alt="Galing PUP"
             priority
             className="h-32 w-auto md:h-40"
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
           />
 
           <div className="w-full max-w-6xl mt-10">

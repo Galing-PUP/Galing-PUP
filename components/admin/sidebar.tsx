@@ -186,6 +186,8 @@ export function Sidebar({ role }: { role?: RoleName }) {
         <Image
           src={isExpanded ? LogoYellow : StarLogo}
           alt="Galing PUP Logo"
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
           className={`h-auto mt-5 transition-all duration-300 ${isExpanded ? 'w-55' : 'w-10'
             }`}
           priority
