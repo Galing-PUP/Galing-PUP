@@ -1,5 +1,7 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+
 import { colleges } from '@/data/collegeCourses'
 import { getCurrentUser } from '@/lib/actions'
 
@@ -14,6 +16,9 @@ import { UserToolbar } from '@/components/admin/users/user-toolbar'
 import { UsersTable } from '@/components/admin/users/users-table'
 import type { User, UserRole, UserStatus } from '@/types/users'
 import { useEffect, useMemo, useState } from 'react'
+
+/** Number of users displayed per page */
+const ITEMS_PER_PAGE = 10
 
 import {
   AlertDialog,
@@ -36,6 +41,7 @@ export default function UserManagementPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<UserStatus[]>([])
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([])
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean
@@ -133,6 +139,27 @@ export default function UserManagementPage() {
     })
   }, [users, selectedStatuses, selectedRoles, searchQuery])
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedStatuses, selectedRoles, searchQuery])
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredUsers.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredUsers, currentPage])
+
+  /**
+   * Navigates to a specific page number
+   * @param page - The page number to navigate to
+   */
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page)
+  }
+
   const handleSelectUser = (userId: string) => {
     setSelectedUserIds((prev) =>
       prev.includes(userId)
@@ -143,9 +170,9 @@ export default function UserManagementPage() {
 
   const handleSelectAll = () => {
     setSelectedUserIds(
-      selectedUserIds.length === filteredUsers.length
+      selectedUserIds.length === paginatedUsers.length
         ? []
-        : filteredUsers.map((u) => u.id),
+        : paginatedUsers.map((u) => u.id),
     )
   }
 
@@ -175,6 +202,14 @@ export default function UserManagementPage() {
 
       setUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.id)))
       setSelectedUserIds([])
+
+      // Adjust pagination if current page becomes empty
+      const remainingUsers = filteredUsers.length - selectedUserIds.length
+      const newTotalPages = Math.ceil(remainingUsers / ITEMS_PER_PAGE)
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages)
+      }
+
       fetchStats() // Update stats
       toast.success('Selected users have been deleted successfully.')
     } catch (error: any) {
@@ -251,6 +286,12 @@ export default function UserManagementPage() {
 
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id))
       setSelectedUserIds((prev) => prev.filter((id) => id !== deletingUser.id))
+
+      // Adjust pagination if current page becomes empty
+      if (paginatedUsers.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1)
+      }
+
       fetchStats()
       toast.success(`User "${deletingUser.name}" has been deleted.`)
       setDeletingUser(null)
@@ -286,7 +327,7 @@ export default function UserManagementPage() {
         )}
 
         <UsersTable
-          users={filteredUsers}
+          users={paginatedUsers}
           selectedUserIds={selectedUserIds}
           onSelectAll={handleSelectAll}
           onSelectUser={handleSelectUser}
@@ -294,8 +335,51 @@ export default function UserManagementPage() {
           onDeleteUser={(user) => setDeletingUser(user)}
         />
 
-        <div className="mt-6 text-sm text-gray-500">
-          Showing {filteredUsers.length} of {users.length} users
+        {/* Pagination Controls */}
+        {totalPages > 0 && (
+          <div className="mt-6 border-t border-gray-200 pt-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center justify-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-pup-maroon transition hover:bg-pup-gold-light/30 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronLeft size={16} /> <span>Previous</span>
+              </button>
+
+              <div className="flex items-center justify-center gap-2 overflow-x-auto px-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                        currentPage === pageNum
+                          ? 'bg-pup-maroon text-white shadow-md'
+                          : 'text-pup-maroon hover:bg-pup-gold-light/50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ),
+                )}
+              </div>
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center justify-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-pup-maroon transition hover:bg-pup-gold-light/30 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <span>Next</span> <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4 text-sm text-gray-500">
+          Showing {paginatedUsers.length} of {filteredUsers.length} users
+          {filteredUsers.length !== users.length && ` (${users.length} total)`}
+          {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
         </div>
       </div>
 
