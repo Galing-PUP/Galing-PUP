@@ -80,7 +80,6 @@ export const OPTIONAL_PASSWORD_SCHEMA = z
 export const USERNAME_SCHEMA = z
   .string()
   .min(2, 'Username must be at least 2 characters')
-  .regex(/^[a-zA-Z0-9.]+$/, 'Special characters and spaces are not allowed')
 
 // Email validation
 export const EMAIL_SCHEMA = z
