@@ -28,7 +28,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { PublicationFormData } from '@/lib/validations/publication-schema'
-import { Calendar1, FileText, Sparkles } from 'lucide-react'
+import { Calendar1, FileText } from 'lucide-react'
 import { ChangeEvent, useState } from 'react'
 
 interface BasicInfoSectionProps {
