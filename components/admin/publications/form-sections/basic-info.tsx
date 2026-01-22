@@ -95,7 +95,7 @@ export function BasicInfoSection({
         {/* Document Title */}
         <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-semibold">
-            Document Title
+            Document Title <span className="text-red-500">*</span>
           </Label>
           <Input
             id="title"
@@ -112,7 +112,7 @@ export function BasicInfoSection({
         {/* Abstract */}
         <div className="space-y-2">
           <Label htmlFor="abstract" className="text-sm font-semibold">
-            Abstract
+            Abstract <span className="text-red-500">*</span>
           </Label>
           <Textarea
             id="abstract"
@@ -135,7 +135,7 @@ export function BasicInfoSection({
           {/* Date of Publication */}
           <div className="space-y-2">
             <Label htmlFor="datePublished" className="text-sm font-semibold">
-              Date Published
+              Date Published <span className="text-red-500">*</span>
             </Label>
             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
@@ -176,7 +176,7 @@ export function BasicInfoSection({
           {/* Resource Type */}
           <div className="space-y-2">
             <Label htmlFor="resourceType" className="text-sm font-semibold">
-              Resource Type
+              Resource Type <span className="text-red-500">*</span>
             </Label>
             <Select
               value={formData.resourceType}
@@ -200,7 +200,7 @@ export function BasicInfoSection({
           {/* Course / Program */}
           <div className="space-y-2 md:col-span-3">
             <Label htmlFor="courseId" className="text-sm font-semibold">
-              Course / Program
+              Course / Program <span className="text-red-500">*</span>
             </Label>
             <CourseCombobox
               value={formData.courseId}
