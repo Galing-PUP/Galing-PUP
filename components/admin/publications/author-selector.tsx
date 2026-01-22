@@ -164,12 +164,27 @@ export function AuthorSelector({
     }
 
     // Check if author already exists
-    const alreadySelected = selectedAuthors.some(
-      (a) => a.email === newAuthor.email,
-    )
+    const alreadySelected = selectedAuthors.some((a) => {
+      // If both have emails, compare them
+      if (a.email && newAuthor.email) {
+        return a.email === newAuthor.email
+      }
+      // If both lack emails, compare by full name
+      if (!a.email && !newAuthor.email) {
+        return (
+          a.firstName === newAuthor.firstName &&
+          a.lastName === newAuthor.lastName
+        )
+      }
+      return false
+    })
 
     if (alreadySelected) {
-      setFormErrors({ email: 'This author is already added' })
+      setFormErrors({
+        email: newAuthor.email
+          ? 'This email is already added'
+          : 'This author (by name) is already added',
+      })
       setIsSubmitting(false)
       return
     }
@@ -179,9 +194,8 @@ export function AuthorSelector({
     // Add to available authors if not already there
     const existsInDB = availableAuthors.some((a) => a.email === newAuthor.email)
     if (!existsInDB) {
-      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${
-        newAuthor.lastName
-      }`.trim()
+      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${newAuthor.lastName
+        }`.trim()
       setAvailableAuthors([
         ...availableAuthors,
         {
