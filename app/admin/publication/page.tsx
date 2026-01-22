@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { courses } from '@/data/collegeCourses'
 import { ResourceTypes } from '@/lib/generated/prisma/enums'
 import { formatResourceType } from '@/lib/utils/format'
 
@@ -137,14 +138,17 @@ export default function AdminPublicationsPage() {
     setCurrentPage(1)
   }, [searchQuery, filters, sortBy])
 
-  // Extract unique courses for filter dropdown
+  // Get all course options sorted alphabetically
   const courseOptions = useMemo(() => {
-    const set = new Set<string>()
-    for (const pub of publications) {
-      if (pub.field) set.add(pub.field)
-    }
-    return Array.from(set).sort()
-  }, [publications])
+    return [...courses].sort((a, b) => a.courseName.localeCompare(b.courseName))
+  }, [])
+
+  // Get course abbreviation for display
+  const getCourseName = (fullName: string): string => {
+    if (fullName === 'All Courses') return 'Course'
+    const course = courses.find((c) => c.courseName === fullName)
+    return course?.courseAbbr ?? fullName
+  }
 
   // --- Logic: Pagination ---
   const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE) || 1
@@ -237,7 +241,7 @@ export default function AdminPublicationsPage() {
             placeholder="Search by title, author, or field..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full h-10 pl-9 pr-4 text-sm border border-gray-300 rounded-lg focus:border-pup-maroon focus:ring-2 focus:ring-pup-maroon/20 focus:outline-none transition-all"
+            className="w-full h-10 pl-9 pr-4 text-sm bg-white border border-gray-300 rounded-lg focus:border-pup-maroon focus:ring-2 focus:ring-pup-maroon/20 focus:outline-none transition-all"
           />
         </div>
 
@@ -250,7 +254,7 @@ export default function AdminPublicationsPage() {
               setSortBy(value as AdminSortOption)
               setCurrentPage(1)
             }}
-            className="w-auto min-w-0 [&_button]:rounded-lg [&_button]:h-10"
+            className="w-auto min-w-0 [&_button]:rounded-lg [&_button]:h-10 [&_button]:border-gray-300 [&_button]:text-gray-700 [&_button]:font-normal [&_button]:bg-white"
           />
 
           {/* Status Filter */}
@@ -264,10 +268,10 @@ export default function AdminPublicationsPage() {
               setCurrentPage(1)
             }}
           >
-            <SelectTrigger className="w-auto h-10 rounded-lg border-gray-300 text-sm">
+            <SelectTrigger className="w-auto h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-75 overflow-y-auto">
               <SelectItem value="All Statuses">All Statuses</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="APPROVED">Approved</SelectItem>
@@ -287,14 +291,16 @@ export default function AdminPublicationsPage() {
               setCurrentPage(1)
             }}
           >
-            <SelectTrigger className="w-auto h-10 rounded-lg border-gray-300 text-sm">
-              <SelectValue placeholder="Course" />
+            <SelectTrigger className="w-auto max-w-48 h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
+              <SelectValue placeholder="Course">
+                {getCourseName(filters.course)}
+              </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-75 overflow-y-auto">
               <SelectItem value="All Courses">All Courses</SelectItem>
               {courseOptions.map((course) => (
-                <SelectItem key={course} value={course}>
-                  {course}
+                <SelectItem key={course.id} value={course.courseName}>
+                  {course.courseName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -311,10 +317,10 @@ export default function AdminPublicationsPage() {
               setCurrentPage(1)
             }}
           >
-            <SelectTrigger className="w-auto h-10 rounded-lg border-gray-300 text-sm">
+            <SelectTrigger className="w-auto h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-75 overflow-y-auto">
               <SelectItem value="All Years">All Years</SelectItem>
               {Array.from(
                 new Set(
@@ -343,10 +349,10 @@ export default function AdminPublicationsPage() {
               setCurrentPage(1)
             }}
           >
-            <SelectTrigger className="w-auto h-10 rounded-lg border-gray-300 text-sm">
+            <SelectTrigger className="w-auto h-10 rounded-lg bg-white border-gray-300 text-sm text-gray-700">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-75 overflow-y-auto">
               <SelectItem value="All Types">All Types</SelectItem>
               {Object.values(ResourceTypes).map((type) => (
                 <SelectItem key={type} value={type}>
@@ -436,12 +442,12 @@ export default function AdminPublicationsPage() {
                               </span>
                               <span
                                 className={`rounded-full px-3 py-1 text-xs font-semibold ${pub.status === 'APPROVED'
-                                    ? 'bg-green-100 text-green-700'
-                                    : pub.status === 'PENDING'
-                                      ? 'bg-amber-100 text-amber-700'
-                                      : pub.status === 'REJECTED'
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-gray-100 text-gray-700'
+                                  ? 'bg-green-100 text-green-700'
+                                  : pub.status === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : pub.status === 'REJECTED'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-700'
                                   }`}
                               >
                                 {pub.status}
@@ -494,12 +500,12 @@ export default function AdminPublicationsPage() {
                             </span>
                             <span
                               className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${pub.status === 'APPROVED'
-                                  ? 'bg-green-100 text-green-700'
-                                  : pub.status === 'PENDING'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : pub.status === 'REJECTED'
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-gray-100 text-gray-700'
+                                ? 'bg-green-100 text-green-700'
+                                : pub.status === 'PENDING'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : pub.status === 'REJECTED'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-gray-100 text-gray-700'
                                 }`}
                             >
                               {pub.status}
