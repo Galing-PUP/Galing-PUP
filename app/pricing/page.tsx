@@ -1,7 +1,6 @@
 import { BenefitCard } from '@/components/pricing/benefit-card'
 import { FAQCard } from '@/components/pricing/faq-card'
-import { PricingCard } from '@/components/pricing/pricing-card'
-import { PricingClientWrapper } from '@/components/pricing/pricing-client-wrapper'
+import PricingCardsClient from '@/components/pricing/pricing-cards-client'
 import { prisma } from '@/lib/db'
 import { createClient } from '@/lib/supabase/server'
 import { Crown, Download, Sparkles, Zap } from 'lucide-react'
@@ -22,6 +21,7 @@ export default async function PricingPage() {
     })
     isPremiumUser = dbUser?.subscriptionTier.tierName === 'PAID'
   }
+  const isAuthenticated = !!user
   const freeTierFeatures = [
     { name: '10 downloads per day', included: true },
     { name: '10 citations per day', included: true },
@@ -59,22 +59,8 @@ export default async function PricingPage() {
         </section>
         {/* Pricing Cards Grid */}
         <section className="flex items-center justify-center gap-8 py-16 bg-white">
-          {/* Free Tier Card */}
-          <PricingCard
-            title="Free Tier"
-            price={0}
-            currency="₱"
-            duration="/forever"
-            description="Perfect for casual research and browsing"
-            features={freeTierFeatures}
-            buttonText="Get Started Free"
-            buttonColor="bg-gray-900 hover:bg-gray-800"
-            accentColor="text-green-600"
-            disabled={isPremiumUser}
-          />
-
-          {/* Premium Tier Card */}
-          <PricingClientWrapper
+          <PricingCardsClient
+            isAuthenticated={isAuthenticated}
             isPremiumUser={isPremiumUser}
             freeTierFeatures={freeTierFeatures}
             premiumTierFeatures={premiumTierFeatures}
