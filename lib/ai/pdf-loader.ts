@@ -1,17 +1,14 @@
 import path from 'path'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { pathToFileURL } from 'url'
 import './polyfill'
 
 // Disable worker for server-side usage
 // Convert absolute path to file:// URL for cross-platform compatibility
 // @ts-ignore
-pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
-  path.join(
-    process.cwd(),
-    'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
-  ),
-).href
+pdfjsLib.GlobalWorkerOptions.workerSrc = path.join(
+  process.cwd(),
+  'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+)
 
 export interface PageContent {
   pageNumber: number
