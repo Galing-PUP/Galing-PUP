@@ -133,17 +133,19 @@ export default function LibraryPage() {
     <>
       <div className="min-h-screen bg-white">
         {/* Header Section with Maroon Background */}
-        <div className="bg-pup-maroon px-4 py-12 md:px-8">
+        <div className="bg-pup-maroon px-4 py-8 sm:py-12 md:px-8">
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-4xl font-bold text-white">My Library</h1>
-                <p className="mt-2 text-lg text-gray-200">
+                <h1 className="text-3xl sm:text-4xl font-bold text-white">
+                  My Library
+                </h1>
+                <p className="mt-2 text-base sm:text-lg text-gray-200">
                   Your bookmarked documents and saved research
                 </p>
               </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-white">
+              <div className="flex items-center gap-2 md:flex-col md:text-right">
+                <div className="text-3xl sm:text-4xl font-bold text-white">
                   {bookmarkedPapers.length} /{' '}
                   {maxBookmarks === null ? '∞' : maxBookmarks}
                 </div>

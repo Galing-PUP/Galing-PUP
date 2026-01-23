@@ -20,7 +20,7 @@ import {
 import { ResourceTypes } from '@/lib/generated/prisma/enums'
 import { formatResourceType } from '@/lib/utils/format'
 import { FilterX } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export type FilterValues = {
   course: string
@@ -38,6 +38,8 @@ type FilterBoxProps = {
   courseOptions?: string[]
   /** Whether the filters accordion should be expanded by default */
   defaultExpanded?: boolean
+  /** Controlled filter values coming from the parent */
+  value?: FilterValues
 }
 
 const DEFAULT_FILTERS: FilterValues = {
@@ -52,8 +54,15 @@ export function FilterBox({
   onChange,
   courseOptions = [],
   defaultExpanded = false,
+  value,
 }: FilterBoxProps) {
-  const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS)
+  const [filters, setFilters] = useState<FilterValues>(value ?? DEFAULT_FILTERS)
+
+  useEffect(() => {
+    if (value) {
+      setFilters(value)
+    }
+  }, [value])
 
   const updateFilters = (next: FilterValues) => {
     setFilters(next)
@@ -233,7 +242,7 @@ export function FilterBox({
         className="w-full"
       >
         <AccordionItem value="filters" className="border-none">
-          <AccordionTrigger className="h-10 min-w-[190px] rounded-full border border-pup-maroon/40 bg-white/80 px-4 py-2 text-sm font-semibold text-pup-maroon shadow-sm hover:no-underline [&[data-state=open]]:text-pup-maroon">
+          <AccordionTrigger className="h-10 min-w-47.5 rounded-full border border-pup-maroon/40 bg-white/80 px-4 py-2 text-sm font-semibold text-pup-maroon shadow-sm hover:no-underline data-[state=open]:text-pup-maroon">
             <span className="flex items-center gap-2">
               Filters
               {activeFilterCount > 0 && (

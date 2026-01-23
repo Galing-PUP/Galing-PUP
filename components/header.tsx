@@ -2,10 +2,19 @@
 
 import LogoDefault from '@/assets/Logo/logo-default.png'
 import { SignInModal } from '@/components/SignInModal'
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { getCurrentUser, signOut } from '@/lib/actions'
 import { RoleName, TierName } from '@/lib/generated/prisma/enums'
 import { formatTier } from '@/lib/utils/format'
-import { Loader2, User } from 'lucide-react'
+import { Loader2, Menu, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -77,6 +86,7 @@ export function Header({
   const [user, setUser] = useState<UserProfile | null>(initialUser)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -112,6 +122,11 @@ export function Header({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [pathname])
 
   /**
    * Handles user sign out with a smooth transition.
@@ -203,7 +218,7 @@ export function Header({
             <Image
               src={LogoDefault}
               alt="Galing PUP logo"
-              className="h-7 w-auto sm:h-8 md:h-9"
+              className="h-7 w-auto sm:h-8 md:h-9 object-contain"
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               priority
@@ -308,26 +323,126 @@ export function Header({
             )}
           </div>
 
-          {/* Mobile Menu (Toggle Navigation) */}
-          <div className="flex items-center justify-self-end md:hidden">
-            <button
-              type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-gray-700"
-              aria-label="Toggle navigation menu"
-            >
-              <svg
-                width={20}
-                height={20}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          {/* Mobile Menu Button */}
+          <div className="flex items-center justify-end md:hidden col-start-3">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full"
+                  aria-label="Toggle navigation menu"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-75 sm:w-100 flex flex-col"
               >
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              </svg>
-            </button>
+                <SheetHeader className="px-2">
+                  <SheetTitle className="text-left">Menu</SheetTitle>
+                  <SheetDescription className="text-left">
+                    Navigate through the application
+                  </SheetDescription>
+                </SheetHeader>
+                <nav className="flex flex-col mt-6 space-y-2 px-2 flex-1">
+                  {/* Navigation Links */}
+                  {navItems.map((item) => {
+                    const isActive = activeLookup.get(item.href)
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
+                          ${
+                            isActive
+                              ? 'bg-pup-maroon/10 text-pup-maroon border-l-4 border-pup-gold-light'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }
+                        `}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    )
+                  })}
+
+                  {/* Divider */}
+                  <div className="py-4">
+                    <div className="h-px bg-neutral-200" />
+                  </div>
+
+                  {/* User Section */}
+                  {user ? (
+                    <div className="space-y-3 mt-auto">
+                      {/* User Info */}
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-neutral-50">
+                        <div className="h-12 w-12 shrink-0 rounded-full bg-pup-maroon text-white flex items-center justify-center text-base font-bold">
+                          {getInitials(user.username)}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-base font-semibold text-neutral-900 truncate">
+                            {user.username}
+                          </span>
+                          <span className="text-sm text-neutral-500 font-medium">
+                            {formatTier(user.tierName)} user
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* User Actions */}
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-gray-700 hover:bg-neutral-100"
+                        onClick={() => {
+                          setIsPreferencesOpen(true)
+                          setIsMobileMenuOpen(false)
+                        }}
+                      >
+                        User preferences
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-pup-maroon hover:bg-red-50 disabled:opacity-50"
+                        onClick={handleSignOut}
+                        disabled={isSigningOut}
+                      >
+                        {isSigningOut ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                            <span>Signing out...</span>
+                          </>
+                        ) : (
+                          <span>Logout</span>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 mt-auto">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-center gap-2 px-4 py-3 h-auto text-base font-semibold text-pup-maroon border-pup-maroon/30 hover:bg-pup-maroon/5"
+                        onClick={() => {
+                          setIsSignInModalOpen(true)
+                          setIsMobileMenuOpen(false)
+                        }}
+                      >
+                        <User className="h-5 w-5" />
+                        <span>{signIn.label}</span>
+                      </Button>
+                      <Link
+                        href={primaryAction.href}
+                        className="block w-full text-center rounded-lg bg-pup-maroon px-4 py-3 text-base font-semibold text-white hover:bg-pup-maroon/90 transition-colors duration-200 active:scale-98"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {primaryAction.label}
+                      </Link>
+                    </div>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
