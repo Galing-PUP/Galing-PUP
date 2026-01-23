@@ -50,7 +50,7 @@ export default function PaymentSuccessPage() {
 
           // Redirect to browse page after 3 seconds
           setTimeout(() => {
-            router.push('/browse')
+            window.location.href = '/browse'
           }, 3000)
         } else {
           setState('error')
