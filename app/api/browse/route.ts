@@ -8,7 +8,6 @@ type SearchResult = {
   id: number
   title: string
   authors: string[]
-  authorEmails: string[]
   additionalAuthors: number
   field: string
   date: string
@@ -26,7 +25,6 @@ type SearchRow = {
   resource_type: string | null
   course_name: string | null
   authors: string[] | null
-  author_emails: (string | null)[] | null
   rank: number
   total_count: bigint | number
 }
@@ -160,7 +158,6 @@ export async function GET(req: NextRequest) {
           d.resource_type,
           c.course_name,
           al.names AS authors,
-          al.emails AS author_emails,
           ${q ? Prisma.sql`ts_rank(d.search_vector, sq.query)` : Prisma.sql`0`} AS rank,
           COUNT(*) OVER() AS total_count
         FROM documents d
@@ -293,19 +290,13 @@ export async function GET(req: NextRequest) {
 
     const results: SearchResult[] = rows.map((row) => {
       const authorList = row.authors ?? []
-      const emailList = (row.author_emails ?? []).filter(
-        (email): email is string => email !== null,
-      )
-
       const authors = authorList.slice(0, 3)
-      const authorEmails = emailList.slice(0, 3)
       const additionalAuthors = Math.max(0, authorList.length - authors.length)
 
       return {
         id: row.id,
         title: row.title,
         authors,
-        authorEmails,
         additionalAuthors,
         field: row.course_name ?? 'Unknown',
         date: row.date_published

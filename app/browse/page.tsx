@@ -23,7 +23,6 @@ type SearchResult = {
   id: number
   title: string
   authors: string[]
-  authorEmails: string[]
   additionalAuthors: number
   field: string
   date: string
