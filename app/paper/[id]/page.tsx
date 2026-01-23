@@ -74,9 +74,6 @@ export default async function PaperPage(props: PaperPageProps) {
 
   // Extract data from document
   const authors = document.authors.map((a) => a.author.fullName)
-  const authorEmails = document.authors
-    .map((a) => a.author.email)
-    .filter((email): email is string => email !== null)
 
   const datePublished = document.datePublished
   const yearPublished =
@@ -108,7 +105,6 @@ export default async function PaperPage(props: PaperPageProps) {
               <HeaderInfo
                 title={document.title}
                 authors={authors}
-                authorEmails={authorEmails}
                 documentType={documentType}
                 yearPublished={yearPublished}
                 courseName={courseName}

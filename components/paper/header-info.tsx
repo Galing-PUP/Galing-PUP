@@ -1,7 +1,6 @@
 type HeaderInfoProps = {
   title: string
   authors: string[]
-  authorEmails: string[]
   documentType: string
   yearPublished: string
   courseName: string
@@ -10,7 +9,6 @@ type HeaderInfoProps = {
 export function HeaderInfo({
   title,
   authors,
-  authorEmails,
   documentType,
   yearPublished,
   courseName,
@@ -37,14 +35,7 @@ export function HeaderInfo({
       <p className="text-lg text-gray-500">
         {authors.map((author, index) => (
           <span key={index}>
-            <a
-              href={`mailto:${authorEmails[index]}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-pup-maroon transition-colors"
-            >
-              {author}
-            </a>
+            {author}
             {index < authors.length - 1 && ', '}
           </span>
         ))}
