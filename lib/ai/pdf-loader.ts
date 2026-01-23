@@ -1,61 +1,57 @@
-import path from 'path'
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { pathToFileURL } from 'url'
-import './polyfill'
-
-// Disable worker for server-side usage
-// Convert absolute path to file:// URL for cross-platform compatibility
-// @ts-ignore
-pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
-  path.join(
-    process.cwd(),
-    'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
-  ),
-).href
-
 export interface PageContent {
   pageNumber: number
   text: string
 }
 
 /**
- * Extracts text from a PDF buffer while preserving page numbers.
+ * Dynamically imports pdf-parse only at runtime to avoid Next.js build issues
+ */
+async function getPDFParse() {
+  // Dynamic import to avoid Next.js bundling issues
+  const pdfParse = await import('pdf-parse')
+  return pdfParse.PDFParse
+}
+
+/**
+ * Extracts text from a PDF buffer using Node.js-compatible pdf-parse.
+ * Returns text split by page for compatibility with existing code.
  * @param buffer Buffer or ArrayBuffer of the PDF file
+ * @returns Array of page content with text per page
  */
 export async function extractTextFromPdf(
   buffer: Buffer | ArrayBuffer,
 ): Promise<PageContent[]> {
-  // Convert standard Buffer to Uint8Array if needed
-  const data = new Uint8Array(buffer)
+  // Convert ArrayBuffer to Buffer if needed
+  const pdfBuffer = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer)
 
-  const loadingTask = pdfjsLib.getDocument({
-    data,
-    useSystemFonts: true, // Avoid font loading errors
-    disableFontFace: true, // Avoid font loading errors
-  })
+  // Get PDFParse class dynamically
+  const PDFParse = await getPDFParse()
 
-  const pdfDocument = await loadingTask.promise
-  const numPages = pdfDocument.numPages
+  // Create parser instance and extract text with page information
+  const parser = new PDFParse({ data: pdfBuffer })
+  const result = await parser.getText()
+
   const pages: PageContent[] = []
 
-  for (let i = 1; i <= numPages; i++) {
-    const page = await pdfDocument.getPage(i)
-    const textContent = await page.getTextContent()
-
-    // items usually contains { str: string, ... }
-    // We join them with space.
-    // Ideally we should respect layout but for simple RAG this is usually enough.
-    const text = textContent.items.map((item: any) => item.str).join(' ')
-
-    // Normalize whitespace
-    const cleanText = text.replace(/\s+/g, ' ').trim()
-
-    if (cleanText.length > 0) {
-      pages.push({
-        pageNumber: i,
-        text: cleanText,
-      })
+  // pdf-parse's getText returns an object with pages array
+  if (result.pages && Array.isArray(result.pages)) {
+    for (const page of result.pages) {
+      const cleanText = page.text.replace(/\s+/g, ' ').trim()
+      if (cleanText.length > 0) {
+        pages.push({
+          pageNumber: page.num,
+          text: cleanText,
+        })
+      }
     }
+  }
+
+  // Fallback if no pages extracted
+  if (pages.length === 0) {
+    pages.push({
+      pageNumber: 1,
+      text: result.text?.replace(/\s+/g, ' ').trim() || '',
+    })
   }
 
   return pages
