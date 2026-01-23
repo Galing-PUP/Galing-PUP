@@ -101,16 +101,15 @@ export async function POST(req: NextRequest) {
           // If hash matches matches and aiSummary exists, skip
           // Check if re-generation is needed
           // If hash matches matches and aiSummary exists, skip
-          // FORCE PROCESS FOR DEBUGGING
-          // if (document.fileHash === hexHash && document.aiSummary) {
-          //   sendUpdate(
-          //     'complete',
-          //     100,
-          //     'Document unchanged, skipping AI processing.',
-          //   )
-          //   controller.close()
-          //   return
-          // }
+          if (document.fileHash === hexHash && document.aiSummary) {
+            sendUpdate(
+              'complete',
+              100,
+              'Document unchanged, skipping AI processing.',
+            )
+            controller.close()
+            return
+          }
 
           // 5. Extract Text
           sendUpdate('extracting', 30, 'Extracting text from PDF...')

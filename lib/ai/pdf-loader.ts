@@ -1,4 +1,5 @@
 // Use standard build
+// @ts-ignore
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.min.mjs'
 import './polyfill'
 
