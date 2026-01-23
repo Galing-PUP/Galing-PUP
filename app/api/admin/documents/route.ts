@@ -105,87 +105,92 @@ export async function POST(req: NextRequest) {
     // Using the path returned by Supabase (should be just fileName in this case, or "folder/fileName")
     const storagePath = uploadData.path
 
-    // DB Transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Get Uploader
-      const uploader = await tx.user.findFirst()
-      if (!uploader) throw new Error('No uploader user found')
+    // DB Transaction with increased timeout (keywords handled separately)
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // 1. Get Uploader
+        const uploader = await tx.user.findFirst()
+        if (!uploader) throw new Error('No uploader user found')
 
-      // 2. Resource Type Validation
-      if (
-        !Object.values(ResourceTypes).includes(resourceTypeRaw as ResourceTypes)
-      ) {
-        throw new Error('Invalid resource type')
-      }
+        // 2. Resource Type Validation
+        if (
+          !Object.values(ResourceTypes).includes(
+            resourceTypeRaw as ResourceTypes,
+          )
+        ) {
+          throw new Error('Invalid resource type')
+        }
 
-      // 3. Create Document
-      const document = await tx.document.create({
-        data: {
-          title,
-          abstract,
-          filePath: storagePath, // Store bucket path
-          datePublished,
-          resourceType: resourceTypeRaw as ResourceTypes,
-          uploaderId: uploader.id,
-          courseId,
+        // 3. Create Document
+        const document = await tx.document.create({
+          data: {
+            title,
+            abstract,
+            filePath: storagePath, // Store bucket path
+            datePublished,
+            resourceType: resourceTypeRaw as ResourceTypes,
+            uploaderId: uploader.id,
+            courseId,
 
-          // File Metadata
-          originalFileName: file.name,
-          fileSize: file.size,
-          mimeType: file.type,
+            // File Metadata
+            originalFileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type,
 
-          status: 'PENDING',
-          submissionDate: new Date(),
-        },
-      })
+            status: 'PENDING',
+            submissionDate: new Date(),
+          },
+        })
 
-      // 4. Handle Authors
-      for (let i = 0; i < authors.length; i++) {
-        const authorData = authors[i]
-        let authorId = authorData.id
-        const isTempId = !authorId || authorId > 2147483647
+        // 4. Handle Authors
+        for (let i = 0; i < authors.length; i++) {
+          const authorData = authors[i]
+          let authorId = authorData.id
+          const isTempId = !authorId || authorId > 2147483647
 
-        if (isTempId) {
-          const newAuthor = await tx.author.create({
+          if (isTempId) {
+            const newAuthor = await tx.author.create({
+              data: {
+                firstName: authorData.firstName,
+                middleName: authorData.middleName,
+                lastName: authorData.lastName,
+                fullName: `${authorData.firstName} ${
+                  authorData.middleName || ''
+                } ${authorData.lastName}`.trim(),
+                email: authorData.email || null,
+              },
+            })
+            authorId = newAuthor.id
+          }
+          await tx.documentAuthor.create({
             data: {
-              firstName: authorData.firstName,
-              middleName: authorData.middleName,
-              lastName: authorData.lastName,
-              fullName: `${authorData.firstName} ${
-                authorData.middleName || ''
-              } ${authorData.lastName}`.trim(),
-              email: authorData.email || null,
+              documentId: document.id,
+              authorId: authorId,
+              authorOrder: i + 1,
             },
           })
-          authorId = newAuthor.id
         }
-        await tx.documentAuthor.create({
-          data: {
-            documentId: document.id,
-            authorId: authorId,
-            authorOrder: i + 1,
-          },
-        })
-      }
 
-      // 5. Handle Keywords
-      for (const keywordText of keywords) {
-        const keyword = await tx.keyword.upsert({
-          where: { keywordText },
-          update: {},
-          create: { keywordText },
-        })
+        return document
+      },
+      { maxWait: 10000, timeout: 15000 }, // Increased timeout
+    )
 
-        await tx.documentKeyword.create({
-          data: {
-            documentId: document.id,
-            keywordId: keyword.id,
-          },
-        })
-      }
+    // 5. Handle Keywords (OUTSIDE transaction to avoid timeout)
+    for (const keywordText of keywords) {
+      const keyword = await prisma.keyword.upsert({
+        where: { keywordText },
+        update: {},
+        create: { keywordText },
+      })
 
-      return document
-    })
+      await prisma.documentKeyword.create({
+        data: {
+          documentId: result.id,
+          keywordId: keyword.id,
+        },
+      })
+    }
 
     return NextResponse.json(
       { id: result.id, filePath: storagePath },
