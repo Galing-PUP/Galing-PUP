@@ -10,7 +10,11 @@ export const authorSchema = z.object({
   middleName: z.string().optional().nullable(),
   lastName: z.string().min(1, 'Last name is required'),
   fullName: z.string().optional(), // Added for display
-  email: z.email('Invalid email address').optional().or(z.literal('')),
+  email: z
+    .email('Invalid email address')
+    .or(z.literal(''))
+    .nullable()
+    .optional(),
 })
 
 /**
@@ -59,15 +63,26 @@ export const publicationSchema = z.object({
     .refine(
       (file) => ['application/pdf'].includes(file.type),
       'Only PDF is allowed',
-    )
-    .nullable(),
+    ),
 })
 
 /**
  * Schema for editing publications (file is optional)
+ * Accepts File, null, or undefined when editing existing publications
  */
 export const publicationEditSchema = publicationSchema.extend({
-  file: publicationSchema.shape.file.optional(),
+  file: z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= 50 * 1024 * 1024,
+      'File size must be less than 50MB',
+    )
+    .refine(
+      (file) => ['application/pdf'].includes(file.type),
+      'Only PDF is allowed',
+    )
+    .nullable()
+    .optional(),
 })
 
 export type PublicationFormValues = z.infer<typeof publicationSchema>

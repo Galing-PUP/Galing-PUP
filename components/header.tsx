@@ -181,7 +181,7 @@ export function Header({
     pathname === '/verify-otp' ||
     pathname === '/forgot-password' ||
     pathname === '/update-password' ||
-    pathname === '/success'
+    pathname === '/pricing/success'
   ) {
     return null
   }

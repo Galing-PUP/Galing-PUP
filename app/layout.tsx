@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic'
 
 import { HeaderWrapper } from '@/components/header-wrapper'
+import { Analytics } from "@vercel/analytics/next"
 
 export default function RootLayout({
   children,
@@ -35,6 +36,7 @@ export default function RootLayout({
       >
         <HeaderWrapper />
         {children}
+        <Analytics />
         <Toaster />
       </body>
     </html>
