@@ -222,8 +222,6 @@ export function Header({
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               priority
-              width={120}
-              height={36}
             />
           </Link>
 

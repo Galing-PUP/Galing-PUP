@@ -88,8 +88,6 @@ export default function Home() {
             className="h-28 w-auto sm:h-32 md:h-40 object-contain"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
-            width={200}
-            height={160}
           />
 
           <div className="w-full max-w-6xl mt-8 sm:mt-10">
