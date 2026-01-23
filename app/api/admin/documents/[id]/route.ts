@@ -198,116 +198,116 @@ export async function PUT(req: NextRequest, props: RouteParams) {
       select: { filePath: true },
     })
 
-    // 2. Transaction
-    const updatedDocument = await prisma.$transaction(async (tx) => {
-      // Find old document to delete old file if needed
-      // (This requires finding it before update, but we can do it after or assume)
-      // Actually best practice: get it inside transaction or before.
-      // We will skip deleting old file for now to keep it safe during transaction,
-      // or we can query it first.
+    // 2. Transaction with increased timeout (keywords handled separately)
+    const updatedDocument = await prisma.$transaction(
+      async (tx) => {
+        // Find old document to delete old file if needed
+        // (This requires finding it before update, but we can do it after or assume)
+        // Actually best practice: get it inside transaction or before.
+        // We will skip deleting old file for now to keep it safe during transaction,
+        // or we can query it first.
 
-      // Update document
-      const doc = await tx.document.update({
-        where: { id: documentId },
-        data: {
-          title,
-          abstract,
-          datePublished: new Date(datePublished),
-          resourceType: resourceType as any,
-          courseId: parseInt(courseId),
-          ...(filePath
-            ? {
-                filePath,
-                originalFileName,
-                fileSize,
-                mimeType,
-              }
-            : {}),
-        },
-      })
-
-      // Delete existing authors and keywords
-      await tx.documentAuthor.deleteMany({
-        where: { documentId },
-      })
-      await tx.documentKeyword.deleteMany({
-        where: { documentId },
-      })
-
-      // Create or find authors and link them
-      for (let i = 0; i < authors.length; i++) {
-        const authorData = authors[i]
-
-        // Find or create author by email + name combination
-        let author = await tx.author.findFirst({
-          where: {
-            email: authorData.email,
-            firstName: authorData.firstName,
-            lastName: authorData.lastName,
+        // Update document
+        const doc = await tx.document.update({
+          where: { id: documentId },
+          data: {
+            title,
+            abstract,
+            datePublished: new Date(datePublished),
+            resourceType: resourceType as any,
+            courseId: parseInt(courseId),
+            ...(filePath
+              ? {
+                  filePath,
+                  originalFileName,
+                  fileSize,
+                  mimeType,
+                }
+              : {}),
           },
         })
 
-        if (!author) {
-          author = await tx.author.create({
-            data: {
-              firstName: authorData.firstName,
-              middleName: authorData.middleName || null,
-              lastName: authorData.lastName,
-              fullName:
-                `${authorData.firstName} ${authorData.middleName || ''} ${authorData.lastName}`.trim(),
+        // Delete existing authors and keywords
+        await tx.documentAuthor.deleteMany({
+          where: { documentId },
+        })
+        await tx.documentKeyword.deleteMany({
+          where: { documentId },
+        })
+
+        // Create or find authors and link them
+        for (let i = 0; i < authors.length; i++) {
+          const authorData = authors[i]
+
+          // Find or create author by email + name combination
+          let author = await tx.author.findFirst({
+            where: {
               email: authorData.email,
+              firstName: authorData.firstName,
+              lastName: authorData.lastName,
+            },
+          })
+
+          if (!author) {
+            author = await tx.author.create({
+              data: {
+                firstName: authorData.firstName,
+                middleName: authorData.middleName || null,
+                lastName: authorData.lastName,
+                fullName:
+                  `${authorData.firstName} ${authorData.middleName || ''} ${authorData.lastName}`.trim(),
+                email: authorData.email,
+              },
+            })
+          }
+
+          // Link author to document
+          await tx.documentAuthor.create({
+            data: {
+              documentId: doc.id,
+              authorId: author.id,
+              authorOrder: i + 1,
             },
           })
         }
 
-        // Link author to document
-        await tx.documentAuthor.create({
-          data: {
-            documentId: doc.id,
-            authorId: author.id,
-            authorOrder: i + 1,
-          },
-        })
-      }
+        return doc
+      },
+      { maxWait: 10000, timeout: 15000 }, // Increased timeout
+    )
 
-      // Create or find keywords and link them
-      const keywordArray = keywords
-        .split(',')
-        .map((k) => k.trim())
-        .filter(Boolean)
-      for (const keywordText of keywordArray) {
-        const keyword = await tx.keyword.upsert({
-          where: { keywordText },
-          create: { keywordText },
-          update: {},
-        })
+    // 3. Handle Keywords (OUTSIDE transaction to avoid timeout)
+    const keywordArray = keywords
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean)
+    for (const keywordText of keywordArray) {
+      const keyword = await prisma.keyword.upsert({
+        where: { keywordText },
+        create: { keywordText },
+        update: {},
+      })
 
-        await tx.documentKeyword.create({
-          data: {
-            documentId: doc.id,
-            keywordId: keyword.id,
-          },
-        })
-      }
+      await prisma.documentKeyword.create({
+        data: {
+          documentId: updatedDocument.id,
+          keywordId: keyword.id,
+        },
+      })
+    }
 
-      return doc
-    })
-
-    // 3. Cleanup Old File (if replaced)
+    // 4. Cleanup Old File (if replaced)
     if (
       filePath &&
       existingDoc?.filePath &&
       existingDoc.filePath !== filePath
     ) {
-      // If we uploaded a new file (filePath exists) AND there was an old file
-      // AND they are different (which they should be due to random suffix), delete the old one.
       const { error: removeError } = await supabaseAdmin.storage
         .from('PDF_UPLOADS')
         .remove([existingDoc.filePath])
 
       if (removeError) {
         console.error('Failed to remove old file from Supabase:', removeError)
-        // We don't fail the request here, just log passing error
       } else {
         console.log('Deleted old file from Supabase:', existingDoc.filePath)
       }
@@ -319,11 +319,6 @@ export async function PUT(req: NextRequest, props: RouteParams) {
     })
   } catch (error: any) {
     console.error('Error updating document:', error)
-
-    // If we uploaded a file but transaction failed, we should probably delete it
-    // But since `filePath` is scoped inside `if(file)`, we'd need to lift it.
-    // Simplifying: clean up not implemented for now.
-
     if (
       (error.code === 'P2002' && error.meta?.target?.includes('title')) ||
       (error.message?.includes('Unique constraint failed') &&
