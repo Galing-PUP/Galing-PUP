@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 
 import { SubscriptionTier } from '@/lib/generated/prisma/client'
 import { RoleName, TierName, UserStatus } from '@/lib/generated/prisma/enums'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { hash } from 'bcryptjs'
 
 /**
@@ -69,6 +70,7 @@ async function main() {
 
   /**
    * Seeds an admin account if it doesn't already exist.
+   * Syncs with both Supabase Auth and local database.
    * @param email - User email from environment variable
    * @param password - User password from environment variable
    * @param role - User role (OWNER, SUPERADMIN, ADMIN)
@@ -87,6 +89,7 @@ async function main() {
       return
     }
 
+    // Check if user already exists in local DB
     const existingUser = await prisma.user.findUnique({
       where: { email },
     })
@@ -96,8 +99,65 @@ async function main() {
       return
     }
 
+    console.log(`Processing ${role} account for: ${email}`)
+
     const hashedPassword = await hash(password, 10)
 
+    // 1. Sync with Supabase Auth
+    let supabaseAuthId: string | null = null
+    const {
+      data: { users },
+      error: listError,
+    } = await supabaseAdmin.auth.admin.listUsers()
+
+    if (listError) {
+      console.error(`Error listing Supabase users for ${role}:`, listError)
+    }
+
+    const existingAuthUser = users?.find((u) => u.email === email)
+
+    if (existingAuthUser) {
+      console.log(`Supabase Auth user found for ${role}. Updating...`)
+      const { error: updateError } =
+        await supabaseAdmin.auth.admin.updateUserById(existingAuthUser.id, {
+          password: password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: username,
+            role: role,
+          },
+        })
+      if (updateError) {
+        console.error(
+          `Failed to update Supabase Auth password for ${role}:`,
+          updateError,
+        )
+      } else {
+        supabaseAuthId = existingAuthUser.id
+      }
+    } else {
+      console.log(`Supabase Auth user not found for ${role}. Creating...`)
+      const { data: newUser, error: createError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: email,
+          password: password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: username,
+            role: role,
+          },
+        })
+      if (createError) {
+        console.error(
+          `Failed to create Supabase Auth user for ${role}:`,
+          createError,
+        )
+      } else if (newUser.user) {
+        supabaseAuthId = newUser.user.id
+      }
+    }
+
+    // 2. Create in Local DB
     await prisma.user.create({
       data: {
         email,
@@ -108,6 +168,7 @@ async function main() {
         tierId: 2, // Premium tier
         registrationDate: new Date(),
         idNumber,
+        ...(supabaseAuthId ? { supabaseAuthId: supabaseAuthId } : {}),
       },
     })
 
