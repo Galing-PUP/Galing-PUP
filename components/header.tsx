@@ -166,7 +166,7 @@ export function Header({
     pathname === '/verify-otp' ||
     pathname === '/forgot-password' ||
     pathname === '/update-password' ||
-    pathname === '/success'
+    pathname === '/pricing/success'
   ) {
     return null
   }
@@ -220,11 +220,10 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={`pb-1 transition-colors duration-200
-                  ${
-                    isActive
+                  ${isActive
                       ? 'font-medium border-b-2 border-pup-gold-light text-pup-maroon'
                       : 'text-gray-500 hover:text-gray-900'
-                  }
+                    }
                 `}
                 >
                   {item.label}

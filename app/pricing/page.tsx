@@ -125,12 +125,6 @@ export default async function PricingPage() {
                 Join hundreds of Premium members enjoying unlimited access to
                 academic resources
               </p>
-              {/* commenting the button below, since we don't plan to implement a 'free trial' program */}
-              {/* <button>
-                <span className="text-white flex items-center gap-2">
-                  <Crown className="text-yellow-400" /> Upgrade to Premium
-                </span>
-              </button> */}
             </section>
           </>
         )}
