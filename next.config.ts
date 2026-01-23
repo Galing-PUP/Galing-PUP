@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       exclude: ['error', 'warn'],
     },
   },
+  serverExternalPackages: ['pdfjs-dist', '@napi-rs/canvas'],
 }
 
 export default nextConfig
