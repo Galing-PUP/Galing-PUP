@@ -137,7 +137,9 @@ export default function LibraryPage() {
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">My Library</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold text-white">
+                  My Library
+                </h1>
                 <p className="mt-2 text-base sm:text-lg text-gray-200">
                   Your bookmarked documents and saved research
                 </p>

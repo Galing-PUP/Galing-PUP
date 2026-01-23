@@ -235,10 +235,11 @@ export function Header({
                   key={item.href}
                   href={item.href}
                   className={`pb-1 transition-colors duration-200
-                  ${isActive
+                  ${
+                    isActive
                       ? 'font-medium border-b-2 border-pup-gold-light text-pup-maroon'
                       : 'text-gray-500 hover:text-gray-900'
-                    }
+                  }
                 `}
                 >
                   {item.label}
@@ -335,7 +336,10 @@ export function Header({
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-75 sm:w-100 flex flex-col">
+              <SheetContent
+                side="right"
+                className="w-75 sm:w-100 flex flex-col"
+              >
                 <SheetHeader className="px-2">
                   <SheetTitle className="text-left">Menu</SheetTitle>
                   <SheetDescription className="text-left">
@@ -351,9 +355,10 @@ export function Header({
                         key={item.href}
                         href={item.href}
                         className={`px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200
-                          ${isActive
-                            ? 'bg-pup-maroon/10 text-pup-maroon border-l-4 border-pup-gold-light'
-                            : 'text-gray-700 hover:bg-gray-100'
+                          ${
+                            isActive
+                              ? 'bg-pup-maroon/10 text-pup-maroon border-l-4 border-pup-gold-light'
+                              : 'text-gray-700 hover:bg-gray-100'
                           }
                         `}
                         onClick={() => setIsMobileMenuOpen(false)}

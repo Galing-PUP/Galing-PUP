@@ -27,10 +27,14 @@ export function BenefitCard({
       </div>
 
       {/* Title */}
-      <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-3 sm:mb-4">{title}</h3>
+      <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-3 sm:mb-4">
+        {title}
+      </h3>
 
       {/* Description */}
-      <p className="text-gray-600 text-sm sm:text-base leading-relaxed">{description}</p>
+      <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+        {description}
+      </p>
     </div>
   )
 }

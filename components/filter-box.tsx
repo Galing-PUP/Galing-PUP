@@ -56,9 +56,7 @@ export function FilterBox({
   defaultExpanded = false,
   value,
 }: FilterBoxProps) {
-  const [filters, setFilters] = useState<FilterValues>(
-    value ?? DEFAULT_FILTERS,
-  )
+  const [filters, setFilters] = useState<FilterValues>(value ?? DEFAULT_FILTERS)
 
   useEffect(() => {
     if (value) {

@@ -53,14 +53,21 @@ export default async function PricingPage() {
             </h2>
             <div className="text-center max-w-2xl">
               <p className="text-sm sm:text-base">
-                Start with our free tier or unlock unlimited access with Premium.
+                Start with our free tier or unlock unlimited access with
+                Premium.
               </p>
-              <p className="text-sm sm:text-base">Choose the plan that fits your research needs.</p>
+              <p className="text-sm sm:text-base">
+                Choose the plan that fits your research needs.
+              </p>
             </div>
           </section>
         )}
         {/* Pricing Cards Grid / Premium View */}
-        <section className={!isPremiumUser ? "py-8 sm:py-12 md:py-16 px-4 bg-white" : ""}>
+        <section
+          className={
+            !isPremiumUser ? 'py-8 sm:py-12 md:py-16 px-4 bg-white' : ''
+          }
+        >
           <PricingCardsClient
             isAuthenticated={isAuthenticated}
             isPremiumUser={isPremiumUser}
@@ -72,7 +79,9 @@ export default async function PricingPage() {
         {!isPremiumUser && (
           <>
             <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-8 sm:py-12 md:py-16 px-4 gap-y-6">
-              <h2 className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-center">Why Go Premium?</h2>
+              <h2 className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-center">
+                Why Go Premium?
+              </h2>
               <p className="text-center max-w-2xl text-sm sm:text-base px-4">
                 Unlock the full potential of GALING PUP with Premium features
                 designed for serious researchers
@@ -120,7 +129,9 @@ export default async function PricingPage() {
 
             <section className="flex flex-col items-center justify-center bg-pup-maroon text-white py-8 sm:py-12 md:py-16 px-4 gap-y-4">
               <Crown className="text-pup-gold-light w-8 h-8 sm:w-10 sm:h-10" />
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center">Ready to Upgrade?</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center">
+                Ready to Upgrade?
+              </h2>
               <p className="text-center max-w-2xl text-sm sm:text-base px-4">
                 Join hundreds of Premium members enjoying unlimited access to
                 academic resources

@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -8,7 +8,10 @@ interface SignupPromptModalProps {
   onClose: () => void
 }
 
-export default function SignupPromptModal({ isOpen, onClose }: SignupPromptModalProps) {
+export default function SignupPromptModal({
+  isOpen,
+  onClose,
+}: SignupPromptModalProps) {
   const router = useRouter()
 
   if (!isOpen) return null
@@ -44,21 +47,29 @@ export default function SignupPromptModal({ isOpen, onClose }: SignupPromptModal
               Join GALING PUP — free for students
             </h2>
             <p className="text-neutral-600">
-              Unlock unlimited access to research papers, AI-generated summaries, and a personal library tailored to your studies. Sign up as a student to get started.
+              Unlock unlimited access to research papers, AI-generated
+              summaries, and a personal library tailored to your studies. Sign
+              up as a student to get started.
             </p>
 
             <ul className="space-y-2">
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-3 w-3 rounded-full bg-pup-maroon" />
-                <span className="text-neutral-700">Save papers to your personal library</span>
+                <span className="text-neutral-700">
+                  Save papers to your personal library
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-3 w-3 rounded-full bg-pup-maroon" />
-                <span className="text-neutral-700">Generate citations and AI summaries</span>
+                <span className="text-neutral-700">
+                  Generate citations and AI summaries
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="mt-1 inline-block h-3 w-3 rounded-full bg-pup-maroon" />
-                <span className="text-neutral-700">Download and bookmark research</span>
+                <span className="text-neutral-700">
+                  Download and bookmark research
+                </span>
               </li>
             </ul>
 

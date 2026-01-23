@@ -52,10 +52,11 @@ export function PricingCard({
 }: PricingCardProps) {
   return (
     <div
-      className={`relative flex flex-col h-full rounded-2xl p-6 sm:p-8 transition-all duration-300 ${isRecommended
+      className={`relative flex flex-col h-full rounded-2xl p-6 sm:p-8 transition-all duration-300 ${
+        isRecommended
           ? `border-4 ${borderColor} shadow-lg`
           : 'border border-gray-200 bg-white'
-        } ${!isRecommended ? 'bg-white' : 'bg-white'} ${disabled ? 'opacity-60' : ''}`}
+      } ${!isRecommended ? 'bg-white' : 'bg-white'} ${disabled ? 'opacity-60' : ''}`}
     >
       {/* Recommended/Custom Badge */}
       {isRecommended && (
@@ -111,17 +112,18 @@ export function PricingCard({
       </div>
 
       {/* CTA Button (optional) */}
-      {showButton ?? true ? (
+      {(showButton ?? true) ? (
         <button
           onClick={() => {
             if (onButtonClick) return onButtonClick()
             if (href) return (window.location.href = href)
           }}
           disabled={disabled || disableButton}
-          className={`w-full py-3 px-6 rounded-full font-semibold transition-all duration-300 text-white ${disabled || disableButton
+          className={`w-full py-3 px-6 rounded-full font-semibold transition-all duration-300 text-white ${
+            disabled || disableButton
               ? 'bg-gray-400 cursor-not-allowed'
               : `${buttonColor} hover:opacity-90 active:scale-95`
-            }`}
+          }`}
         >
           {buttonText}
         </button>

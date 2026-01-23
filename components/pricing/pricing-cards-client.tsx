@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import PremiumMemberView from './PremiumMemberView'
 import { PricingCard } from './pricing-card'
 import { PricingClientWrapper } from './pricing-client-wrapper'
 import SignupPromptModal from './SignupPromptModal'
-import PremiumMemberView from './PremiumMemberView'
 
 interface PricingFeature {
   name: string
@@ -58,7 +58,9 @@ export default function PricingCardsClient({
                 duration="/forever"
                 description="Perfect for casual research and browsing"
                 features={freeTierFeatures}
-                buttonText={isAuthenticated ? 'Current plan' : 'Get Started Free'}
+                buttonText={
+                  isAuthenticated ? 'Current plan' : 'Get Started Free'
+                }
                 buttonColor="bg-gray-900 hover:bg-gray-800"
                 accentColor="text-green-600"
                 disabled={isAuthenticated && !isPremiumUser}

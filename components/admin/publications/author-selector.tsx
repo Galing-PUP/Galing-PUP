@@ -167,8 +167,7 @@ export function AuthorSelector({
     const alreadySelected = selectedAuthors.some((a) => {
       // Always check if names match (regardless of email)
       const namesMatch =
-        a.firstName === newAuthor.firstName &&
-        a.lastName === newAuthor.lastName
+        a.firstName === newAuthor.firstName && a.lastName === newAuthor.lastName
 
       if (namesMatch) {
         return true
@@ -197,8 +196,9 @@ export function AuthorSelector({
     // Add to available authors if not already there
     const existsInDB = availableAuthors.some((a) => a.email === newAuthor.email)
     if (!existsInDB) {
-      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${newAuthor.lastName
-        }`.trim()
+      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${
+        newAuthor.lastName
+      }`.trim()
       setAvailableAuthors([
         ...availableAuthors,
         {
