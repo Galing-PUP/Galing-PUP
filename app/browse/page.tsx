@@ -21,6 +21,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -296,6 +297,9 @@ function BrowsePageContent() {
                     <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                       <SheetHeader>
                         <SheetTitle>Filters</SheetTitle>
+                        <SheetDescription>
+                          Filter publications by course, year, and document type
+                        </SheetDescription>
                       </SheetHeader>
                       <div className="mt-6">
                         <FilterBox

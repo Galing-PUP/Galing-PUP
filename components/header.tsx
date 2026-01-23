@@ -8,6 +8,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/sheet'
 import { getCurrentUser, signOut } from '@/lib/actions'
 import { RoleName, TierName } from '@/lib/generated/prisma/enums'
@@ -333,7 +334,7 @@ export function Header({
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent side="right" className="w-75 sm:w-100">
                 <SheetHeader>
                   <SheetTitle className="text-left">Menu</SheetTitle>
                 </SheetHeader>
@@ -380,7 +381,7 @@ export function Header({
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* User Actions */}
                       <Button
                         variant="ghost"
