@@ -35,12 +35,11 @@ const ActionButton = ({
     onClick={onClick}
     className={`
       flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors
-      ${
-        primary
-          ? 'border-transparent bg-pup-maroon text-white shadow-sm hover:bg-pup-maroon/80'
-          : isActive
-            ? 'bg-pup-gold-light/30 border-pup-gold-dark text-pup-maroon'
-            : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+      ${primary
+        ? 'border-transparent bg-pup-maroon text-white shadow-sm hover:bg-pup-maroon/80'
+        : isActive
+          ? 'bg-pup-gold-light/30 border-pup-gold-dark text-pup-maroon'
+          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
       }
       focus:outline-none focus:ring-2 focus:ring-pup-maroon focus:ring-offset-2
     `}
@@ -184,9 +183,9 @@ export function ActionButtons({
 
     try {
       await navigator.clipboard.writeText(url)
-      alert('Link copied to clipboard.')
+      toast.success('Link copied to clipboard.')
     } catch {
-      alert(
+      toast.error(
         'Unable to share automatically. Please copy the URL from the address bar.',
       )
     }

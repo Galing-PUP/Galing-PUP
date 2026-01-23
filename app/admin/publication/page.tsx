@@ -202,7 +202,7 @@ export default function AdminPublicationsPage() {
       )
     } catch (error) {
       console.error(error)
-      alert('There was an error deleting this publication. Please try again.')
+      toast.error('There was an error deleting this publication. Please try again.')
     } finally {
       setIsDeleting(false)
     }
