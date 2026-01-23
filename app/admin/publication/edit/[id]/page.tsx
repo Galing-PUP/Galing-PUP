@@ -119,7 +119,7 @@ export default function Edit() {
             } else {
               // Update toast with progress
               toast.loading(
-                <div className="space-y-2 min-w-[200px]">
+                <div className="space-y-2 min-w-50">
                   <p className="text-sm font-medium">{step.message}</p>
                   <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                     <div

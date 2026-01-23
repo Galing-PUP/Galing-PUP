@@ -13,6 +13,7 @@ import {
 import { Download, Eye, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 type SearchResult = {
   id: number
@@ -69,11 +70,11 @@ export function BookmarkCard({
         onRemove()
       }
     } else {
-      // Show error via callback or fallback to alert
+      // Show error via callback or fallback to toast
       if (onError) {
         onError(response.message)
       } else {
-        alert(response.message)
+        toast.error(response.message)
       }
       setShowConfirm(false)
     }
