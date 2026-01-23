@@ -1,13 +1,11 @@
-import path from 'path'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import './polyfill'
 
 // Disable worker for server-side usage
-// @ts-ignore
-pdfjsLib.GlobalWorkerOptions.workerSrc = path.join(
-  process.cwd(),
-  'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
-)
+// Disable worker for server-side usage
+// With serverExternalPackages, usually we don't need to point to the worker manually,
+// or we can rely on standard resolution.
+// For now, let's clear it to avoid the invalid path error.
 
 export interface PageContent {
   pageNumber: number
