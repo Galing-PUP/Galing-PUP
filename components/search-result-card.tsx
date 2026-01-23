@@ -5,7 +5,6 @@ type SearchResult = {
   id: number
   title: string
   authors: string[]
-  authorEmails: string[]
   additionalAuthors: number
   field: string
   date: string
@@ -41,14 +40,7 @@ export function SearchResultCard({
             <span>by </span>
             {result.authors.map((author, index) => (
               <span key={index}>
-                <a
-                  href={`mailto:${result.authorEmails[index]}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-[#6b0504] transition-colors"
-                >
-                  {author}
-                </a>
+                {author}
                 {index < result.authors.length - 1 && ', '}
               </span>
             ))}

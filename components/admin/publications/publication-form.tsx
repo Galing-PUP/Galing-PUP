@@ -81,6 +81,11 @@ export function PublicationForm({
       })
       setErrors(fieldErrors)
 
+      // Log validation errors for debugging
+      console.error('Form validation failed:', result.error.issues)
+      console.error('Field errors:', fieldErrors)
+      console.error('Submit data:', submitData)
+
       // Scroll to first error
       const firstErrorElement = document.querySelector('[data-error="true"]')
       firstErrorElement?.scrollIntoView({
@@ -90,6 +95,7 @@ export function PublicationForm({
       return
     }
 
+    console.log('Form validation passed, submitting data:', submitData)
     onSubmit(submitData)
   }
 

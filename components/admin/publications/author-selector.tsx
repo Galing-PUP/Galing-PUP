@@ -164,12 +164,30 @@ export function AuthorSelector({
     }
 
     // Check if author already exists
-    const alreadySelected = selectedAuthors.some(
-      (a) => a.email === newAuthor.email,
-    )
+    const alreadySelected = selectedAuthors.some((a) => {
+      // Always check if names match (regardless of email)
+      const namesMatch =
+        a.firstName === newAuthor.firstName &&
+        a.lastName === newAuthor.lastName
+
+      if (namesMatch) {
+        return true
+      }
+
+      // Also check if both have emails and they match
+      if (a.email && newAuthor.email) {
+        return a.email === newAuthor.email
+      }
+
+      return false
+    })
 
     if (alreadySelected) {
-      setFormErrors({ email: 'This author is already added' })
+      setFormErrors({
+        email: newAuthor.email
+          ? 'This email is already added'
+          : 'This author (by name) is already added',
+      })
       setIsSubmitting(false)
       return
     }
@@ -179,9 +197,8 @@ export function AuthorSelector({
     // Add to available authors if not already there
     const existsInDB = availableAuthors.some((a) => a.email === newAuthor.email)
     if (!existsInDB) {
-      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${
-        newAuthor.lastName
-      }`.trim()
+      const fullName = `${newAuthor.firstName} ${newAuthor.middleName || ''} ${newAuthor.lastName
+        }`.trim()
       setAvailableAuthors([
         ...availableAuthors,
         {
@@ -295,7 +312,7 @@ export function AuthorSelector({
               <Plus className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-106.25">
             <DialogHeader>
               <DialogTitle>Add New Author</DialogTitle>
               <DialogDescription>

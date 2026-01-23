@@ -40,7 +40,10 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     } catch (error: any) {
       // Network error (fetch failed)
       if (retries > 0) {
-        console.warn(`Embedding network error. Retrying in ${delay}ms...`, error)
+        console.warn(
+          `Embedding network error. Retrying in ${delay}ms...`,
+          error,
+        )
         await wait(delay)
         return fetchWithRetry(text, retries - 1, delay * 2)
       }
@@ -80,7 +83,9 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     const batch = texts.slice(i, i + BATCH_SIZE)
 
     // Process batch concurrently, but each item has its own retry logic
-    const batchResults = await Promise.all(batch.map((text) => fetchWithRetry(text)))
+    const batchResults = await Promise.all(
+      batch.map((text) => fetchWithRetry(text)),
+    )
     results.push(...batchResults)
   }
 

@@ -10,9 +10,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { encryptId } from '@/lib/obfuscation'
 import { Download, Eye, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 type SearchResult = {
   id: number
@@ -50,6 +52,62 @@ export function BookmarkCard({
     setShowConfirm(true)
   }
 
+  const handleDownloadClick = async () => {
+    const toastId = toast.loading('Preparing download...')
+
+    try {
+      // Generate download token with encrypted document ID
+      const downloadToken = encryptId(result.id)
+      const res = await fetch(`/api/pdf/${encodeURIComponent(downloadToken)}`)
+
+      if (!res.ok) {
+        if (res.status === 403) {
+          // Check if it's tier related or just general forbidden
+          const text = await res.text()
+          throw new Error(
+            text || 'Access denied. Please check your subscription.',
+          )
+        }
+        if (res.status === 404) throw new Error('Document not found.')
+        throw new Error('Download failed.')
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+
+      // Try to get filename from header
+      const contentDisposition = res.headers.get('Content-Disposition')
+      let filename = result.title
+        ? `${result.title}.pdf`
+        : `document-${result.id}.pdf`
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/)
+        if (match && match[1]) {
+          filename = match[1]
+        }
+      }
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast.dismiss(toastId)
+      toast.success('Download started')
+    } catch (error) {
+      toast.dismiss(toastId)
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred while downloading',
+      )
+    }
+  }
+
   const handleConfirmRemove = async () => {
     if (!removeBookmark) {
       if (onError) {
@@ -69,11 +127,11 @@ export function BookmarkCard({
         onRemove()
       }
     } else {
-      // Show error via callback or fallback to alert
+      // Show error via callback or fallback to toast
       if (onError) {
         onError(response.message)
       } else {
-        alert(response.message)
+        toast.error(response.message)
       }
       setShowConfirm(false)
     }
@@ -183,6 +241,7 @@ export function BookmarkCard({
             </Link>
             <button
               type="button"
+              onClick={handleDownloadClick}
               className="flex items-center justify-center gap-2 rounded-lg border-transparent bg-pup-maroon px-4 py-2 text-sm font-medium text-white hover:bg-pup-maroon/80 transition-colors"
             >
               <Download className="h-4 w-4" />
