@@ -75,16 +75,11 @@ ${contextText}
       },
     })
 
-    // The new SDK property access might be different.
-    // Based on linter "String has no call signatures", response.text is a string, not a function.
-    // But we should verify if 'response.text' exists on the object returned by generateContent.
-    // If it returns { text: string }, then response.text is correct.
     const textResponse = response.text
 
     if (!textResponse) throw new Error('Empty response from Gemini')
 
     // 4. Parse & Resolve
-    // textResponse might be a string (JSON).
     let llmOutput: LlmResponse
     try {
       llmOutput = JSON.parse(textResponse) as LlmResponse
@@ -113,11 +108,6 @@ function resolveCitations(
   chunkMap: Map<number, any>,
 ): string {
   const resolvedCitations: AiCitation[] = []
-
-  // Map strict sequential indices (1, 2, 3...) to LLM citations
-  // The LLM returns "refIndex" which we should respect or re-normalize.
-  // The requirement says: "Citations must be declared in a separate array."
-  // We will trust the LLM's refIndex but verify uniqueness/order if needed.
 
   llmOutput.citations.forEach((citation) => {
     // Resolve each context ID to a real chunk
