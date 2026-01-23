@@ -1,6 +1,14 @@
 'use client'
 
-import { User, Users, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { User, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface SignInModalProps {
@@ -10,8 +18,6 @@ interface SignInModalProps {
 
 export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   const router = useRouter()
-
-  if (!isOpen) return null
 
   const handleUserSignIn = () => {
     router.push('/signin')
@@ -24,84 +30,61 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   }
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md rounded-2xl p-6">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-2xl font-semibold text-neutral-900">
+            Choose Sign In Type
+          </DialogTitle>
+          <DialogDescription className="text-sm text-neutral-500">
+            Select how you would like to sign in to continue.
+          </DialogDescription>
+        </DialogHeader>
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-4 rounded-full p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600"
-            aria-label="Close modal"
+        <div className="space-y-3 mt-6">
+          {/* User Sign In Button */}
+          <Button
+            onClick={handleUserSignIn}
+            variant="outline"
+            className="w-full h-auto rounded-xl border-2 p-6 text-left hover:border-pup-maroon hover:bg-neutral-50"
           >
-            <X className="h-5 w-5" />
-          </button>
-
-          {/* Content */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-neutral-900">
-                Choose Sign In Type
-              </h2>
-              <p className="text-sm text-neutral-500">
-                Select how you would like to sign in to continue.
-              </p>
+            <div className="flex items-start gap-4 w-full">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pup-maroon text-white">
+                <User className="h-6 w-6" />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="font-semibold text-neutral-900">
+                  Sign in as User
+                </h3>
+                <p className="mt-1 text-sm text-neutral-500 font-normal">
+                  Access your personal account and library
+                </p>
+              </div>
             </div>
+          </Button>
 
-            <div className="space-y-3">
-              {/* User Sign In Button */}
-              <button
-                onClick={handleUserSignIn}
-                className="w-full rounded-xl border-2 border-neutral-200 bg-white p-6 text-left transition hover:border-pup-maroon hover:bg-neutral-50"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pup-maroon text-white">
-                    <User />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-neutral-900">
-                      Sign in as User
-                    </h3>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Access your personal account and library
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Admin Sign In Button */}
-              <button
-                onClick={handleAdminSignIn}
-                className="w-full rounded-xl border-2 border-neutral-200 bg-white p-6 text-left transition hover:border-pup-maroon hover:bg-neutral-50"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pup-maroon text-white">
-                    <Users />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-neutral-900">
-                      Sign in as Admin
-                    </h3>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Access the administrative dashboard
-                    </p>
-                  </div>
-                </div>
-              </button>
+          {/* Admin Sign In Button */}
+          <Button
+            onClick={handleAdminSignIn}
+            variant="outline"
+            className="w-full h-auto rounded-xl border-2 p-6 text-left hover:border-pup-maroon hover:bg-neutral-50"
+          >
+            <div className="flex items-start gap-4 w-full">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pup-maroon text-white">
+                <Users className="h-6 w-6" />
+              </div>
+              <div className="flex-1 text-left">
+                <h3 className="font-semibold text-neutral-900">
+                  Sign in as Admin
+                </h3>
+                <p className="mt-1 text-sm text-neutral-500 font-normal">
+                  Access the administrative dashboard
+                </p>
+              </div>
             </div>
-          </div>
+          </Button>
         </div>
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   )
 }

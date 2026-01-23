@@ -8,6 +8,7 @@ import { SearchBar } from '@/components/search-bar'
 import { SearchResultCard } from '@/components/search-result-card'
 import { SearchResultSkeletonList } from '@/components/search-result-skeleton'
 import { SortDropdown } from '@/components/sort-dropdown'
+import { Button } from '@/components/ui/button'
 import {
   Pagination,
   PaginationContent,
@@ -17,7 +18,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { courses } from '@/data/collegeCourses'
+import { Filter } from 'lucide-react'
 
 type SearchResult = {
   id: number
@@ -51,6 +61,11 @@ function BrowsePageContent() {
   const [sortBy, setSortBy] = useState<
     'Newest to Oldest' | 'Oldest to Newest' | 'Title A-Z' | 'Title Z-A'
   >('Newest to Oldest')
+
+  // Calculate active filter count
+  const activeFilterCount = Object.values(filters).filter(
+    (value) => !value.startsWith('All') && value !== 'Anytime',
+  ).length
 
   // Use static course data instead of fetching from API
   const courseOptions = courses.map((c) => c.courseName)
@@ -238,8 +253,8 @@ function BrowsePageContent() {
         {/* Main Content with Filters and Results */}
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col gap-10 lg:gap-20 lg:flex-row">
-            {/* Left Sidebar - Filters */}
-            <aside className="w-full lg:w-64 md:w-72 lg:shrink-0 lg:pl-0 md:pl-0">
+            {/* Left Sidebar - Filters (Desktop only) */}
+            <aside className="hidden lg:block w-full lg:w-64 lg:shrink-0">
               <div className="sticky top-8">
                 <FilterBox
                   variant="sidebar"
@@ -253,13 +268,51 @@ function BrowsePageContent() {
             </aside>
 
             {/* Right Content - Results */}
-            <div className="flex-1 min-w-0 pr-6 md:pr-8">
+            <div className="flex-1 min-w-0 px-4 md:pr-8">
               {/* Results Header */}
               <div className="flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-4 md:flex-row md:items-center">
-                <p className="text-sm text-gray-600">
-                  Showing {startResult}-{endResult} of{' '}
-                  {totalResults.toLocaleString()} results
-                </p>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Showing {startResult}-{endResult} of{' '}
+                    {totalResults.toLocaleString()} results
+                  </p>
+                  {/* Mobile Filter Button */}
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="lg:hidden ml-auto min-h-[40px] touch-manipulation"
+                      >
+                        <Filter className="h-4 w-4 mr-2" />
+                        <span className="hidden xs:inline">Filters</span>
+                        {activeFilterCount > 0 && (
+                          <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-pup-maroon text-xs text-white">
+                            {activeFilterCount}
+                          </span>
+                        )}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                      <SheetHeader>
+                        <SheetTitle>Filters</SheetTitle>
+                        <SheetDescription>
+                          Filter publications by course, year, and document type
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="mt-6">
+                        <FilterBox
+                          variant="sidebar"
+                          courseOptions={courseOptions}
+                          defaultExpanded
+                          onChange={(next) => {
+                            setFilters(next)
+                          }}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
                 <SortDropdown value={sortBy} onChange={setSortBy} />
               </div>
 
