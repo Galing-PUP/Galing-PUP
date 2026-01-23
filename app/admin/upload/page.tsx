@@ -92,7 +92,7 @@ export default function Upload() {
           })
         } catch (err) {
           console.error('Ingestion error:', err)
-          toast.error('AI Processing notification error', { id: toastId })
+          toast.error(`AI Processing notification error:  ${err}`, { id: toastId })
         }
       }
 
