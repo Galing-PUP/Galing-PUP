@@ -49,27 +49,33 @@ export default function PricingCardsClient({
         <PremiumMemberView premiumTierFeatures={premiumTierFeatures} />
       ) : (
         <>
-          <PricingCard
-            title="Free Tier"
-            price={0}
-            currency="₱"
-            duration="/forever"
-            description="Perfect for casual research and browsing"
-            features={freeTierFeatures}
-            buttonText={isAuthenticated ? 'Current plan' : 'Get Started Free'}
-            buttonColor="bg-gray-900 hover:bg-gray-800"
-            accentColor="text-green-600"
-            disabled={isAuthenticated && !isPremiumUser}
-            onButtonClick={handleFreeCTA}
-          />
+          <div className="flex flex-col md:flex-row items-stretch justify-center gap-6 md:gap-8 max-w-5xl mx-auto">
+            <div className="flex-1 max-w-md mx-auto md:mx-0 w-full">
+              <PricingCard
+                title="Free Tier"
+                price={0}
+                currency="₱"
+                duration="/forever"
+                description="Perfect for casual research and browsing"
+                features={freeTierFeatures}
+                buttonText={isAuthenticated ? 'Current plan' : 'Get Started Free'}
+                buttonColor="bg-gray-900 hover:bg-gray-800"
+                accentColor="text-green-600"
+                disabled={isAuthenticated && !isPremiumUser}
+                onButtonClick={handleFreeCTA}
+              />
+            </div>
 
-          <PricingClientWrapper
-            isPremiumUser={isPremiumUser}
-            isAuthenticated={isAuthenticated}
-            premiumTierFeatures={premiumTierFeatures}
-            onUnauthenticated={handlePremiumUnauth}
-            showButton={true}
-          />
+            <div className="flex-1 max-w-md mx-auto md:mx-0 w-full">
+              <PricingClientWrapper
+                isPremiumUser={isPremiumUser}
+                isAuthenticated={isAuthenticated}
+                premiumTierFeatures={premiumTierFeatures}
+                onUnauthenticated={handlePremiumUnauth}
+                showButton={true}
+              />
+            </div>
+          </div>
 
           <SignupPromptModal isOpen={showSignIn} onClose={closeSignIn} />
         </>

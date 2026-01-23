@@ -44,23 +44,23 @@ export default async function PricingPage() {
     <div className="min-h-screen">
       <main>
         {!isPremiumUser && (
-          <section className="flex flex-col items-center justify-center space-y-6 bg-pup-maroon py-8 text-white">
-            <span className="bg-white/20 rounded-full px-3 py-1 flex items-center gap-2">
+          <section className="flex flex-col items-center justify-center space-y-4 sm:space-y-6 bg-pup-maroon py-8 sm:py-12 px-4 text-white">
+            <span className="bg-white/20 rounded-full px-3 py-1 flex items-center gap-2 text-sm sm:text-base">
               <Crown className="text-pup-gold-light w-4 h-4" /> Choose your plan
             </span>
-            <h2 className="font-extrabold text-3xl text-white">
+            <h2 className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-white text-center">
               Subscription Plans
             </h2>
-            <div className="text-center">
-              <p>
+            <div className="text-center max-w-2xl">
+              <p className="text-sm sm:text-base">
                 Start with our free tier or unlock unlimited access with Premium.
               </p>
-              <p>Choose the plan that fits your research needs.</p>
+              <p className="text-sm sm:text-base">Choose the plan that fits your research needs.</p>
             </div>
           </section>
         )}
         {/* Pricing Cards Grid / Premium View */}
-        <section className={!isPremiumUser ? "flex items-center justify-center gap-8 py-16 bg-white" : ""}>
+        <section className={!isPremiumUser ? "py-8 sm:py-12 md:py-16 px-4 bg-white" : ""}>
           <PricingCardsClient
             isAuthenticated={isAuthenticated}
             isPremiumUser={isPremiumUser}
@@ -71,14 +71,14 @@ export default async function PricingPage() {
 
         {!isPremiumUser && (
           <>
-            <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-10 gap-y-4">
-              <h2 className="font-extrabold text-3xl">Why Go Premium?</h2>
-              <p>
+            <section className="flex flex-col items-center justify-center bg-slate-100 text-black py-8 sm:py-12 md:py-16 px-4 gap-y-6">
+              <h2 className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-center">Why Go Premium?</h2>
+              <p className="text-center max-w-2xl text-sm sm:text-base px-4">
                 Unlock the full potential of GALING PUP with Premium features
                 designed for serious researchers
               </p>
               {/* Grid for benefits cards */}
-              <div className="flex items-center justify-center gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full max-w-6xl px-4">
                 <BenefitCard
                   icon={<Download className="w-8 h-8" />}
                   title="Unlimited Access"
@@ -97,12 +97,12 @@ export default async function PricingPage() {
               </div>
             </section>
 
-            <section className="flex flex-col items-center justify-center bg-white text-black py-10 gap-y-4">
-              <h2 className="font-extrabold text-3xl">
+            <section className="flex flex-col items-center justify-center bg-white text-black py-8 sm:py-12 md:py-16 px-4 gap-y-6">
+              <h2 className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-center">
                 Frequently Asked Questions
               </h2>
 
-              <div className="w-full max-w-4xl space-y-6">
+              <div className="w-full max-w-4xl space-y-4 sm:space-y-6 px-4">
                 <FAQCard
                   question="What payment methods do you accept?"
                   answer="We accept credit cards, debit cards, and GCash for Premium subscriptions."
@@ -118,10 +118,10 @@ export default async function PricingPage() {
               </div>
             </section>
 
-            <section className="flex flex-col items-center justify-center bg-pup-maroon text-white py-10 gap-y-4">
-              <Crown className="text-pup-gold-light w-10 h-10" />
-              <h2 className="text-3xl">Ready to Upgrade?</h2>
-              <p>
+            <section className="flex flex-col items-center justify-center bg-pup-maroon text-white py-8 sm:py-12 md:py-16 px-4 gap-y-4">
+              <Crown className="text-pup-gold-light w-8 h-8 sm:w-10 sm:h-10" />
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center">Ready to Upgrade?</h2>
+              <p className="text-center max-w-2xl text-sm sm:text-base px-4">
                 Join hundreds of Premium members enjoying unlimited access to
                 academic resources
               </p>

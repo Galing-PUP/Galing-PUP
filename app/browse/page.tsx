@@ -273,7 +273,7 @@ function BrowsePageContent() {
               {/* Results Header */}
               <div className="flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Showing {startResult}-{endResult} of{' '}
                     {totalResults.toLocaleString()} results
                   </p>
@@ -283,10 +283,10 @@ function BrowsePageContent() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="lg:hidden ml-auto"
+                        className="lg:hidden ml-auto min-h-[40px] touch-manipulation"
                       >
                         <Filter className="h-4 w-4 mr-2" />
-                        Filters
+                        <span className="hidden xs:inline">Filters</span>
                         {activeFilterCount > 0 && (
                           <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-pup-maroon text-xs text-white">
                             {activeFilterCount}

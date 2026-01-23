@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -217,10 +218,12 @@ export function Header({
             <Image
               src={LogoDefault}
               alt="Galing PUP logo"
-              className="h-7 w-auto sm:h-8 md:h-9"
+              className="h-7 w-auto sm:h-8 md:h-9 object-contain"
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               priority
+              width={120}
+              height={36}
             />
           </Link>
 
@@ -334,11 +337,14 @@ export function Header({
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-75 sm:w-100">
-                <SheetHeader>
+              <SheetContent side="right" className="w-75 sm:w-100 flex flex-col">
+                <SheetHeader className="px-2">
                   <SheetTitle className="text-left">Menu</SheetTitle>
+                  <SheetDescription className="text-left">
+                    Navigate through the application
+                  </SheetDescription>
                 </SheetHeader>
-                <nav className="flex flex-col mt-6 space-y-1">
+                <nav className="flex flex-col mt-6 space-y-2 px-2 flex-1">
                   {/* Navigation Links */}
                   {navItems.map((item) => {
                     const isActive = activeLookup.get(item.href)
@@ -360,20 +366,20 @@ export function Header({
                   })}
 
                   {/* Divider */}
-                  <div className="py-3">
+                  <div className="py-4">
                     <div className="h-px bg-neutral-200" />
                   </div>
 
                   {/* User Section */}
                   {user ? (
-                    <div className="space-y-2">
+                    <div className="space-y-3 mt-auto">
                       {/* User Info */}
-                      <div className="flex items-center gap-3 px-4 py-3">
-                        <div className="h-12 w-12 rounded-full bg-pup-maroon text-white flex items-center justify-center text-base font-bold">
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-neutral-50">
+                        <div className="h-12 w-12 shrink-0 rounded-full bg-pup-maroon text-white flex items-center justify-center text-base font-bold">
                           {getInitials(user.username)}
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-base font-semibold text-neutral-900">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-base font-semibold text-neutral-900 truncate">
                             {user.username}
                           </span>
                           <span className="text-sm text-neutral-500 font-medium">
@@ -385,7 +391,7 @@ export function Header({
                       {/* User Actions */}
                       <Button
                         variant="ghost"
-                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-gray-700"
+                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-gray-700 hover:bg-neutral-100"
                         onClick={() => {
                           setIsPreferencesOpen(true)
                           setIsMobileMenuOpen(false)
@@ -395,7 +401,7 @@ export function Header({
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-pup-maroon disabled:opacity-50"
+                        className="w-full justify-start px-4 py-3 h-auto text-base font-medium text-pup-maroon hover:bg-red-50 disabled:opacity-50"
                         onClick={handleSignOut}
                         disabled={isSigningOut}
                       >
@@ -410,10 +416,10 @@ export function Header({
                       </Button>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3 mt-auto">
                       <Button
-                        variant="ghost"
-                        className="w-full justify-center gap-2 px-4 py-3 h-auto text-base font-bold text-pup-maroon"
+                        variant="outline"
+                        className="w-full justify-center gap-2 px-4 py-3 h-auto text-base font-semibold text-pup-maroon border-pup-maroon/30 hover:bg-pup-maroon/5"
                         onClick={() => {
                           setIsSignInModalOpen(true)
                           setIsMobileMenuOpen(false)
@@ -424,7 +430,7 @@ export function Header({
                       </Button>
                       <Link
                         href={primaryAction.href}
-                        className="block w-full text-center rounded-lg bg-pup-maroon px-4 py-3 text-base font-semibold text-white hover:bg-pup-maroon/80 transition-colors duration-200"
+                        className="block w-full text-center rounded-lg bg-pup-maroon px-4 py-3 text-base font-semibold text-white hover:bg-pup-maroon/90 transition-colors duration-200 active:scale-98"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {primaryAction.label}

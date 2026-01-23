@@ -99,8 +99,8 @@ export default async function PaperPage(props: PaperPageProps) {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-12">
           {/* Left Column */}
           <div className="flex w-full flex-col space-y-8 lg:w-2/3">
             {/* Paper Title info*/}

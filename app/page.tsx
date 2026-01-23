@@ -80,17 +80,19 @@ export default function Home() {
   return (
     <>
       <div className="relative min-h-screen bg-white">
-        <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pt-20 pb-10 md:pt-24 md:pb-12">
+        <section className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 pt-16 pb-8 sm:px-6 md:pt-24 md:pb-12">
           <Image
             src={LogoDefault}
             alt="Galing PUP"
             priority
-            className="h-32 w-auto md:h-40"
+            className="h-28 w-auto sm:h-32 md:h-40 object-contain"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
+            width={200}
+            height={160}
           />
 
-          <div className="w-full max-w-6xl mt-10">
+          <div className="w-full max-w-6xl mt-8 sm:mt-10">
             <SearchBar
               className="w-full"
               size="md"
@@ -117,15 +119,15 @@ export default function Home() {
 
           <button
             type="button"
-            className="mt-8 rounded-full bg-pup-maroon px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-pup-maroon/80"
+            className="mt-6 sm:mt-8 rounded-full bg-pup-maroon px-6 py-3 text-sm sm:text-base font-semibold text-white transition-colors hover:bg-pup-maroon/80 active:scale-95"
             onClick={() => {
               // Go to the main search results page showing all studies
               router.push('/browse')
             }}
           >
-            <span className="inline-flex items-center gap-2 pl-2">
+            <span className="inline-flex items-center gap-2">
               Explore All Studies
-              <ChevronRight />
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
           </button>
         </section>
