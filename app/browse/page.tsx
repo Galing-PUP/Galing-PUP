@@ -260,6 +260,7 @@ function BrowsePageContent() {
                   variant="sidebar"
                   courseOptions={courseOptions}
                   defaultExpanded
+                  value={filters}
                   onChange={(next) => {
                     setFilters(next)
                   }}
@@ -282,7 +283,7 @@ function BrowsePageContent() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="lg:hidden ml-auto min-h-[40px] touch-manipulation"
+                        className="lg:hidden ml-auto min-h-10 touch-manipulation"
                       >
                         <Filter className="h-4 w-4 mr-2" />
                         <span className="hidden xs:inline">Filters</span>
@@ -293,7 +294,7 @@ function BrowsePageContent() {
                         )}
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                    <SheetContent side="left" className="w-75 sm:w-100">
                       <SheetHeader>
                         <SheetTitle>Filters</SheetTitle>
                         <SheetDescription>
@@ -305,6 +306,7 @@ function BrowsePageContent() {
                           variant="sidebar"
                           courseOptions={courseOptions}
                           defaultExpanded
+                          value={filters}
                           onChange={(next) => {
                             setFilters(next)
                           }}
