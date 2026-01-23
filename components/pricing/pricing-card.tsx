@@ -112,7 +112,7 @@ export function PricingCard({
       </div>
 
       {/* CTA Button (optional) */}
-      {showButton ?? true ? (
+      {(showButton ?? true) ? (
         <button
           onClick={() => {
             if (onButtonClick) return onButtonClick()

@@ -46,17 +46,18 @@ model SubscriptionTier {
 }
 
 model Document {
-  id             Int           @id @default(autoincrement()) @map("document_id")
-  title          String        @unique @db.Text
-  abstract       String        @db.Text
-  filePath       String        @map("file_path") @db.Text
-  submissionDate DateTime?     @map("submission_date") @db.Date
-  datePublished  DateTime?     @map("date_published") @db.Date
-  status         DocStatus     @default(PENDING)
-  resourceType   ResourceTypes @default(THESIS) @map("resource_type")
-  downloadsCount Int           @default(0) @map("downloads_count")
-  citationCount  Int           @default(0) @map("citation_count")
-  aiSummary      String?       @map("ai_summary") @db.Text
+  id             Int                      @id @default(autoincrement()) @map("document_id")
+  title          String                   @unique @db.Text
+  abstract       String                   @db.Text
+  filePath       String                   @map("file_path") @db.Text
+  submissionDate DateTime?                @map("submission_date") @db.Date
+  datePublished  DateTime?                @map("date_published") @db.Date
+  status         DocStatus                @default(PENDING)
+  resourceType   ResourceTypes            @default(THESIS) @map("resource_type")
+  downloadsCount Int                      @default(0) @map("downloads_count")
+  citationCount  Int                      @default(0) @map("citation_count")
+  aiSummary      String?                  @map("ai_summary") @db.Text
+  search_vector  Unsupported("tsvector")? @map("search_vector") // Generated column for FTS
 
   // File Metadata
   originalFileName String? @map("original_file_name") @db.Text
@@ -190,7 +191,7 @@ model DocumentChunk {
   content String @db.Text
   phrase  String @db.Text
 
-  embedding Unsupported("vector(384)")?
+  embedding Unsupported("vector(768)")?
 
   pageStart Int     @map("page_start")
   pageEnd   Int     @map("page_end")

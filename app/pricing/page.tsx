@@ -53,14 +53,21 @@ export default async function PricingPage() {
             </h2>
             <div className="text-center">
               <p>
-                Start with our free tier or unlock unlimited access with Premium.
+                Start with our free tier or unlock unlimited access with
+                Premium.
               </p>
               <p>Choose the plan that fits your research needs.</p>
             </div>
           </section>
         )}
         {/* Pricing Cards Grid / Premium View */}
-        <section className={!isPremiumUser ? "flex items-center justify-center gap-8 py-16 bg-white" : ""}>
+        <section
+          className={
+            !isPremiumUser
+              ? 'flex items-center justify-center gap-8 py-16 bg-white'
+              : ''
+          }
+        >
           <PricingCardsClient
             isAuthenticated={isAuthenticated}
             isPremiumUser={isPremiumUser}

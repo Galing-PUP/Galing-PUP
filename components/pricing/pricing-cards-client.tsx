@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import PremiumMemberView from './PremiumMemberView'
 import { PricingCard } from './pricing-card'
 import { PricingClientWrapper } from './pricing-client-wrapper'
 import SignupPromptModal from './SignupPromptModal'
-import PremiumMemberView from './PremiumMemberView'
 
 interface PricingFeature {
   name: string
