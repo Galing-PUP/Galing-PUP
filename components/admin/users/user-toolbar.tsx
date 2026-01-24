@@ -40,6 +40,7 @@ export function UserToolbar({
           value={searchQuery}
           onChange={onSearchChange}
           onSubmit={() => {}}
+          showSuggestions={false}
         />
       </div>
       <FilterDropdown
