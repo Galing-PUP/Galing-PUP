@@ -99,6 +99,8 @@ export async function POST(req: NextRequest) {
 
           // Check if re-generation is needed
           // If hash matches matches and aiSummary exists, skip
+          // Check if re-generation is needed
+          // If hash matches matches and aiSummary exists, skip
           if (document.fileHash === hexHash && document.aiSummary) {
             sendUpdate(
               'complete',

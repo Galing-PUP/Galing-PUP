@@ -1,17 +1,10 @@
-import path from 'path'
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { pathToFileURL } from 'url'
+// Use standard build
+// @ts-ignore
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.min.mjs'
 import './polyfill'
 
-// Disable worker for server-side usage
-// Convert absolute path to file:// URL for cross-platform compatibility
-// @ts-ignore
-pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
-  path.join(
-    process.cwd(),
-    'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
-  ),
-).href
+// Standard build in Node 18+ uses worker_threads automatically
+// No manual workerSrc config needed
 
 export interface PageContent {
   pageNumber: number
@@ -28,6 +21,7 @@ export async function extractTextFromPdf(
   // Convert standard Buffer to Uint8Array if needed
   const data = new Uint8Array(buffer)
 
+  /* console.log('Starting PDF extraction with buffer size:', data.length) */
   const loadingTask = pdfjsLib.getDocument({
     data,
     useSystemFonts: true, // Avoid font loading errors
@@ -35,6 +29,7 @@ export async function extractTextFromPdf(
   })
 
   const pdfDocument = await loadingTask.promise
+  // console.log('PDF Document loaded. Pages:', pdfDocument.numPages)
   const numPages = pdfDocument.numPages
   const pages: PageContent[] = []
 
