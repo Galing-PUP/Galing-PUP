@@ -1,10 +1,10 @@
-const nextConfig: any = {
+import { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
   /* config options here */
   serverExternalPackages: ['pdfjs-dist'],
-  experimental: {
-    outputFileTracingIncludes: {
-      '/api/admin/ingest': ['./node_modules/pdfjs-dist/build/**/*'],
-    },
+  outputFileTracingIncludes: {
+    '/api/admin/ingest': ['./node_modules/pdfjs-dist/build/**/*'],
   },
   compiler: {
     removeConsole: {

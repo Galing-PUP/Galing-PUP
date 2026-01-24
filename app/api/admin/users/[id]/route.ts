@@ -1,3 +1,4 @@
+import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email/service'
 import { prisma } from '@/lib/db'
 import { RoleName, UserStatus } from '@/lib/generated/prisma/enums'
 import { supabaseAdmin } from '@/lib/supabase/admin'
@@ -176,6 +177,18 @@ export async function PATCH(
     const password = formData.get('password') as string
     const file = formData.get('idImage') as File | null
 
+    // Get the previous status before update
+    const currentUser = await prisma.user.findUnique({
+      where: { id },
+      select: { status: true, email: true, idImagePath: true },
+    })
+
+    if (!currentUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    const previousStatus = currentUser.status
+
     // Resolve Role from string to enum
     let roleEnum: RoleName = RoleName.REGISTERED // Default
     if (role === 'ADMIN') roleEnum = RoleName.ADMIN
@@ -203,12 +216,6 @@ export async function PATCH(
       const ID_UPLOAD_BUCKET = 'ID_UPLOAD'
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}_${name.replace(/\s+/g, '_')}.${fileExt}`
-
-      // Check if user has an existing uploaded image
-      const currentUser = await prisma.user.findUnique({
-        where: { id },
-        select: { idImagePath: true },
-      })
 
       const { data: uploadData, error: uploadError } =
         await supabaseAdmin.storage
@@ -274,6 +281,28 @@ export async function PATCH(
       where: { id },
       data: updateData,
     })
+
+    // Send email notification if status changed from PENDING to APPROVED or DELETED
+    const newStatus = updateData.status
+    if (previousStatus === UserStatus.PENDING) {
+      if (newStatus === UserStatus.APPROVED) {
+        // Send approval email
+        try {
+          await sendApprovalEmail(updatedUser.email)
+        } catch (emailError) {
+          console.error('Failed to send approval email:', emailError)
+          // Continue even if email fails - the status update was successful
+        }
+      } else if (newStatus === UserStatus.DELETED) {
+        // Send rejection email
+        try {
+          await sendRejectionEmail(updatedUser.email)
+        } catch (emailError) {
+          console.error('Failed to send rejection email:', emailError)
+          // Continue even if email fails - the status update was successful
+        }
+      }
+    }
 
     return NextResponse.json({
       id: updatedUser.id.toString(),
