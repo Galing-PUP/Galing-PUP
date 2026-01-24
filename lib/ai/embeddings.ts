@@ -35,12 +35,12 @@ async function generateGeminiEmbeddings(texts: string[]): Promise<number[][]> {
 
   const embedGemini = async (
     text: string,
-    retries = 3,
-    delay = 2000,
+    retries = 5,
+    delay = 1000,
   ): Promise<number[]> => {
     try {
       // Add a small delay before every request to be a good citizen and avoid burst limits
-      await wait(1000)
+      await wait(500)
 
       const result = await genAI.models.embedContent({
         model: MODEL,
