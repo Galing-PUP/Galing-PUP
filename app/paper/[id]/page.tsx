@@ -8,10 +8,11 @@ import { Keywords } from '@/components/paper/keywords'
 import { PdfController } from '@/components/paper/pdf-controller'
 import { ReferencePanel } from '@/components/paper/reference-panel'
 import { prisma } from '@/lib/db'
+import { DocStatus } from '@/lib/generated/prisma/enums'
 import { encryptId } from '@/lib/obfuscation'
 import { createClient } from '@/lib/supabase/server'
 import { formatResourceType } from '@/lib/utils/format'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 type PaperPageProps = {
   params: Promise<{
@@ -70,6 +71,14 @@ export default async function PaperPage(props: PaperPageProps) {
 
   if (!document) {
     notFound()
+  }
+
+  // Part C: Document Status Guard
+  if (
+    document.status === DocStatus.PENDING ||
+    document.status === DocStatus.DELETED
+  ) {
+    redirect('/error/410')
   }
 
   // Extract data from document

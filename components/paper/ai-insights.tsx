@@ -34,7 +34,11 @@ export function AiInsights({ documentId }: AiInsightsProps) {
     async function fetchSummary() {
       try {
         setLoading(true)
-        const res = await fetch(`/api/ai/summary/${documentId}`)
+        const res = await fetch(`/api/ai/summary/${documentId}`, {
+          headers: {
+            'X-Internal-Secret': 'pup-internal-lock', // Simple secret for internal use
+          },
+        })
 
         if (res.status === 403) {
           setIsLocked(true)

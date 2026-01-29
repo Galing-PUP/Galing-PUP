@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { DocStatus } from '@/lib/generated/prisma/enums'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -11,6 +12,12 @@ export async function GET(
 
   if (isNaN(documentId)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
+  }
+
+  // Part D: Origin Lock
+  const secretHeader = req.headers.get('X-Internal-Secret')
+  if (secretHeader !== 'pup-internal-lock') {
+    return new NextResponse(null, { status: 418 }) // I'm a teapot
   }
 
   const supabase = await createClient()
@@ -48,11 +55,19 @@ export async function GET(
   // Fetch Document Summary
   const document = await prisma.document.findUnique({
     where: { id: documentId },
-    select: { aiSummary: true },
+    select: { aiSummary: true, status: true },
   })
 
   if (!document) {
     return NextResponse.json({ error: 'Document not found' }, { status: 404 })
+  }
+
+  // Part C: Document Status Guard
+  if (
+    document.status === DocStatus.PENDING ||
+    document.status === DocStatus.DELETED
+  ) {
+    return new NextResponse(null, { status: 410, statusText: 'Gone' })
   }
 
   return NextResponse.json({ summary: document.aiSummary })
