@@ -4,6 +4,7 @@ import { PublicationForm } from '@/components/admin/publications/publication-for
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getCurrentUser } from '@/lib/actions'
 import { type PublicationFormData } from '@/lib/validations/publication-schema'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -20,6 +21,23 @@ export default function Edit() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser()
+        if (user) {
+          setCurrentUserRole(user.role)
+        }
+      } catch (err) {
+        console.error('Failed to fetch user', err)
+      }
+    }
+    fetchUser()
+  }, [])
 
   // Fetch existing document data from API
   useEffect(() => {
@@ -48,6 +66,10 @@ export default function Edit() {
             filePath: data.filePath,
             documentToken: data.documentToken,
           })
+
+          if (data.aiSummary) {
+            setAiSummary(data.aiSummary)
+          }
 
           setIsLoading(false)
         } catch (error) {
@@ -240,6 +262,10 @@ export default function Edit() {
           existingFilePath={initialData.filePath || undefined}
           documentId={Number(documentId)}
           documentToken={initialData.documentToken}
+          aiSummary={aiSummary}
+          canRegenerate={
+            currentUserRole === 'OWNER' || currentUserRole === 'SUPERADMIN'
+          }
         />
       )}
     </div>
