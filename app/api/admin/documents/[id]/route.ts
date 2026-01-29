@@ -101,6 +101,7 @@ export async function GET(req: NextRequest, props: RouteParams) {
       submissionDate:
         document.submissionDate?.toISOString().split('T')[0] || '',
       documentToken: encryptId(document.id, adminUserId),
+      aiSummary: document.aiSummary,
       authors: document.authors.map((da: any) => ({
         firstName: da.author.firstName,
         middleName: da.author.middleName || '',

@@ -1,5 +1,6 @@
 'use client'
 
+import { AiSummarySection } from '@/components/admin/publications/form-sections/ai-summary-section'
 import { AuthorsSection } from '@/components/admin/publications/form-sections/authors-section'
 import { BasicInfoSection } from '@/components/admin/publications/form-sections/basic-info'
 import { FileSection } from '@/components/admin/publications/form-sections/file-section'
@@ -25,6 +26,8 @@ interface PublicationFormProps {
   existingFilePath?: string
   documentId?: number
   documentToken?: string
+  aiSummary?: string | null
+  canRegenerate?: boolean
 }
 
 /**
@@ -45,6 +48,8 @@ export function PublicationForm({
   existingFilePath,
   documentId,
   documentToken,
+  aiSummary,
+  canRegenerate = false,
 }: PublicationFormProps) {
   const [formData, setFormData] = useState<PublicationFormData>({
     title: initialData?.title || '',
@@ -107,6 +112,15 @@ export function PublicationForm({
         setFormData={setFormData}
         errors={errors}
       />
+
+      {/* AI Summary Section */}
+      {documentId && (
+        <AiSummarySection
+          summary={aiSummary || null}
+          documentId={documentId}
+          canRegenerate={canRegenerate}
+        />
+      )}
 
       {/* Section 2: Authorship */}
       <AuthorsSection
